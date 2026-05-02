@@ -96,4 +96,6 @@ CREATE TABLE IF NOT EXISTS weighbridge_adjustment_requests (
 CREATE INDEX IF NOT EXISTS wba_ticket_id_idx ON weighbridge_adjustment_requests(ticket_id);
 CREATE INDEX IF NOT EXISTS wba_mission_id_idx ON weighbridge_adjustment_requests(mission_id);
 
+-- Next: apply 003_schema_p0_payment_lifecycle.sql for snapshots, hourly FKs, settlement lifecycle, payment_payouts.
+
 COMMIT;

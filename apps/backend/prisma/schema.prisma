@@ -74,6 +74,13 @@ enum SettlementBatchStatus {
   CANCELLED
 }
 
+enum PaymentPayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 enum WeighbridgeAdjustmentStatus {
   PENDING
   APPROVED
@@ -103,6 +110,7 @@ model users {
   households  households?
   drivers     drivers?
   fleet_owners fleet_owners?
+  consultant_hourly_logs hourly_work_logs[] @relation("HourlyLogConsultant")
 }
 
 model mines {
@@ -133,6 +141,7 @@ model rate_cards {
   missions missions[]
 
   @@index([mine_id])
+  @@index([mine_id, material_type])
 }
 
 model villages {
@@ -165,6 +174,7 @@ model households {
   village villages @relation(fields: [village_id], references: [id])
   loads   loads[]
   wallets wallets[]
+  hourly_work_logs hourly_work_logs[]
 }
 
 model fleet_owners {
@@ -240,6 +250,7 @@ model missions {
   completed_at DateTime?
   rate_card_id BigInt?
   rate_per_ton_snapshot Decimal? @db.Decimal(15, 4)
+  material_type_snapshot String?
   payment_state MissionPaymentState @default(PENDING)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -312,6 +323,7 @@ model hourly_work_logs {
   mine_id              BigInt
   fleet_owner_id       BigInt
   vehicle_id           BigInt?
+  household_id         BigInt?
   hours                Decimal  @db.Decimal(10, 2)
   hourly_rate_snapshot Decimal  @db.Decimal(15, 4)
   status               HourlyWorkLogStatus @default(PENDING)
@@ -323,9 +335,15 @@ model hourly_work_logs {
   mine  mines        @relation(fields: [mine_id], references: [id])
   owner fleet_owners @relation(fields: [fleet_owner_id], references: [id])
   vehicle vehicles?  @relation(fields: [vehicle_id], references: [id])
+  household households? @relation(fields: [household_id], references: [id])
+  consultant users? @relation("HourlyLogConsultant", fields: [consultant_user_id], references: [id])
+
+  settlement_lines settlement_lines[]
 
   @@index([mine_id])
   @@index([fleet_owner_id])
+  @@index([household_id])
+  @@index([consultant_user_id])
 }
 
 model settlement_batches {
@@ -335,27 +353,52 @@ model settlement_batches {
   period_end         DateTime
   status             SettlementBatchStatus @default(DRAFT)
   created_by_user_id BigInt?
+  locked_at          DateTime?
+  paid_at            DateTime?
+  cancelled_at       DateTime?
+  payment_reference  String?
   created_at         DateTime             @default(now())
+  updated_at         DateTime             @updatedAt
 
-  mine  mines?             @relation(fields: [mine_id], references: [id])
-  lines settlement_lines[]
+  mine             mines?             @relation(fields: [mine_id], references: [id])
+  lines            settlement_lines[]
+  payment_payout   payment_payouts?
 
   @@index([mine_id])
 }
 
 model settlement_lines {
-  id         BigInt  @id @default(autoincrement())
-  batch_id   BigInt
-  wallet_id  BigInt
-  amount     Decimal @db.Decimal(15, 2)
-  mission_id BigInt?
-  note       String?
+  id                 BigInt  @id @default(autoincrement())
+  batch_id           BigInt
+  wallet_id          BigInt
+  amount             Decimal @db.Decimal(15, 2)
+  mission_id         BigInt?
+  hourly_work_log_id BigInt?
+  note               String?
 
-  batch   settlement_batches @relation(fields: [batch_id], references: [id], onDelete: Cascade)
-  wallet  wallets           @relation(fields: [wallet_id], references: [id])
-  mission missions?         @relation(fields: [mission_id], references: [id])
+  batch           settlement_batches @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  wallet          wallets           @relation(fields: [wallet_id], references: [id])
+  mission         missions?         @relation(fields: [mission_id], references: [id])
+  hourly_work_log hourly_work_logs? @relation(fields: [hourly_work_log_id], references: [id])
 
   @@index([batch_id])
+  @@index([hourly_work_log_id])
+}
+
+model payment_payouts {
+  id                  BigInt              @id @default(autoincrement())
+  settlement_batch_id BigInt              @unique
+  status              PaymentPayoutStatus @default(PENDING)
+  initiated_at        DateTime?
+  completed_at        DateTime?
+  bank_reference      String?
+  failure_reason      String?
+  created_at          DateTime            @default(now())
+  updated_at          DateTime            @updatedAt
+
+  settlement_batch settlement_batches @relation(fields: [settlement_batch_id], references: [id], onDelete: Cascade)
+
+  @@index([status])
 }
 
 model weighbridge_adjustment_requests {
