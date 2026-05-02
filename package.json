@@ -1,0 +1,13 @@
+{
+  "name": "mineral-haul-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm -w @app/backend run dev",
+    "dev:web": "npm -w @app/web run dev",
+    "build": "npm -ws run build",
+    "lint": "npm -ws run lint"
+  }
+}

@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  COOP
+  EMPLOYER
+  DRIVER
+  FLEET_OWNER
+  HOUSEHOLD
+  CONSULTANT
+}
+
+enum HouseholdStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+  NEEDS_CORRECTION
+}
+
+enum LoadStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  CANCELED
+}
+
+enum MissionStatus {
+  ASSIGNED
+  LOADING
+  ON_THE_WAY
+  UNLOADING
+  COMPLETED
+  APPROVED
+  REJECTED
+  CANCELED
+}
+
+enum WeighbridgeTicketStatus {
+  PENDING_EMPTY
+  EMPTY_REGISTERED
+  LOADED_REGISTERED
+  APPROVED
+  REJECTED
+  ADJUSTED
+}
+
+enum WalletType {
+  OWNER
+  HOUSEHOLD
+  PLATFORM
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+model users {
+  id            BigInt @id @default(autoincrement())
+  mobile_number String @unique
+  password_hash String
+  role          UserRole
+  is_active     Boolean @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+model mines {
+  id                     BigInt @id @default(autoincrement())
+  mine_code              String @unique
+  name                    String
+  location_coordinates    String?
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+}
+
+model villages {
+  id         BigInt @id @default(autoincrement())
+  mine_id    BigInt
+  name       String
+  district   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  mine mines @relation(fields: [mine_id], references: [id])
+
+  @@index([mine_id])
+}
+
+model households {
+  id          BigInt @id @default(autoincrement())
+  user_id     BigInt @unique
+  village_id  BigInt
+  head_name   String
+  national_id String @unique
+  bank_iban   String?
+  quota_limit Int?
+  status      HouseholdStatus @default(PENDING)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user    users @relation(fields: [user_id], references: [id])
+  village villages @relation(fields: [village_id], references: [id])
+}
+
+model fleet_owners {
+  id          BigInt @id @default(autoincrement())
+  user_id     BigInt @unique
+  full_name   String
+  national_id String @unique
+  bank_iban   String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user users @relation(fields: [user_id], references: [id])
+}
+
+model drivers {
+  id             BigInt @id @default(autoincrement())
+  user_id        BigInt @unique
+  full_name      String
+  license_number String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  user users @relation(fields: [user_id], references: [id])
+}
+
+model vehicles {
+  id            BigInt @id @default(autoincrement())
+  owner_id      BigInt
+  license_plate String @unique
+  vehicle_type  String
+  capacity_tons Decimal @db.Decimal(5, 2)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  owner fleet_owners @relation(fields: [owner_id], references: [id])
+
+  @@index([owner_id])
+}
+
+model loads {
+  id                BigInt @id @default(autoincrement())
+  load_tracking_code String @unique
+  mine_id           BigInt
+  household_id      BigInt
+  material_type    String
+  status            LoadStatus @default(PENDING)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  mine mines @relation(fields: [mine_id], references: [id])
+  household households @relation(fields: [household_id], references: [id])
+
+  @@index([mine_id])
+  @@index([household_id])
+}
+
+model missions {
+  id        BigInt @id @default(autoincrement())
+  load_id   BigInt
+  owner_id  BigInt
+  driver_id BigInt
+  vehicle_id BigInt
+  status    MissionStatus @default(ASSIGNED)
+  started_at DateTime?
+  completed_at DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  load loads @relation(fields: [load_id], references: [id])
+  owner fleet_owners @relation(fields: [owner_id], references: [id])
+  driver drivers @relation(fields: [driver_id], references: [id])
+  vehicle vehicles @relation(fields: [vehicle_id], references: [id])
+
+  @@index([load_id])
+}
+
+model weighbridge_tickets {
+  id            BigInt @id @default(autoincrement())
+  mission_id   BigInt @unique
+  ticket_number String @unique
+  empty_weight Decimal @db.Decimal(10, 2)
+  loaded_weight Decimal @db.Decimal(10, 2)
+  net_weight   Decimal @db.Decimal(10, 2)
+  status       WeighbridgeTicketStatus @default(PENDING_EMPTY)
+  created_by_user_id BigInt?
+  approved_by_user_id BigInt?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  mission missions @relation(fields: [mission_id], references: [id])
+}
+
+model wallets {
+  id         BigInt @id @default(autoincrement())
+  wallet_type WalletType
+  owner_id    BigInt?
+  household_id BigInt?
+  platform_owner_key String? // for future
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  owner fleet_owners? @relation(fields: [owner_id], references: [id])
+  household households? @relation(fields: [household_id], references: [id])
+}
+
+model transactions {
+  id          BigInt @id @default(autoincrement())
+  wallet_id   BigInt
+  mission_id  BigInt?
+  amount      Decimal @db.Decimal(15, 2)
+  type        TransactionType
+  description String?
+  created_at  DateTime @default(now())
+
+  wallet wallets @relation(fields: [wallet_id], references: [id])
+  mission missions? @relation(fields: [mission_id], references: [id])
+
+  @@index([wallet_id])
+  @@index([mission_id])
+}
+
+model audit_logs {
+  id             BigInt @id @default(autoincrement())
+  entity_type    String
+  entity_id      String
+  action         String
+  before_value   Json?
+  after_value    Json?
+  performed_by_user_id BigInt?
+  reason         String?
+  created_at     DateTime @default(now())
+
+  @@index([entity_type, entity_id])
+}
+

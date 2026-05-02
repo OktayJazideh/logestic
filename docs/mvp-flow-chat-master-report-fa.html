@@ -1,0 +1,1212 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>گزارش جامع هم‌راستایی MVP (فلو + تاریخچه تصمیم‌ها)</title>
+    <style>
+      :root {
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --line: #e5e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --ok: #166534;
+        --warn: #b45309;
+        --danger: #b91c1c;
+        --primary: #1d4ed8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Tahoma, "Segoe UI", sans-serif;
+        line-height: 1.8;
+      }
+      .wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+      }
+      h1, h2, h3 { margin: 0 0 10px 0; }
+      h1 { font-size: 22px; color: #0f172a; }
+      h2 { font-size: 18px; color: #1f2937; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+      h3 { font-size: 15px; color: #374151; }
+      .muted { color: var(--muted); font-size: 13px; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        background: #f9fafb;
+      }
+      .stat .v { font-size: 20px; font-weight: 700; margin-top: 6px; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th, td {
+        border: 1px solid var(--line);
+        padding: 8px;
+        vertical-align: top;
+      }
+      th { background: #f9fafb; text-align: right; }
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        border: 1px solid var(--line);
+      }
+      .ok { color: var(--ok); border-color: #bbf7d0; background: #f0fdf4; }
+      .warn { color: var(--warn); border-color: #fde68a; background: #fffbeb; }
+      .danger { color: var(--danger); border-color: #fecaca; background: #fef2f2; }
+      ul { margin: 8px 0 0 0; padding-right: 18px; }
+      .code {
+        font-family: Consolas, monospace;
+        background: #f9fafb;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px;
+        white-space: pre-wrap;
+        font-size: 12px;
+      }
+      details {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        margin-top: 8px;
+        background: #fff;
+      }
+      summary {
+        cursor: pointer;
+        padding: 10px;
+        font-weight: 700;
+      }
+      .details-body { padding: 0 10px 10px 10px; }
+      .todo td:first-child { width: 40px; text-align: center; }
+      @media (max-width: 980px) {
+        .grid { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 640px) {
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="card">
+        <h1>گزارش جامع هم‌راستایی MVP</h1>
+        <div class="muted">
+          مرجع اصلی نیازمندی: <b>d:\Downloadds\pasted.txt</b> (گفت‌وگو با کارفرما)<br />
+          هدف: یک سند اجرایی واحد برای جلو رفتن تیم روی Flow، UI/UX و پیاده‌سازی فنی.
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>1) خلاصه مدیریتی</h2>
+        <div class="grid">
+          <div class="stat">
+            <div>انطباق مدل داده با مرجع کارفرما</div>
+            <div class="v">متوسط</div>
+            <span class="tag warn">55-65%</span>
+          </div>
+          <div class="stat">
+            <div>انطباق Flow عملیاتی راننده</div>
+            <div class="v">قابل قبول</div>
+            <span class="tag warn">MVP-Level</span>
+          </div>
+          <div class="stat">
+            <div>انطباق UI موبایل با طرح‌ها</div>
+            <div class="v">پایین تا متوسط</div>
+            <span class="tag warn">Simplified UI</span>
+          </div>
+          <div class="stat">
+            <div>انطباق UI وب با طرح‌ها</div>
+            <div class="v">پایین</div>
+            <span class="tag danger">Placeholder</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2) اصول قفل‌شده از چت کارفرما</h2>
+        <ul>
+          <li>مرجع تصمیم‌گیری نهایی، متن‌های چت کارفرما در فایل <b>pasted.txt</b> است.</li>
+          <li>پلتفرم‌محور بودن سیستم (Platform-Centric) و نقش Gatekeeper برای تعاونی.</li>
+          <li>مدل مالی قطعی: <b>85% مالک ناوگان/دستگاه، 13% خانوار، 2% پلتفرم</b>.</li>
+          <li>واحد سهم اجتماعی: <b>خانوار</b> و نه عضو تعاونی.</li>
+          <li>تفکیک قطعی موجودیت‌ها: Owner / Driver / Vehicle / Household.</li>
+          <li>Multi-Mine از ابتدا (mine_id محور).</li>
+          <li>در MVP باید هسته اقتصادی-عملیاتی واقعی اجرا شود، نه صرفا دمو UI.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>3) انطباق فلوهای کلیدی</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>فلو</th>
+              <th>انتظار کارفرما</th>
+              <th>وضعیت فعلی</th>
+              <th>جمع‌بندی</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>OTP + انتخاب معدن</td>
+              <td>ورود OTP و Mine-based access</td>
+              <td>پیاده شده در موبایل و API</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+            </tr>
+            <tr>
+              <td>چرخه راننده</td>
+              <td>Assigned → Loading → OnTheWay → Unloading → Completed</td>
+              <td>پیاده شده و transition کنترل می‌شود</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+            </tr>
+            <tr>
+              <td>مرجع پول‌سازی</td>
+              <td>فقط بعد از تایید معتبر (باسکول/مرجع مجاز)</td>
+              <td>تایید ticket منجر به ثبت مالی می‌شود</td>
+              <td><span class="tag warn">نسبتا هم‌راستا</span></td>
+            </tr>
+            <tr>
+              <td>عملیات ساعتی تجهیزات</td>
+              <td>ثبت کارکرد، تایید مشاور، محاسبه مالی ساعتی</td>
+              <td>هنوز کامل پیاده نشده</td>
+              <td><span class="tag danger">غیرهم‌راستا</span></td>
+            </tr>
+            <tr>
+              <td>تسویه متمرکز</td>
+              <td>Batch settlement توسط Admin</td>
+              <td>مدل کامل تسویه در DB کامل نیست</td>
+              <td><span class="tag danger">غیرهم‌راستا</span></td>
+            </tr>
+            <tr>
+              <td>Audit حساس</td>
+              <td>تغییرات مهم با before/after/reason</td>
+              <td>جدول audit هست، enforce کامل نیست</td>
+              <td><span class="tag warn">ناقص</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>4) انطباق UI/UX با اسکرین‌شات‌های ارسال‌شده</h2>
+        <h3>4.1 موبایل راننده</h3>
+        <ul>
+          <li>ساختار کلی صفحات اصلی وجود دارد (Login, Mine Select, Missions, Ticket Status).</li>
+          <li>اما UI فعلی ساده‌تر از وایرفریم‌ها/اسکرین‌شات‌های شماست و همه stateهای UI طراحی‌شده را نشان نمی‌دهد.</li>
+          <li>اطلاعات کارت‌ها، typography، micro-interaction، نمایش وضعیت‌های پیچیده هنوز فاصله دارد.</li>
+        </ul>
+        <h3>4.2 وب پنل</h3>
+        <ul>
+          <li>وب فعلا اسکلت و Placeholder است (PanelShell + ComingSoon).</li>
+          <li>با تصاویر ارسال‌شده از صفحات واقعی (داشبورد، درخواست‌ها، مالی، audit) هنوز هم‌راستایی پایین دارد.</li>
+        </ul>
+        <p><span class="tag danger">نتیجه: برای UI/UX نهایی، هم‌راستایی کامل وجود ندارد.</span></p>
+      </section>
+
+      <section class="card">
+        <h2>5) شکاف‌های فنی اولویت بالا (Gap List)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>اولویت</th>
+              <th>شکاف</th>
+              <th>اثر</th>
+              <th>اقدام لازم</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>P0</td>
+              <td>عدم وجود مدل کامل عملیات ساعتی</td>
+              <td>انطباق با نیاز جدید کارفرما از بین می‌رود</td>
+              <td>ایجاد <b>hourly_work_logs</b> + تایید مشاور + فرمول مالی ساعتی</td>
+            </tr>
+            <tr>
+              <td>P0</td>
+              <td>Rate Card دیتابیسی ندارد</td>
+              <td>نرخ‌گذاری و Snapshot قابل دفاع نیست</td>
+              <td>ایجاد جدول <b>rate_cards</b> + snapshot در ماموریت</td>
+            </tr>
+            <tr>
+              <td>P0</td>
+              <td>Settlement flow کامل نیست</td>
+              <td>تسویه واقعی قابل کنترل نیست</td>
+              <td>ایجاد <b>settlement_batches</b> + status machine</td>
+            </tr>
+            <tr>
+              <td>P1</td>
+              <td>Payment status مستقل ناقص</td>
+              <td>مخلوط شدن عملیات و مالی</td>
+              <td>افزودن Payment State: PENDING/CALCULATED/DISTRIBUTED/SETTLED/FAILED</td>
+            </tr>
+            <tr>
+              <td>P1</td>
+              <td>UI وب عملیاتی نیست</td>
+              <td>ارزیابی واقعی کاربران ممکن نیست</td>
+              <td>پیاده‌سازی صفحات نقش‌محور اصلی وب</td>
+            </tr>
+            <tr>
+              <td>P1</td>
+              <td>Audit enforce کامل نیست</td>
+              <td>ریسک حقوقی و عملیاتی</td>
+              <td>الزام reason/before/after در actionهای حساس</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>6) چک‌لیست اجرایی (بروزرسانی پس از تکمیل بخش‌های گزارش)</h2>
+        <p class="muted">
+          این جدول کارهای انجام‌شده روی <b>همین سند</b> را از کارهای <b>بازِ کارفرما و تیم فنی</b> جدا می‌کند.
+          ستون «وضعیت»: <span class="tag ok">انجام شد</span> یعنی در نسخه فعلی این فایل پوشش داده شده؛
+          <span class="tag warn">باز</span> یعنی هنوز باید انجام شود.
+        </p>
+
+        <h3>6.1 تکمیل محتوای گزارش و هم‌راستایی با pasted.txt</h3>
+        <table class="todo">
+          <thead>
+            <tr>
+              <th>وضعیت</th>
+              <th>اقدام</th>
+              <th>محل در سند / خروجی</th>
+              <th>یادداشت بازبینی سه‌گانه</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>مرجع واحد pasted.txt و تفکیک اصول قفل‌شده از چت</td>
+              <td>بخش ۲، ۸، ۹</td>
+              <td>مرجعیت سند در بخش ۱ هم تکرار شده است.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>مرزبندی MVP شامل اپ راننده + زنجیره باسکول (طبق متن کارفرما)</td>
+              <td>بخش ۱۴ (+ ردیف اختصاصی باسکول/ایجنت)</td>
+              <td>با جمع‌بندی pasted.txt هم‌راستا؛ تناقض برچسب «فاز ۲/۳» در ۱۵.۲ توضیح داده شد.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>سوالات ضروری غیرفنی با ستون پیشنهاد عملیاتی (بدون جایگزینی تصمیم کارفرما)</td>
+              <td>بخش ۱۵، Q1 تا Q11</td>
+              <td>شامل ۱۳٪، واریز، تسویه، شعاع، Hold، ساعتی، شفافیت، وب حداقلی، مغایرت باسکول، مرز تحویل اپ/باسکول.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>توضیح ابهام ۱۳٪ (سبد مشترک دربرابر ۱۳٪ به ازای هر خانوار)</td>
+              <td>بخش ۱۵.۱</td>
+              <td>فرمول پیشنهادی صریح؛ نیاز به تأیید کارفرما.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>جمع‌بندی «اپ راننده فقط یا باسکول هم در MVP؟» با ارجاع به چت</td>
+              <td>بخش ۱۵.۲</td>
+              <td>هدف: یک جدول تحویل واحد با کارفرما؛ سوال تکمیلی در Q11.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>پیشنهادات و انتقادات بر پایه سند و چت (نه جزئیات کدنویسی)</td>
+              <td>بخش ۱۶</td>
+              <td>ریسک‌ها به نیازهای pasted.txt وصل شده‌اند.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>لاگ بازبینی سه‌مرحله‌ای گزارش</td>
+              <td>بخش ۱۷</td>
+              <td>شرط Actionable v1 = پاسخ Q1 تا Q11.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>متن آماده ارسال به کارفرما (آقای موحدی)، لحن محاوره‌ای، رفع ابهام + پیشنهاد + انتقاد</td>
+              <td>بخش ۱۸</td>
+              <td>بدون پاسخ‌گویی به‌جای کارفرما؛ پیشنهادها اختیاری بیان شده‌اند.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>پوشش حفره‌های سوالی بحرانی در متن گزارش (جزئیات میدانی در کارگاه)</td>
+              <td>پایان بخش ۱۵</td>
+              <td>الگوریتم تخصیص/جریمه‌ها هنوز می‌تواند در جلسه عملیاتی قفل شود؛ در صورت نیاز به سند اضافه شود.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>ثبت انطباق فلوها، شکاف‌های P0/P1، نقشه اصلاحی و مرزبندی کیف پول/مالی</td>
+              <td>بخش‌های ۳، ۵، ۱۱، ۱۳</td>
+              <td>برای اجرا با چک‌لیست ۶.۳ هم‌خوان است؛ پس از پاسخ کارفرما ممکن است اولویت‌ها دوباره چیده شوند.</td>
+            </tr>
+            <tr>
+              <td><span class="tag ok">انجام شد</span></td>
+              <td>ثبت وضعیت UI موبایل/وب نسبت به اسکرین‌شات‌ها و شکاف بصری</td>
+              <td>بخش‌های ۴ و ۱۲</td>
+              <td>همچنان «Gap اصلی» وب در این گزارش صریح است تا در ۶.۳ پیگیری شود.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>6.2 تعامل با کارفرما و قفل تصمیم (پس از ارسال بخش ۱۸)</h3>
+        <table class="todo">
+          <thead>
+            <tr>
+              <th>✓</th>
+              <th>اقدام</th>
+              <th>خروجی قابل تایید</th>
+              <th>مالک پیشنهادی</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>ارسال پیام بخش ۱۸ برای آقای موحدی (کانال رسمی توافق‌شده)</td>
+              <td>تاریخ ارسال ثبت شود</td>
+              <td>مسئول ارتباط با کارفرما</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>جمع‌آوری پاسخ به Q1 تا Q11 و ثبت در همین گزارش یا پیوست جدا</td>
+              <td>جدول «پاسخ کارفرما» نسخه‌دار</td>
+              <td>Product / PM</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>قفل رسمی مرز MVP و Post-MVP با امضای ذی‌نفع کارفرما</td>
+              <td>Scope امضاشده یا ایمیل تأیید خط</td>
+              <td>کارفرما + Lead</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>سند «قانون مالی» مصوب (درصدها، دوره تسویه، روش واریز، فرمول ۱۳٪، مغایرت باسکول)</td>
+              <td>PDF/نسخه یک‌صفحه‌ای قابل ارجاع در قرارداد</td>
+              <td>کارفرما + مالی پروژه</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>تعیین نقش‌های واقعی در پایلوت (تعاونی، لجستیک، اپراتور باسکول، مشاور ساعتی)</td>
+              <td>لیست نام + دسترسی آزمایشی</td>
+              <td>کارفرما</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>6.3 اجرای فنی MVP (بعد از قفل بندهای ۶.۲)</h3>
+        <table class="todo">
+          <thead>
+            <tr>
+              <th>✓</th>
+              <th>اقدام</th>
+              <th>خروجی قابل تایید</th>
+              <th>مالک پیشنهادی</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>به‌روزرسانی ERD/DDL مطابق پاسخ‌های قفل‌شده (hourly، settlement، rate_cards، …)</td>
+              <td>ERD نهایی + DDL هم‌سو با بخش ۵ و ۱۳</td>
+              <td>Backend Lead</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>پیاده‌سازی APIهای بحرانی فاز ۱ و یکپارچه‌سازی باسکول/ایجنت در مسیر توافقی</td>
+              <td>مجموعه تست + مستند API</td>
+              <td>Backend Team</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>هم‌ترازی اپ راننده با Flow و State Machine توافقی</td>
+              <td>مسیر راننده قابل تست میدانی (شامل استپ‌های باسکول در صورت قفل کارفرما)</td>
+              <td>Mobile Team</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>جایگزینی placeholder وب با صفحات نقش‌محور حداقلی (همسو با Q9 و بخش ۱۳)</td>
+              <td>Coop / Employer / Board باسکول / کیف‌پول خلاصه قابل استفاده</td>
+              <td>Web Team</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>UAT سناریوی end-to-end مطابق بخش ۷ (Definition of Done)</td>
+              <td>ثبت نتیجه UAT + باگ‌های بحرانی بسته</td>
+              <td>QA + کارفرما</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>دیپلوی محیط عملیاتی پایلوت و نظارت هفته اول</td>
+              <td>گزارش استقرار + تماس اضطراری</td>
+              <td>DevOps + Lead</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>6.4 کنترل کیفیت نهایی سند (قبل از هر ارائه رسمی بعدی)</h3>
+        <ul>
+          <li><b>بازبینی ۱:</b> همه ارجاع‌های MVP با بخش ۱۴ و pasted.txt یکسان باشند.</li>
+          <li><b>بازبینی ۲:</b> هیچ پاسخ قطعیِ متعلق به کارفرما در بخش ۱۵–۱۸ به‌جای او نوشته نشده باشد.</li>
+          <li><b>بازبینی ۳:</b> Gap List (بخش ۵)، نقشه اصلاحی (۱۳)، و چک‌لیست ۶.۳ با هم تناقض نداشته باشند.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>7) سناریوی مرجع پذیرش (Definition of Done فاز 1)</h2>
+        <div class="code">خانوار ثبت‌نام -> تعاونی تایید -> کیف‌پول خانوار فعال
+مالک+دستگاه+راننده ثبت و تایید
+کارفرما نیاز ثبت کند
+پلتفرم تخصیص انجام دهد
+راننده عملیات را کامل کند
+برای حمل تنی: باسکول تایید شود
+برای عملیات ساعتی: کارکرد توسط مشاور تایید شود
+ماموریت Approved شود
+مبلغ از Rate Card محاسبه شود
+سهم 85/13/2 توزیع و تراکنش ثبت شود
+مالک/خانوار/پلتفرم عدد را ببینند
+Audit کامل ثبت شده باشد
+تسویه متمرکز Admin قابل اجرا باشد</div>
+      </section>
+
+      <section class="card">
+        <h2>8) تاریخچه تصمیم‌های کلیدی (خلاصه از چت‌ها)</h2>
+        <details open>
+          <summary>نمایش خلاصه Timeline</summary>
+          <div class="details-body">
+            <ul>
+              <li>شروع: تاکید روی ضدتقلب، لاگ غیرقابل حذف، و هسته حمل.</li>
+              <li>اصلاح مهم: ماژول مالی پایه از فازهای بعد به MVP منتقل شد.</li>
+              <li>اصلاح مهم: مدل ذینفعان به خانوار + مالک + پلتفرم قفل شد.</li>
+              <li>اصلاح مهم: تعاونی نقش Gatekeeper و نه هسته تصمیم‌گیر مالی/عملیاتی.</li>
+              <li>اصلاح مهم: معماری Multi-Mine و Mine-based Access.</li>
+              <li>افزوده جدید: پشتیبانی عملیات ساعتی تجهیزات با تایید مشاور.</li>
+              <li>تاکید نهایی: سند مرجع، گفت‌وگوهای کارفرما در pasted.txt.</li>
+            </ul>
+          </div>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>9) قاعده مدیریت تغییرات از این به بعد</h2>
+        <ul>
+          <li>هر تغییر Scope ابتدا در این گزارش ثبت شود.</li>
+          <li>هر آیتم جدید با برچسب <b>MVP</b> یا <b>Post-MVP</b> مشخص شود.</li>
+          <li>در تعارض بین مستندات داخلی و چت کارفرما، مرجع نهایی <b>pasted.txt</b> است.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>10) نکات مهم اضافه‌شده از تماس/پیام‌ها (قبلا جا مانده بود)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>موضوع</th>
+              <th>شرح الزام کارفرما</th>
+              <th>وضعیت در این سند</th>
+              <th>برچسب فاز</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>منبع شناسایی خانوار</td>
+              <td>استفاده از دیتای یارانه/مرجع رسمی برای اعتبارسنجی خانوارهای مشمول</td>
+              <td><span class="tag warn">افزوده شد (نیازمند تصمیم فنی/حقوقی)</span></td>
+              <td>MVP Scope Clarification</td>
+            </tr>
+            <tr>
+              <td>شعاع برخورداری</td>
+              <td>فقط روستاها/خانوارهای تا شعاع 5 کیلومتری معدن در مدل سهم وارد شوند</td>
+              <td><span class="tag warn">افزوده شد (نیازمند Geo Rule)</span></td>
+              <td>MVP Rule</td>
+            </tr>
+            <tr>
+              <td>منطق توزیع سهم 13%</td>
+              <td>تقسیم سهم خانوارها به صورت برابر بین سرپرست‌های تاییدشده مشمول</td>
+              <td><span class="tag warn">افزوده شد (نیازمند فرمول نهایی)</span></td>
+              <td>MVP Finance Rule</td>
+            </tr>
+            <tr>
+              <td>شفافیت دریافت‌کنندگان</td>
+              <td>لیست شفاف افراد/خانوارهایی که از هر معدن سهم دریافت می‌کنند قابل گزارش باشد</td>
+              <td><span class="tag warn">افزوده شد</span></td>
+              <td>MVP Reporting</td>
+            </tr>
+            <tr>
+              <td>درآمدهای آینده خارج از معدن</td>
+              <td>زیرساخت درآمد از خدمات دیگر (فروش آب، کارکرد کامیون، خدمات جانبی) از حالا دیده شود</td>
+              <td><span class="tag warn">افزوده شد (معماری‌محور)</span></td>
+              <td>Post-MVP Ready</td>
+            </tr>
+            <tr>
+              <td>ماژول جلسات تعاونی</td>
+              <td>در فازهای بعد: برگزاری جلسه، آرشیو، رای‌گیری شفاف، ثبت دلیل رد/تصویب</td>
+              <td><span class="tag warn">افزوده شد</span></td>
+              <td>Post-MVP</td>
+            </tr>
+            <tr>
+              <td>پلاک‌خوان باسکول</td>
+              <td>ماژول خواندن پلاک در کنار باسکول به عنوان پیشنهاد توسعه بعدی بررسی شود</td>
+              <td><span class="tag warn">افزوده شد</span></td>
+              <td>Post-MVP / Optional</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <details>
+          <summary>اقدامات لازم برای بستن این موارد در اجرای واقعی</summary>
+          <div class="details-body">
+            <ul>
+              <li>تعریف دقیق منبع داده مرجع خانوار (API/فایل/استاندارد تبادل داده + مجوز استفاده).</li>
+              <li>تعریف Rule شعاع 5km در سطح معدن-روستا (precomputed یا runtime geospatial).</li>
+              <li>قفل فرمول توزیع 13% (برابر، دوره‌ای، و با snapshot از لیست مشمول همان دوره).</li>
+              <li>افزودن گزارش «Recipient Ledger» برای شفافیت دریافت‌کنندگان سهم هر معدن.</li>
+              <li>افزودن آیتم‌های Post-MVP به backlog رسمی با owner و زمان‌بندی.</li>
+            </ul>
+          </div>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>11) گزارش تطبیق بندبه‌بند با سند مرجع کارفرما (pasted.txt)</h2>
+        <p class="muted">
+          این بخش با اولویت کامل متن کارفرما نوشته شده است. وضعیت هر بند:
+          <span class="tag ok">هم‌راستا</span> /
+          <span class="tag warn">ناقص</span> /
+          <span class="tag danger">غیرهم‌راستا</span>.
+        </p>
+
+        <h3>11.1 بخش Base & Auth</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>الزام مرجع</th>
+              <th>وضعیت</th>
+              <th>توضیح</th>
+              <th>اقدام</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>users با نقش‌های اصلی + OTP</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+              <td>نقش‌ها و OTP در هسته موجود است.</td>
+              <td>قفل سیاست OTP (TTL/RateLimit) در مستند اجرایی</td>
+            </tr>
+            <tr>
+              <td>KYC جدی برای ذینفع مالی</td>
+              <td><span class="tag warn">ناقص</span></td>
+              <td>پایه موجود است ولی enforce کامل در کل فلو نیست.</td>
+              <td>الزام وضعیت APPROVED قبل از هر رویداد مالی</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>11.2 بخش Geo & Demographics</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>الزام مرجع</th>
+              <th>وضعیت</th>
+              <th>توضیح</th>
+              <th>اقدام</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>mines و villages با mine_id</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+              <td>ساختار چندمعدنی پایه برقرار است.</td>
+              <td>افزودن قوانین دسترسی mine-scoped در همه endpointها</td>
+            </tr>
+            <tr>
+              <td>households متصل به user و village</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+              <td>مدل برقرار است.</td>
+              <td>تکمیل اعتبارسنجی ورودی و چرخه وضعیت</td>
+            </tr>
+            <tr>
+              <td>قاعده شعاع 5 کیلومتر و مشمولیت</td>
+              <td><span class="tag warn">ناقص</span></td>
+              <td>در صحبت‌ها آمده ولی rule فنی نهایی نشده.</td>
+              <td>تعریف Geo Rule رسمی و قابل audit</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>11.3 بخش Fleet & Personnel</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>الزام مرجع</th>
+              <th>وضعیت</th>
+              <th>توضیح</th>
+              <th>اقدام</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>تفکیک مالک، راننده، خودرو</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+              <td>مدل موجود است و اختلاط دیده نمی‌شود.</td>
+              <td>حفظ و تثبیت در API و UI نقش‌محور</td>
+            </tr>
+            <tr>
+              <td>راننده ذینفع مالی مستقیم نیست</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+              <td>منطق فعلی به نفع مالک ثبت می‌شود.</td>
+              <td>تکمیل محدودیت نمایش مالی در UI راننده</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>11.4 بخش Operations & Logistics</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>الزام مرجع</th>
+              <th>وضعیت</th>
+              <th>توضیح</th>
+              <th>اقدام</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>loads + load_tracking_code یکتا</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+              <td>وجود دارد.</td>
+              <td>قفل immutability در DB-level</td>
+            </tr>
+            <tr>
+              <td>چرخه ماموریت مرحله‌ای</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+              <td>انتقال مرحله کنترل می‌شود.</td>
+              <td>افزودن idempotency و anti-dup کامل</td>
+            </tr>
+            <tr>
+              <td>weighbridge_tickets به عنوان مرجع معتبر</td>
+              <td><span class="tag warn">ناقص</span></td>
+              <td>ساختار هست، ولی جریان عملیاتی کامل وب/اپراتور ناقص است.</td>
+              <td>تکمیل پنل اپراتور + مسیر اصلاح وزن با audit</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>11.5 بخش مالی ساده MVP (Wallet/Transactions)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>الزام مرجع</th>
+              <th>وضعیت</th>
+              <th>توضیح</th>
+              <th>اقدام</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>تقسیم 85/13/2</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+              <td>در منطق فعلی اعمال می‌شود.</td>
+              <td>ثبت Snapshot نرخ/قاعده در هر ماموریت</td>
+            </tr>
+            <tr>
+              <td>کیف‌پول سه‌گانه</td>
+              <td><span class="tag ok">هم‌راستا</span></td>
+              <td>Owner/Household/Platform وجود دارد.</td>
+              <td>تکمیل Payment Status مستقل</td>
+            </tr>
+            <tr>
+              <td>تسویه متمرکز Admin</td>
+              <td><span class="tag warn">ناقص</span></td>
+              <td>فلو کامل batch settlement هنوز کامل نیست.</td>
+              <td>ایجاد settlement_batches و چرخه پرداخت</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>11.6 بخش Wallet Core Principles (نسخه جامع کیف پول)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>محور</th>
+              <th>وضعیت</th>
+              <th>توضیح</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Immutable Ledger کامل (Double-entry/Reverse)</td>
+              <td><span class="tag danger">غیرهم‌راستا</span></td>
+              <td>هسته ساده تراکنش هست، ولی مدل کامل ledger_entries/internal_transactions هنوز کامل نشده.</td>
+            </tr>
+            <tr>
+              <td>Cash/Credit/Blocked Components</td>
+              <td><span class="tag danger">غیرهم‌راستا</span></td>
+              <td>کیف‌پول فعلی ساده است و اجزای سه‌گانه بلوکه/اعتباری کامل ندارد.</td>
+            </tr>
+            <tr>
+              <td>Gateway charging + callbacks + reconciliation</td>
+              <td><span class="tag danger">غیرهم‌راستا</span></td>
+              <td>مدل جامع gateway_transactions / invoice logic هنوز پیاده نشده.</td>
+            </tr>
+            <tr>
+              <td>Settlement requests + payout lifecycle</td>
+              <td><span class="tag warn">ناقص</span></td>
+              <td>ایده و مسیر هست، ولی جدول‌ها و state کامل نهایی نشده‌اند.</td>
+            </tr>
+            <tr>
+              <td>Manual admin adjustments + Four-eyes</td>
+              <td><span class="tag danger">غیرهم‌راستا</span></td>
+              <td>در حد طراحی مفهومی است، نه اجرای کامل قابل اتکا.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>12) گزارش دقیق اسکرین‌شات‌ها (Flow + UI/UX)</h2>
+        <p class="muted">
+          جمع‌بندی این بخش از روی تصاویر ارسال‌شده کارفرما انجام شده است (موبایل و وب).
+        </p>
+
+        <h3>12.1 گروه اسکرین‌های موبایل راننده (OTP/ورود/وضعیت)</h3>
+        <ul>
+          <li><b>هم‌راستا:</b> وجود OTP، ورود، انتخاب معدن، لیست ماموریت، وضعیت باسکول.</li>
+          <li><b>ناقص:</b> نمایش stateهای ریز (Pending/Suspended/Needs Correction) با UX کامل.</li>
+          <li><b>ناقص:</b> سطح polish گرافیکی و microcopy مطابق طرح‌ها.</li>
+        </ul>
+
+        <h3>12.2 گروه اسکرین‌های موبایل عملیات حمل (Assigned/In-Transit/Discharged)</h3>
+        <ul>
+          <li><b>هم‌راستا:</b> استپ‌های اصلی عملیات وجود دارد.</li>
+          <li><b>ناقص:</b> جزئیات متنی/کارتی و stateهای استثنایی UI کامل نیست.</li>
+          <li><b>ناقص:</b> پیغام‌های کنترلی/هشدارهای contextual مطابق وایرفریم کامل نیست.</li>
+        </ul>
+
+        <h3>12.3 گروه اسکرین‌های وب (داشبورد، درخواست‌ها، کیف‌پول، تراکنش)</h3>
+        <ul>
+          <li><b>غیرهم‌راستا:</b> پیاده‌سازی فعلی وب در حد skeleton و coming soon است.</li>
+          <li><b>شکاف بزرگ:</b> صفحات نقش‌محور واقعی مطابق تصاویر هنوز ساخته نشده‌اند.</li>
+        </ul>
+
+        <h3>12.4 نتیجه نهایی UI/UX</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>لایه</th>
+              <th>سطح تطبیق با تصاویر</th>
+              <th>وضعیت</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>موبایل Flow عملکردی</td>
+              <td>متوسط</td>
+              <td><span class="tag warn">MVP قابل تست، نیازمند تکمیل UX</span></td>
+            </tr>
+            <tr>
+              <td>موبایل UI بصری</td>
+              <td>پایین تا متوسط</td>
+              <td><span class="tag warn">طراحی نهایی هنوز فاصله دارد</span></td>
+            </tr>
+            <tr>
+              <td>وب UI/UX نقش‌محور</td>
+              <td>پایین</td>
+              <td><span class="tag danger">Gap اصلی پروژه</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>13) نقشه اقدام اصلاحی (Section-by-Section)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>بخش</th>
+              <th>کار اصلاحی دقیق</th>
+              <th>اولویت</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Schema مالی جامع</td>
+              <td>افزودن ledger کامل، gateway_transactions، settlement_requests/batches، admin adjustments</td>
+              <td>P0</td>
+            </tr>
+            <tr>
+              <td>عملیات ساعتی</td>
+              <td>افزودن hourly_work_logs + تایید مشاور + نرخ ساعتی از rate_cards + محاسبه 85/13/2</td>
+              <td>P0</td>
+            </tr>
+            <tr>
+              <td>UI وب</td>
+              <td>جایگزینی placeholder با صفحات واقعی نقش‌محور مطابق اسکرین‌شات</td>
+              <td>P0</td>
+            </tr>
+            <tr>
+              <td>UI موبایل</td>
+              <td>تکمیل stateها، microcopy، error states، و هم‌ترازی بصری با طرح‌ها</td>
+              <td>P1</td>
+            </tr>
+            <tr>
+              <td>ریپورتینگ شفافیت</td>
+              <td>گزارش دریافت‌کنندگان سهم هر معدن + لیست شفاف خانوار مشمول</td>
+              <td>P1</td>
+            </tr>
+            <tr>
+              <td>قوانین اجتماعی خاص</td>
+              <td>Rule شعاع 5km + تعریف منبع اعتبارسنجی خانوار و فرمول تقسیم برابر 13%</td>
+              <td>P1</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>14) مرزبندی قطعی MVP و خارج از MVP (برای جلوگیری از اختلاف)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>موضوع</th>
+              <th>وضعیت</th>
+              <th>توضیح</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>هسته حمل (Load/Mission/Weighbridge)</td>
+              <td><span class="tag ok">داخل MVP</span></td>
+              <td>باید عملیاتی و قابل استفاده واقعی باشد.</td>
+            </tr>
+            <tr>
+              <td>اپ راننده همراه زنجیره باسکول (ثبت وزن مبدا/مقصد، نقش اپراتور، ایجنت/ورود امن)</td>
+              <td><span class="tag ok">داخل MVP (طبق pasted.txt)</span></td>
+              <td>
+                در متن کارفرما، فاز اول صریحاً شامل «ایجنت محلی باسکول»، «اپ پایه راننده»، «صف FIFO» و «State Machine
+                شناسه بار» ذکر شده است؛ یعنی تحویل MVP صرفاً «اپ راننده بدون باسکول» با همان سند اولیه هم‌راستا نیست،
+                مگر کارفرما رسماً محدودیت جدید اعلام کند.
+              </td>
+            </tr>
+            <tr>
+              <td>تقسیم مالی 85/13/2 + ثبت تراکنش</td>
+              <td><span class="tag ok">داخل MVP</span></td>
+              <td>جزء هسته اقتصادی فاز 1 است.</td>
+            </tr>
+            <tr>
+              <td>کیف‌پول سه‌گانه (نمایش/ثبت)</td>
+              <td><span class="tag ok">داخل MVP</span></td>
+              <td>برداشت کاربر نهایی می‌تواند محدود/غیرفعال باشد.</td>
+            </tr>
+            <tr>
+              <td>عملیات ساعتی تجهیزات</td>
+              <td><span class="tag warn">MVP-حداقلی</span></td>
+              <td>حداقل ثبت، تایید مشاور، محاسبه مالی لازم است؛ نسخه پیشرفته در فاز بعد.</td>
+            </tr>
+            <tr>
+              <td>جلسات، رای‌گیری، آرشیو تعاونی</td>
+              <td><span class="tag danger">خارج از MVP</span></td>
+              <td>فعلا فقط زیرساخت یا backlog؛ اجرای کامل در Post-MVP.</td>
+            </tr>
+            <tr>
+              <td>پلاک‌خوان هوشمند</td>
+              <td><span class="tag danger">خارج از MVP</span></td>
+              <td>در فاز بعدی به عنوان ماژول اختیاری توسعه یابد.</td>
+            </tr>
+            <tr>
+              <td>مالی پیشرفته (Gateway کامل، Ledger پیچیده، Rule Engine سنگین)</td>
+              <td><span class="tag warn">دو لایه</span></td>
+              <td>نسخه حداقلی لازم در MVP؛ نسخه کامل enterprise در Post-MVP.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>15) سوالات ضروری برای کارفرما (غیرفنی و قابل پرسش مستقیم)</h2>
+        <p class="muted">این بخش را انتهای جلسات مرور کنید؛ پاسخ‌ها را بگیرید و به تیم فنی منتقل کنید.</p>
+        <p class="muted">
+          ستون «پیشنهاد فنی» خروجی پیشنهادی برای <b>محصول و فرآیند اجرا</b> است (نه جزئیات نحوه کدنویسی). اگر کارفرما
+          نظر دیگری داد، همان تصمیم نهایی ثبت می‌شود.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>شماره</th>
+              <th>سوال ساده</th>
+              <th>چرا مهم است</th>
+              <th>پیشنهاد فنی</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Q1</td>
+              <td>واریز پول‌ها دقیقاً چطور انجام می‌شود؟ (دستی توسط ادمین، فایل بانکی، یا اتصال مستقیم PSP؟)</td>
+              <td>بدون این تصمیم، طراحی تسویه و وضعیت‌های پرداخت قطعی نمی‌شود.</td>
+              <td>برای MVP: پرداخت متمرکز Admin + Batch + خروجی فایل بانکی. PSP مستقیم در Post-MVP.</td>
+            </tr>
+            <tr>
+              <td>Q2</td>
+              <td>چرخه تسویه برای هر ذینفع چیست؟ (روزانه/هفتگی/ماهانه؟)</td>
+              <td>بر Batch settlement، گزارش مالی و UX کیف‌پول اثر مستقیم دارد.</td>
+              <td>برای MVP: چرخه هفتگی ثابت + امکان اجرای دستی اضطراری توسط Admin.</td>
+            </tr>
+            <tr>
+              <td>Q3</td>
+              <td>منبع رسمی تشخیص خانوارهای مشمول چیست؟ (یارانه/سامانه رسمی/فایل دستی تاییدشده)</td>
+              <td>برای جلوگیری از اختلاف حقوقی و خطای پرداخت حیاتی است.</td>
+              <td>اتصال فایل/خروجی رسمی دوره‌ای + Snapshot لیست مشمولین در هر دوره تسویه.</td>
+            </tr>
+            <tr>
+              <td>Q4</td>
+              <td>قاعده شعاع 5 کیلومتر دقیقاً از کدام نقطه معدن و با چه روش محاسبه شود؟</td>
+              <td>در پذیرش یا رد خانوارها اثر مستقیم دارد.</td>
+              <td>مرکز معدن (مختصات رسمی) + فاصله ژئودزیک تا مرکز روستا + کش کردن نتیجه.</td>
+            </tr>
+            <tr>
+              <td>Q5</td>
+              <td>سهم 13% دقیقاً چگونه تقسیم شود؟ (کاملا برابر؟ بر اساس وزن خانوار؟ با چه دوره زمانی؟)</td>
+              <td>فرمول محاسبه سهم خانوار باید شفاف و قابل دفاع باشد.</td>
+              <td>پیشنهاد پایه: 13% «سبد کل» هر دوره بین خانوارهای تاییدشده مشمول همان دوره تقسیم مساوی شود.</td>
+            </tr>
+            <tr>
+              <td>Q6</td>
+              <td>اگر سرویس مشکوک شد، پول چه وضعیتی بگیرد؟ (Hold کامل/پرداخت مشروط/توقف تا بررسی)</td>
+              <td>برای کنترل ریسک تقلب و نارضایتی ذینفعان حیاتی است.</td>
+              <td>پیشنهاد: Hold کامل تا بررسی + Release/Reversal با ثبت Audit.</td>
+            </tr>
+            <tr>
+              <td>Q7</td>
+              <td>چه کسی نهایی‌سازی عملیات ساعتی را تایید می‌کند؟ (مشاور؟ ناظر؟ چندسطحی؟)</td>
+              <td>تعیین authority باعث جلوگیری از تعارض مالی می‌شود.</td>
+              <td>پیشنهاد MVP: تایید واحد مشاور + برای مبالغ بالا مکانیزم تایید دوم.</td>
+            </tr>
+            <tr>
+              <td>Q8</td>
+              <td>آیا لیست دریافت‌کنندگان سهم برای همه کاربران دیده شود یا فقط مدیران خاص؟</td>
+              <td>تعادل بین شفافیت و حریم خصوصی را مشخص می‌کند.</td>
+              <td>عمومی: آمار تجمیعی؛ مدیران مجاز: لیست اسمی کامل با لاگ مشاهده.</td>
+            </tr>
+            <tr>
+              <td>Q9</td>
+              <td>در MVP کدام صفحات وب باید حتما عملیاتی باشند؟ (حداقل نقش‌محور)</td>
+              <td>جلوگیری از تاخیر و تمرکز روی خروجی قابل استفاده.</td>
+              <td>حداقل: Coop Requests، Employer Need، Mission Board، Weighbridge Approval، Wallet Summary.</td>
+            </tr>
+            <tr>
+              <td>Q10</td>
+              <td>در صورت اختلاف وزن یا خطای باسکول، فرآیند اصلاح رسمی چیست؟</td>
+              <td>بدون این رویه، Audit و تسویه دچار اختلاف می‌شود.</td>
+              <td>ممنوعیت ویرایش مستقیم؛ فقط Adjustment Ticket با دلیل، تایید و لاگ کامل.</td>
+            </tr>
+            <tr>
+              <td>Q11</td>
+              <td>
+                مرز تحویل MVP: آیا فقط اپلیکیشن راننده کافی است یا حتماً زنجیره عملیاتی باسکول (مبدا و مقصد، مسیر
+                تایید اپراتور/پنل، طبق قرارداد) هم باید در همان فاز اول به‌صورت قابل اجرا در میدان باشد؟
+              </td>
+              <td>
+                بدون این قطعیت، برنامه‌ریزی منابع، آموزش اپراتورها و تعریف «پایان موفق فاز ۱» مبهم می‌ماند.
+              </td>
+              <td>
+                طبق <b>pasted.txt</b> هر دو بخش در MVP آمده‌اند؛ این سوال برای <b>تایید مجدد</b> است اگر محدودیت
+                میدانی/زمانی دارید، حداقل قابل قبول را مشخص کنید (مثلاً یک معدن پایلوت با باسکول کامل).
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <details>
+          <summary>15.1 رفع ابهام حیاتی 13% خانوار (توضیح آماده برای کارفرما)</summary>
+          <div class="details-body">
+            <ul>
+              <li>
+                <b>تفسیر صحیح پیشنهادی:</b> 13٪ یک «سبد مشترک» است، نه اینکه به هر خانوار جداگانه 13٪ پرداخت شود.
+              </li>
+              <li>
+                یعنی ابتدا از درآمد تاییدشده دوره، 13٪ کنار گذاشته می‌شود؛ سپس بین خانوارهای مشمول همان دوره تقسیم می‌گردد.
+              </li>
+              <li>
+                <b>فرمول پیشنهادی MVP (تقسیم مساوی):</b><br />
+                سهم هر خانوار = (13٪ × درآمد تاییدشده دوره) ÷ تعداد خانوار مشمول تاییدشده همان دوره
+              </li>
+              <li>
+                اگر کارفرما مدل دیگری بخواهد (وزنی/امتیازی/ضریب‌دار)، باید همین‌جا قفل و نسخه‌بندی شود.
+              </li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>15.2 اپ راننده فقط یا باسکول هم در MVP؟ (خلاصه مطابق چت کارفرما)</summary>
+          <div class="details-body">
+            <p>
+              در <b>pasted.txt</b> محدوده MVP به‌گونه‌ای نوشته شده که <b>هم اپ راننده و هم زنجیره باسکول</b> جزء فاز
+              اول است؛ از جمله: ثبت وزن باسکول مبدا/مقصد، اتصال/ورود امن به باسکول، نقش اپراتور باسکول، و در جمع‌بندی
+              اجرایی «ایجنت محلی خواندن سریال» همراه «اپ پایه راننده» و State Machine شناسه بار.
+            </p>
+            <p class="muted">
+              در همان سند، برای برنامه‌ریزی داخلی گاهی «فاز ۲ اپ راننده / فاز ۳ ضدتقلب و باسکول» به‌صورت برچسب
+              زمانی آمده؛ این با جمع‌بندی نهایی MVP که هر دو را با هم می‌خواهد، تفاوت برچسب دارد و باید با کارفرما یک
+              جدول تحویل واحد قفل شود. Q11 برای همین یکسان‌سازی است.
+            </p>
+          </div>
+        </details>
+
+        <p class="muted" style="margin-top: 10px;">
+          <b>پوشش حفره‌های سوالی:</b> موارد Q1 تا Q11 ابهامات بحرانی قراردادی و عملیاتی را پوشش می‌دهند؛ جزئیات روزمره
+          میدان (مثلاً نام سامانه باسکول خاص یک کارخانه) در کارگاه اجرایی تکمیل می‌شود.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>16) پیشنهادات و انتقادات قابل ارائه به کارفرما</h2>
+        <p class="muted">
+          این بخش صرفاً از <b>اسناد پروژه و متن pasted.txt</b> و ضرورت‌های <b>اجرای کار و تحویل قابل دفاع</b> استخراج
+          شده است؛ نه از شیوه کدنویسی یا ابزار توسعه.
+        </p>
+        <h3>16.1 پیشنهادات</h3>
+        <ul>
+          <li>
+            در فاز اول بر «جریان درآمد و تسویه قابل استناد در برابر ذینفعان» تمرکز شود؛ گزارش‌های حجیم و تشریفاتی به
+            فاز بعد موکول شود (همسو با تأکید متن بر ماژول مالی در MVP).
+          </li>
+          <li>
+            پیش از اتمام کار، <b>فهرست فرآیندهای اجباری MVP و نقش مسئول هر مرحله</b> با کارفرما به‌صورت کتبی قطعی شود
+            (شامل مسیر راننده، باسکول، تعاونی، لجستیک).
+          </li>
+          <li>یک روال رسمی سازمانی برای رسیدگی به مغایرت وزن یا تسویه تعریف شود تا اختلاف در میدان متوقف نشود.</li>
+          <li>
+            برای هر معدن، شفافیت حداقلی درباره مشمولین سهم و زمان‌بندی پرداخت دوره‌ای در خروجی رسمی پروژه دیده شود.
+          </li>
+          <li>
+            قواعد سهم و تسویه در یک سند مصوب کارفرما ثبت و نسخه‌دار شود تا در طول اجرای پروژه با تغییرات غیرمصوب
+            به‌هم نخورد.
+          </li>
+        </ul>
+        <h3>16.2 انتقادات/ریسک‌ها (با بیان شفاف و حرفه‌ای)</h3>
+        <ul>
+          <li>
+            اگر روش واقعی واریز وجه و چرخه تسویه از ابتدا در قرارداد و جلسات عملیاتی قطعی نشود، تحویل بخش مالی فاز
+            اول با ابهام جدی مواجه می‌شود (منعکس در بحث‌های pasted.txt درباره کیف پول و تسویه).
+          </li>
+          <li>
+            ابهام در قاعده ۱۳٪ خانوار می‌تواند به اختلاف اجتماعی و گزارش‌های غیرقابل دفاع منجر شود؛ در متن نیز به
+            شفافیت مالی و حقوقی تأکید شده است.
+          </li>
+          <li>
+            اگر نقش‌های کلیدی (تعاونی، لجستیک، اپراتور باسکول) زود در چرخه واقعی وارد نشوند، آزمایش عملی سیستم ناقص
+            می‌ماند؛ در pasted.txt پنل تعاونی و مسیر باسکول صریحاً مطرح شده‌اند.
+          </li>
+          <li>
+            گسترش همزمان امکانات غیرضروری فاز بعد (جلسات، رای‌گیری، پلاک‌خوان و غیره) در کنار هسته، ریسک تأخیر در
+            تحویل فاز اول را بالا می‌برد — مطابق مرزبندی‌های ذکرشده در همین گزارش و تفکیک Post-MVP.
+          </li>
+          <li>
+            نبود فرآیند استاندارد برای اصلاح مغایرت وزن یا تسویه می‌تواند عملیات میدانی را متوقف کند؛ این با نیاز به
+            ضدتقلب و رهگیری در چت کارفرما هم‌جهت است.
+          </li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>17) نتیجه بازبینی سه‌مرحله‌ای (Triple Review Log)</h2>
+        <ul>
+          <li><b>بازبینی 1:</b> تطبیق با ساختار فنی و مدل داده فعلی (backend/schema).</li>
+          <li><b>بازبینی 2:</b> تطبیق با مرجع کارفرما در <b>pasted.txt</b> و قفل موارد MVP/Post-MVP.</li>
+          <li><b>بازبینی 3:</b> بازبینی خروجی برای مخاطب غیرفنی + افزودن سوالات ضروری قابل پرسش.</li>
+        </ul>
+        <p class="muted">
+          اگر پاسخ سوالات Q1 تا Q11 دریافت شود، این گزارش به نسخه اجرایی نهایی (Actionable v1) تبدیل می‌شود.
+          برای کنترل نسخه قبل از هر ارائه، <b>بخش ۶.۴</b> را با همین سه محور بازبینی کنید.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>18) متن آماده کپی برای ارسال به کارفرما</h2>
+        <p class="muted">
+          متن زیر را کپی کنید؛ برای رفع ابهام، پیشنهادهای عملی (بدون تعیین تکلیف به‌جای کارفرما) و چند نکته انتقادی
+          است. لحن طوری تنظیم شده که برای آقای موحدی قابل ارسال مستقیم باشد.
+        </p>
+        <div class="actions">
+          <button type="button" class="primary" onclick="copyReadyMessage()">کپی متن آماده ارسال</button>
+        </div>
+        <textarea id="readyMessage" readonly style="width:100%;min-height:520px;margin-top:10px;border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#f9fafb;color:#111827;">
+آقای موحدی سلام، وقت بخیر.
+
+می‌خواستم چند جای مبهم رو با هم روشن کنیم، چند تا پیشنهاد بدم، و دو سه تا نکته هم به‌عنوان انتقاد/ریسک بگم که وسط کار گیر نکنیم. هیچ‌کدوم از این‌ها جواب نهایی نیست؛ هر جا نظر شما فرق داره همون رو ملاک می‌ذاریم.
+
+۱) سهم ۱۳٪ خانوار
+تو همون متنی که اول فرستاده بودید این قسمت خیلی حساسه. ما این‌طور برداشت کردیم که ۱۳٪ برای کل «سبد» دوره‌ست و بین خانوارهای مشمول تقسیم می‌شه، نه اینکه هر خونه جدا ۱۳٪ بگیره. اگر منظورتون چیز دیگه‌ایه حتماً بگید تا عوض نخوریم.
+برای MVP یک فرمول ساده پیشنهاد می‌کنیم: (۱۳٪ × درآمد تاییدشده همون دوره) تقسیم بر تعداد خانوار مشمول همون دوره. موافقید یا مدل وزنی/ضریب‌دار مد نظرتونه؟
+
+۲) واریز پول
+واریز واقعی رو تو این فاز ترجیح می‌دید چطور پیش بره؟ مثلاً تسویه متمرکز با خروجی بانکی، ثبت دستی ولی شفاف، یا اتصال مستقیم به درگاه؟
+از سمت ما یک گزینه راحت‌تر برای شروع عملی معمولاً «ادمین + بچ و گزارش پرداخت» هست؛ اگر غیرش رو می‌خواید، همون رو می‌چینیم.
+
+۳) سیکل تسویه
+برای مالک ناوگان و خانوار، تسویه رو هفتگی می‌خواید، ماهانه، یا ترکیبی؟ ما پیشنهاد می‌دیم یه چرخه ثابت (مثلاً هفتگی) داشته باشیم و اگر اضطراری شد ادمین بتونه دستی هم اجرا کنه؛ اگر با کارتون نمی‌خونه بگید.
+
+۴) خانوار مشمول و شعاع ۵ کیلومتر
+منبع رسمی تشخیص مشمول بودن خانوار رو چی در نظر دارید؟ (یارانه، سامانه خاص، فایل امضاشده و غیره)
+شعاع ۵ کیلومتر رو از کجای معدن حساب کنیم؟ نقطه رسمی روی نقشه دارید یا با هم قفلش کنیم؟
+پیشنهاد ما برای جلوگیری از دعوا بعداً: یه نقطه رسمی برای معدن + یه روش ثابت برای فاصله تا روستا، و هر دوره یه اسنپ‌شات از لیست مشمول‌ها.
+
+۵) سرویس مشکوک
+اگر بار یا سرویس «مشکوک» شد، پول رو کامل نگه داریم تا بررسی بشه یا قسمتی آزاد باشه؟ نظر شما چیه؟ ما معمولاً «نگه‌داشتن تا روشن شدن» رو پیشنهاد می‌دیم، بعدش یا آزاد یا برگشت با ثبت دلیل.
+
+۶) عملیات ساعتی ماشین‌آلات
+تایید نهایی کارکرد ساعتی رو با کی می‌خواید؟ مشاور، ناظر، یا دو مرحله‌ای برای مبالغ گنده‌تر؟ تو همون متن اول این تکه رو ریز به ریز ننوشته بودیم؛ بگید ترجیحتون چیه.
+
+۷) شفافیت لیست سهم‌برندگان
+اسم و مبلغ برای همه باز باشه یا فقط آمار کلی برای عموم و جزئیات برای مدیران؟ هر دو را که انتخاب کنید قابل اجراست؛ فقط باید بدانیم خط قرمز حریم خصوصی شما کجاست.
+
+۸) چی داخل MVP نباشد
+تو همین گزارش‌ها جلسات تعاونی، رای‌گیری، آرشیو سنگین، پلاک‌خوان هوشمند رو برای بعد گذاشتیم تا فاز اول گند نخوره. با این مرز موافقید یا چیزی از این‌ها را حتماً می‌خواید داخل همین فاز؟
+
+۹) اپ راننده به تنهایی کافیه یا باسکول هم تو تحویل فاز اول هست؟
+تو متن اولیه‌ای که فرستاده بودید هم اپ راننده بود هم مسیر باسکول و ایجنت و وزن مبدا و مقصد. فقط می‌خوام مطمئن بشم هنوز همین جمع‌بندیه؛ اگر تو میدون محدودیت جدیدی پیش اومده یا شرایط عوض شده، بگید تا تعریف تحویل رو با هم تنظیم کنیم (مثلاً یک معدن پایلوت با باسکول کامل).
+
+چند پیشنهاد کوتاه:
+فاز اول رو بچسبونیم به چیزی که تو میدون قابل دفاع باشه و پول و سهم معلوم باشه؛ گزارش‌های فانتزی رو بذاریم برای بعد.
+قواعد سهم و تسویه رو یه جا بنویسید و امضا کنید که وسط پروژه قاطی نشه.
+فرآیندهای اجباری همین فاز و اینکه هر نقش دقیقاً کجا امضا می‌ده رو یک‌بار روی کاغذ جمع کنیم.
+
+دو سه تا ریسک که اگر باز بمونه دعوا می‌شه:
+روش واریز و چرخه تسویه هنوز کاملاً روشن نیست.
+فرمول ۱۳٪ اگر قفل نشه بعداً حساب کتاب عوض می‌شود.
+اگر تعاونی، لجستیک و اپراتور باسکول دیر وارد چرخه واقعی بشن، تست واقعی ناقص می‌مونه.
+برای مغایرت وزن یا تسویه اگر روال رسمی نداشته باشیم، وسط کار گیر می‌کنیم.
+
+ممنون می‌کنم اگر همین‌ها رو بگید کجا با ذهنیتون یکیه و کجا فرق داره؛ همون رو می‌بندیم و جلو می‌ریم.
+        </textarea>
+      </section>
+    </div>
+    <script>
+      function copyReadyMessage() {
+        var el = document.getElementById("readyMessage");
+        if (!el) return;
+        el.select();
+        el.setSelectionRange(0, 999999);
+        try {
+          document.execCommand("copy");
+          alert("متن آماده ارسال کپی شد.");
+        } catch (e) {
+          alert("کپی خودکار انجام نشد؛ لطفاً متن را دستی کپی کنید.");
+        }
+      }
+    </script>
+  </body>
+</html>

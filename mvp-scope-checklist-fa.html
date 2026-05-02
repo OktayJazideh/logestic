@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>چک‌لیست اصلی MVP - Mineral Haul Platform</title>
+    <style>
+      :root {
+        --bg: #f3f4f6;
+        --panel: #ffffff;
+        --line: #e5e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --primary: #1b5e20;
+        --accent: #f59e0b;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Tahoma, "Segoe UI", sans-serif;
+      }
+      .wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 18px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+      .header {
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      h1 {
+        margin: 0 0 8px 0;
+        font-size: 22px;
+        color: #0e3b13;
+      }
+      .muted { color: var(--muted); font-size: 13px; }
+      .top-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        background: #f9fafb;
+      }
+      .stat b { color: #0e3b13; font-size: 18px; }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      button {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 8px 12px;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      button.primary {
+        border-color: #b7d8ba;
+        background: #eef8ef;
+        color: #0e3b13;
+      }
+      details.section {
+        margin-bottom: 10px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+      }
+      details.section summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        font-weight: 700;
+      }
+      details.section summary::-webkit-details-marker { display: none; }
+      .section-body { padding: 8px 12px 12px 12px; }
+      .item {
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        gap: 10px;
+        align-items: start;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px;
+        margin-top: 8px;
+      }
+      .item small { color: var(--muted); display: block; margin-top: 3px; }
+      .item input[type="checkbox"] {
+        pointer-events: none;
+        accent-color: var(--primary);
+      }
+      .pill {
+        font-size: 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 2px 8px;
+        color: #374151;
+        background: #f9fafb;
+      }
+      .need-drop {
+        grid-column: 2 / -1;
+        margin-top: 2px;
+        border: 1px dashed #d1d5db;
+        border-radius: 8px;
+        background: #fafafa;
+      }
+      .need-drop > summary {
+        cursor: pointer;
+        padding: 8px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #8a5a00;
+        list-style: none;
+      }
+      .need-drop > summary::-webkit-details-marker { display: none; }
+      .need-content {
+        border-top: 1px dashed #d1d5db;
+        padding: 8px 10px 10px;
+        font-size: 12px;
+        color: #374151;
+        line-height: 1.8;
+      }
+      .need-content b { color: #111827; }
+      .done { border-color: #b7d8ba; background: #f3fbf4; }
+      .progress {
+        margin-top: 6px;
+        width: 100%;
+        height: 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+      }
+      .progress > span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: var(--primary);
+      }
+      @media (max-width: 860px) {
+        .top-grid { grid-template-columns: 1fr; }
+        .item { grid-template-columns: auto 1fr; }
+        .item .pill { grid-column: 2 / 3; justify-self: start; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="card header">
+        <h1>چک‌لیست اصلی MVP (نسخه ریزفاز)</h1>
+        <div class="muted">
+          این چک‌لیست بر اساس تعریف اصلی شما تنظیم شده است (۱۲ فاز + ریزآیتم‌ها).
+          مواردی که تا الان پیاده شده‌اند، تا حد امکان pre-check شده‌اند.
+        </div>
+
+        <div class="top-grid">
+          <div class="stat"><div>کل آیتم‌ها</div><b id="totalCount">0</b></div>
+          <div class="stat"><div>آیتم‌های تکمیل‌شده</div><b id="doneCount">0</b></div>
+          <div class="stat"><div>پیشرفت کل</div><b id="donePercent">0%</b></div>
+        </div>
+        <div class="progress"><span id="globalBar"></span></div>
+
+        <div class="controls">
+          <span class="pill">حالت فقط‌خواندنی: وضعیت تیک‌ها فقط توسط تیم فنی به‌روزرسانی می‌شود.</span>
+          <span class="pill">برای هر تسکِ نیازمند ورودی، dropdown «اطلاعات موردنیاز از کارفرما» را باز کنید.</span>
+        </div>
+      </section>
+
+      <details class="section" open>
+        <summary>1) راه‌اندازی پایه پروژه (روزهای ۱ تا ۵)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="1-1" checked /><div>1.1 تعریف Repo و ساختار لایه‌ها (Backend / Web / Mobile)</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="1-2" /><div>1.2 تعریف Environments: dev/staging + ساخت دیتابیس جدا</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="1-3" /><div>1.3 تعریف الگوی Migration و Versioning دیتابیس</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="1-4" checked /><div>1.4 تعریف Logging استاندارد + correlation id</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="1-5" checked /><div>1.5 آماده‌سازی Audit Log format مشترک</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="1-6" checked /><div>1.6 استاندارد API response/error</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="1-7" /><div>1.7 CI حداقلی (lint/build/test)</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="1-8" checked /><div>1.8 Seed data برای operation_type/rate cards/roles</div><span class="pill">Partial-Done</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>2) Auth / OTP / RBAC (روزهای ۵ تا ۱۲)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="2-1" checked /><div>2.1 مدل users با mobile_number یکتا</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="2-2" checked /><div>2.2 OTP request + verify + rate limit</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="2-3" checked /><div>2.3 اعتبارسنجی نقش‌ها (ADMIN/COOP/EMPLOYER/DRIVER/FLEET_OWNER/HOUSEHOLD/CONSULTANT)</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="2-4" checked /><div>2.4 فعال/غیرفعال کاربر با is_active</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="2-5" checked /><div>2.5 RBAC middleware برای endpointها</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="2-6" /><div>2.6 قفل دسترسی مالی برای non-APPROVED</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="2-7" checked /><div>2.7 Audit Log تغییرات مهم نقش‌ها</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="2-8" checked /><div>2.8 Endpoints پایه: me / myProfile / myPermissions</div><span class="pill">Done</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>3) Multi-mine و جغرافیا (روزهای ۸ تا ۱۵)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="3-1" checked /><div>3.1 مدل mines و mine_id در موجودیت‌ها</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="3-2" checked /><div>3.2 مدل villages با FK به mine_id</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="3-3" /><div>3.3 جلوگیری از ثبت روستای خارج لیست مجاز (Constraint + Validation)</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="3-4" checked /><div>3.4 API لیست روستاهای مجاز بر اساس mine</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="3-5" checked /><div>3.5 Mine-Based Access با انتخاب mine</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="3-6" /><div>3.6 Endpoint Employer: createNeed فقط برای mine خودش</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="3-7" /><div>3.7 Endpoint Coop: seeRequests فقط برای mine خودش</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="3-8" /><div>3.8 تست دسترسی mine دیگر => 403</div><span class="pill">Pending</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>4) مدل اجتماعی Household (روزهای ۱۰ تا ۲۰)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="4-1" checked /><div>4.1 مدل households با user_id + village_id</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="4-2" /><div>4.2 یکتایی national_id (constraint)</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="4-3" /><div>4.3 KYC پایه: bank_iban + head_name + national_id</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="4-4" /><div>4.4 وضعیت Household: PENDING/APPROVED/REJECTED/SUSPENDED/NEEDS_CORRECTION</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="4-5" /><div>4.5 جریان Coop: Pending list + Approve/Reject/Suspend + reason</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="4-6" /><div>4.6 Audit Log تصمیمات Coop روی Household</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="4-7" /><div>4.7 فعال شدن کیف‌پول/سهم فقط بعد از APPROVED</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="4-8" /><div>4.8 API Household برای مشاهده سهم و تاریخچه ساده</div><span class="pill">Pending</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>5) مدل ناوگان FleetOwner/Driver/Vehicle (روزهای ۱۲ تا ۲۲)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="5-1" checked /><div>5.1 مدل fleet_owners (KYC پایه)</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="5-2" checked /><div>5.2 مدل drivers</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="5-3" checked /><div>5.3 مدل vehicles</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="5-4" checked /><div>5.4 تفکیک مالک/راننده/خودرو</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="5-5" /><div>5.5 ماشین وضعیت کامل Driver/Vehicle/FleetOwner</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="5-6" /><div>5.6 جریان Coop تایید ناوگان + reason</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="5-7" checked /><div>5.7 اتصال vehicle.owner_id و mission.driver_id جدا</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="5-8" /><div>5.8 Audit تصمیمات تعاونی Owner/Driver/Vehicle</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="5-9" /><div>5.9 فقط APPROVED وارد عملیات شوند</div><span class="pill">Pending</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>6) Core عملیات حمل تنی Load + Mission (روزهای ۱۸ تا ۳۵)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="6-1" checked /><div>6.1 مدل loads با load_tracking_code یکتا</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="6-2" checked /><div>6.2 مدل missions با FKهای عملیاتی</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="6-3" checked /><div>6.3 state machine اصلی mission</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="6-4" /><div>6.4 API Employer برای ثبت نیاز عملیاتی</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="6-5" /><div>6.5 موتور تخصیص MVP (stable order)</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="6-6" /><div>6.6 ضدتقلب MVP: یک mission فعال برای driver/vehicle</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="6-7" checked /><div>6.7 API Mobile Driver برای missionها</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="6-8" checked /><div>6.8 رویدادهای مرحله‌ای Driver</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="6-9" checked /><div>6.9 قفل Load ID و عدم جایگزینی</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="6-10" checked /><div>6.10 جلوگیری از پرش state transition</div><span class="pill">Done</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>7) باسکول / Weighbridge Ticket (روزهای ۲۵ تا ۴۲)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="7-1" checked /><div>7.1 مدل weighbridge_tickets (empty/loaded/net)</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="7-2" checked /><div>7.2 اتصال mission_id/load_id صحیح</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="7-3" checked /><div>7.3 state machine تیکت</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="7-4" /><div>7.4 مرجع معتبر وزن (API/Kiosk/Mock مسیر رسمی)</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="7-5" /><div>7.5 UI کامل اپراتور باسکول (وب)</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="7-6" checked /><div>7.6 عدم پول‌سازی بدون Ticket APPROVED</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="7-7" /><div>7.7 سناریوی ADJUSTED به‌جای ویرایش مستقیم</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="7-8" /><div>7.8 Audit ثبت/تغییر وزن</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="7-9" checked /><div>7.9 API راننده فقط read-only وضعیت تیکت</div><span class="pill">Done</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>8) مالی هسته Ledger + Wallets (روزهای ۳۵ تا ۵۵)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="8-1" checked /><div>8.1 مدل wallet سه‌گانه owner/household/platform</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="8-2" checked /><div>8.2 موجودی wallet از ledger transactions محاسبه می‌شود</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="8-3" checked /><div>8.3 مدل transactions با mission_id و amount و type</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="8-4" checked /><div>8.4 ثبت ۳ CREDIT برای mission تاییدشده</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="8-5" /><div>8.5 مدل household_shares یا view معادل</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="8-6" /><div>8.6 ضدتکرار محاسبه مالی یک mission</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="8-7" /><div>8.7 Audit تغییرات مالی</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="8-8" /><div>8.8 Settlement دستی با settlement_batches</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="8-9" checked /><div>8.9 خروجی Owner/Household برای سهم و تراکنش</div><span class="pill">Done</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>9) پنل‌های وب (روزهای ۲۰ تا ۶۲)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="9-1" checked /><div>9.1 Skeleton + Layout + Navigation</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="9-2" /><div>9.2 پنل Coop: تابلو درخواست Household/ناوگان</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="9-3" /><div>9.3 پنل Coop: فرم Approve/Reject/Suspend + reason</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="9-4" /><div>9.4 پنل Coop: Audit trail تصمیمات</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="9-5" /><div>9.5 پنل Employer: ثبت نیاز + مشاهده وضعیت</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="9-6" /><div>9.6 پنل Owner: درآمد و تراکنش‌های خودش</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="9-7" /><div>9.7 پنل Household: سهم تجمیعی + تاریخچه ساده</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="9-8" /><div>9.8 پنل Admin: نقش‌ها + actionهای ضروری</div><span class="pill">Pending</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>10) Mobile Driver App (روزهای ۲۰ تا ۶۲)</summary>
+        <div class="section-body">
+          <label class="item done"><input type="checkbox" data-id="10-1" checked /><div>10.1 Auth با OTP + نمایش mine</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="10-2" checked /><div>10.2 لیست missionهای فعال راننده</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="10-3" checked /><div>10.3 صفحه مرحله‌ای با دکمه‌های کم‌خطا</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="10-4" /><div>10.4 ثبت رویداد با retry + idempotency</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="10-5" checked /><div>10.5 دریافت وضعیت تیکت (read-only)</div><span class="pill">Done</span></label>
+          <label class="item done"><input type="checkbox" data-id="10-6" checked /><div>10.6 جلوگیری از مرحله خارج ترتیب (API enforce)</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="10-7" /><div>10.7 Offline MVP اختیاری (queue + sync)</div><span class="pill">Pending</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>11) Anti-fraud حداقلی (روزهای ۳۰ تا ۶۰)</summary>
+        <div class="section-body">
+          <label class="item"><input type="checkbox" data-id="11-1" /><div>11.1 enforce یک mission فعال برای Driver و Vehicle</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="11-2" /><div>11.2 immutability برای Load ID و net_weight</div><span class="pill">Pending</span></label>
+          <label class="item done"><input type="checkbox" data-id="11-3" checked /><div>11.3 عدم تولید پول مگر Ticket APPROVED</div><span class="pill">Done</span></label>
+          <label class="item"><input type="checkbox" data-id="11-4" /><div>11.4 Snapshot rate در لحظه محاسبه</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="11-5" /><div>11.5 Audit رخدادهای ضدتقلب</div><span class="pill">Pending</span></label>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>12) تست، QA و Definition of Done (روزهای ۵۵ تا ۷۰)</summary>
+        <div class="section-body">
+          <label class="item"><input type="checkbox" data-id="12-1" /><div>12.1 Unit test برای state machine و ruleها</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="12-2" /><div>12.2 API test برای RBAC و 403</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="12-3" /><div>12.3 E2E کامل یک Load از ثبت تا ledger و نمایش سهم</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="12-4" /><div>12.4 تست کامل audit trail رخدادهای حساس</div><span class="pill">Pending</span></label>
+          <label class="item"><input type="checkbox" data-id="12-5" /><div>12.5 UAT با کاربر واقعی/شبیه‌ساز + اصلاح UI</div><span class="pill">Pending</span></label>
+        </div>
+      </details>
+    </div>
+
+    <script>
+      // Questions to share with non-technical stakeholders (with technical hints).
+      const NEEDS_INFO = {
+        "1-2": {
+          simple: "برای محیط تست و عملیاتی، چه سرور/دیتابیس‌هایی در اختیار پروژه قرار می‌گیرد؟",
+          technical: "نیاز داریم Dev/Staging جدا باشد (DB URL, access, backup policy).",
+          why: "تا توسعه و تست روی دیتای واقعی با کمترین ریسک انجام شود."
+        },
+        "1-3": {
+          simple: "ترجیح کارفرما برای مدیریت تغییرات دیتابیس چیست؟",
+          technical: "Migration strategy: Prisma یا SQL migration pipeline.",
+          why: "تا تغییرات دیتابیس قابل ردگیری و برگشت‌پذیر باشد."
+        },
+        "1-8": {
+          simple: "نرخ‌های اولیه حمل (Rate Card) دقیقاً چقدر است؟",
+          technical: "material_type, unit(TON), rate, currency, effective_from.",
+          why: "بدون نرخ تاییدشده، محاسبه مالی معتبر نیست."
+        },
+        "2-2": {
+          simple: "کد OTP چند رقمی باشد و چند دقیقه اعتبار داشته باشد؟",
+          technical: "OTP length/TTL/retry/rate-limit policy.",
+          why: "برای امنیت ورود و جلوگیری از سوءاستفاده."
+        },
+        "2-6": {
+          simple: "کدام وضعیت‌ها اجازه دیدن اطلاعات مالی دارند و کدام‌ها ندارند؟",
+          technical: "Role x Status access matrix for financial endpoints.",
+          why: "جلوگیری از افشای مالی برای کاربران تاییدنشده."
+        },
+        "3-3": {
+          simple: "لیست رسمی روستاهای مجاز هر معدن را از چه منبعی می‌گیریم؟",
+          technical: "authoritative source: Excel/API/master-data feed.",
+          why: "تا خانوار خارج از محدوده مجاز ثبت نشود."
+        },
+        "3-6": {
+          simple: "کارفرما برای ثبت نیاز عملیاتی چه فرم ساده‌ای می‌خواهد؟",
+          technical: "createNeed minimum fields + validation rules.",
+          why: "تا Employer ورودی درست و استاندارد ثبت کند."
+        },
+        "4-3": {
+          simple: "برای احراز هویت خانوار دقیقاً چه مدارکی لازم است؟",
+          technical: "head_name, national_id format, IBAN validation.",
+          why: "برای جلوگیری از خطای پرداخت و پرونده ناقص."
+        },
+        "4-5": {
+          simple: "در رد/تعلیق خانوار، چه دلیل‌هایی مجاز است؟",
+          technical: "reason catalog for Reject/Suspend/Correction.",
+          why: "برای شفافیت حقوقی و گزارش‌پذیری تصمیمات تعاونی."
+        },
+        "6-5": {
+          simple: "در تخصیص ماموریت، اولویت با کدام روش باشد؟",
+          technical: "allocation policy: first-approved / round-robin / nearest.",
+          why: "تا اختلاف عملیاتی و نارضایتی کمتر شود."
+        },
+        "7-4": {
+          simple: "در MVP وزن باسکول را واقعی می‌گیریم یا فعلاً شبیه‌سازی؟",
+          technical: "Mock mode vs direct weighbridge integration path.",
+          why: "روی زمان تحویل MVP و دقت مالی اثر مستقیم دارد."
+        },
+        "8-8": {
+          simple: "فرآیند پرداخت نهایی (Settlement) دستی دقیقاً چطور انجام شود؟",
+          technical: "batch create/lock/paid/failed flow + responsible roles.",
+          why: "برای جلوگیری از دوبارپرداخت یا پرداخت ناقص."
+        },
+        "9-2": {
+          simple: "اولویت توسعه پنل‌ها با کدام نقش است؟",
+          technical: "Coop-first or Employer-first delivery sequencing.",
+          why: "برای تحویل مرحله‌ای قابل استفاده."
+        },
+        "10-4": {
+          simple: "اگر اینترنت لحظه‌ای قطع شد، رفتار ثبت مرحله ماموریت چگونه باشد؟",
+          technical: "retry policy + idempotency key strategy.",
+          why: "تا مرحله‌ها تکراری یا ناقص ثبت نشوند."
+        },
+        "10-7": {
+          simple: "قابلیت آفلاین در MVP فعال باشد یا به فاز بعد منتقل شود؟",
+          technical: "event queue + sync conflict policy.",
+          why: "روی پیچیدگی و زمان MVP اثر زیاد دارد."
+        },
+        "12-5": {
+          simple: "برای UAT چه کاربران/سناریوهای واقعی در اختیار داریم؟",
+          technical: "UAT actors, acceptance criteria, test mine data.",
+          why: "تا قبل از go-live ایرادهای واقعی کشف شود."
+        }
+      };
+
+      function getChecks() {
+        return Array.from(document.querySelectorAll('input[type="checkbox"][data-id]'));
+      }
+
+      function attachNeedDropdowns() {
+        for (const cb of getChecks()) {
+          const id = cb.dataset.id;
+          const info = NEEDS_INFO[id];
+          if (!info) continue;
+          const item = cb.closest('.item');
+          if (!item || item.querySelector('.need-drop')) continue;
+
+          const d = document.createElement('details');
+          d.className = 'need-drop';
+          d.innerHTML = `
+            <summary>اطلاعات موردنیاز از کارفرما (برای این تسک)</summary>
+            <div class="need-content">
+              <div><b>سوال ساده:</b> ${info.simple}</div>
+              <div><b>توضیح فنی:</b> ${info.technical}</div>
+              <div><b>چرایی این سوال:</b> ${info.why}</div>
+            </div>
+          `;
+          item.appendChild(d);
+        }
+      }
+
+      function refreshStats() {
+        const cbs = getChecks();
+        const total = cbs.length;
+        const done = cbs.filter((x) => x.checked).length;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+
+        document.getElementById("totalCount").textContent = total;
+        document.getElementById("doneCount").textContent = done;
+        document.getElementById("donePercent").textContent = pct + "%";
+        document.getElementById("globalBar").style.width = pct + "%";
+
+        for (const label of document.querySelectorAll(".item")) {
+          const cb = label.querySelector('input[type="checkbox"]');
+          label.classList.toggle("done", !!cb?.checked);
+        }
+      }
+
+      function lockChecklist() {
+        for (const cb of getChecks()) cb.disabled = true;
+      }
+
+      lockChecklist();
+      attachNeedDropdowns();
+      refreshStats();
+    </script>
+  </body>
+</html>
+
