@@ -52,6 +52,34 @@ enum WeighbridgeTicketStatus {
   ADJUSTED
 }
 
+enum MissionPaymentState {
+  PENDING
+  CALCULATED
+  DISTRIBUTED
+  SETTLED
+  HELD
+  FAILED
+}
+
+enum HourlyWorkLogStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SettlementBatchStatus {
+  DRAFT
+  LOCKED
+  PAID
+  CANCELLED
+}
+
+enum WeighbridgeAdjustmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum WalletType {
   OWNER
   HOUSEHOLD
@@ -71,6 +99,10 @@ model users {
   is_active     Boolean @default(true)
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+
+  households  households?
+  drivers     drivers?
+  fleet_owners fleet_owners?
 }
 
 model mines {
@@ -80,6 +112,27 @@ model mines {
   location_coordinates    String?
   created_at             DateTime @default(now())
   updated_at             DateTime @updatedAt
+
+  villages villages[]
+  loads loads[]
+  rate_cards rate_cards[]
+  hourly_work_logs hourly_work_logs[]
+  settlement_batches settlement_batches[]
+}
+
+model rate_cards {
+  id             BigInt    @id @default(autoincrement())
+  mine_id        BigInt
+  material_type  String
+  rate_per_ton   Decimal   @db.Decimal(15, 4)
+  valid_from     DateTime
+  valid_to       DateTime?
+  created_at     DateTime  @default(now())
+
+  mine     mines      @relation(fields: [mine_id], references: [id])
+  missions missions[]
+
+  @@index([mine_id])
 }
 
 model villages {
@@ -90,7 +143,8 @@ model villages {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  mine mines @relation(fields: [mine_id], references: [id])
+  mine        mines         @relation(fields: [mine_id], references: [id])
+  households  households[]
 
   @@index([mine_id])
 }
@@ -109,6 +163,8 @@ model households {
 
   user    users @relation(fields: [user_id], references: [id])
   village villages @relation(fields: [village_id], references: [id])
+  loads   loads[]
+  wallets wallets[]
 }
 
 model fleet_owners {
@@ -121,6 +177,10 @@ model fleet_owners {
   updated_at  DateTime @updatedAt
 
   user users @relation(fields: [user_id], references: [id])
+  vehicles vehicles[]
+  missions missions[]
+  hourly_work_logs hourly_work_logs[]
+  wallets wallets[]
 }
 
 model drivers {
@@ -132,6 +192,7 @@ model drivers {
   updated_at     DateTime @updatedAt
 
   user users @relation(fields: [user_id], references: [id])
+  missions missions[]
 }
 
 model vehicles {
@@ -144,6 +205,8 @@ model vehicles {
   updated_at    DateTime @updatedAt
 
   owner fleet_owners @relation(fields: [owner_id], references: [id])
+  hourly_work_logs hourly_work_logs[]
+  missions missions[]
 
   @@index([owner_id])
 }
@@ -160,6 +223,7 @@ model loads {
 
   mine mines @relation(fields: [mine_id], references: [id])
   household households @relation(fields: [household_id], references: [id])
+  missions missions[]
 
   @@index([mine_id])
   @@index([household_id])
@@ -174,6 +238,9 @@ model missions {
   status    MissionStatus @default(ASSIGNED)
   started_at DateTime?
   completed_at DateTime?
+  rate_card_id BigInt?
+  rate_per_ton_snapshot Decimal? @db.Decimal(15, 4)
+  payment_state MissionPaymentState @default(PENDING)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -181,8 +248,15 @@ model missions {
   owner fleet_owners @relation(fields: [owner_id], references: [id])
   driver drivers @relation(fields: [driver_id], references: [id])
   vehicle vehicles @relation(fields: [vehicle_id], references: [id])
+  rate_card rate_cards? @relation(fields: [rate_card_id], references: [id])
+
+  weighbridge_tickets weighbridge_tickets?
+  transactions transactions[]
+  settlement_lines settlement_lines[]
+  weighbridge_adjustment_requests weighbridge_adjustment_requests[]
 
   @@index([load_id])
+  @@index([rate_card_id])
 }
 
 model weighbridge_tickets {
@@ -199,6 +273,7 @@ model weighbridge_tickets {
   updated_at   DateTime @updatedAt
 
   mission missions @relation(fields: [mission_id], references: [id])
+  weighbridge_adjustment_requests weighbridge_adjustment_requests[]
 }
 
 model wallets {
@@ -212,6 +287,8 @@ model wallets {
 
   owner fleet_owners? @relation(fields: [owner_id], references: [id])
   household households? @relation(fields: [household_id], references: [id])
+  transactions transactions[]
+  settlement_lines settlement_lines[]
 }
 
 model transactions {
@@ -227,6 +304,76 @@ model transactions {
   mission missions? @relation(fields: [mission_id], references: [id])
 
   @@index([wallet_id])
+  @@index([mission_id])
+}
+
+model hourly_work_logs {
+  id                   BigInt   @id @default(autoincrement())
+  mine_id              BigInt
+  fleet_owner_id       BigInt
+  vehicle_id           BigInt?
+  hours                Decimal  @db.Decimal(10, 2)
+  hourly_rate_snapshot Decimal  @db.Decimal(15, 4)
+  status               HourlyWorkLogStatus @default(PENDING)
+  consultant_user_id   BigInt?
+  approved_at          DateTime?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  mine  mines        @relation(fields: [mine_id], references: [id])
+  owner fleet_owners @relation(fields: [fleet_owner_id], references: [id])
+  vehicle vehicles?  @relation(fields: [vehicle_id], references: [id])
+
+  @@index([mine_id])
+  @@index([fleet_owner_id])
+}
+
+model settlement_batches {
+  id                 BigInt               @id @default(autoincrement())
+  mine_id            BigInt?
+  period_start       DateTime
+  period_end         DateTime
+  status             SettlementBatchStatus @default(DRAFT)
+  created_by_user_id BigInt?
+  created_at         DateTime             @default(now())
+
+  mine  mines?             @relation(fields: [mine_id], references: [id])
+  lines settlement_lines[]
+
+  @@index([mine_id])
+}
+
+model settlement_lines {
+  id         BigInt  @id @default(autoincrement())
+  batch_id   BigInt
+  wallet_id  BigInt
+  amount     Decimal @db.Decimal(15, 2)
+  mission_id BigInt?
+  note       String?
+
+  batch   settlement_batches @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  wallet  wallets           @relation(fields: [wallet_id], references: [id])
+  mission missions?         @relation(fields: [mission_id], references: [id])
+
+  @@index([batch_id])
+}
+
+model weighbridge_adjustment_requests {
+  id                     BigInt                       @id @default(autoincrement())
+  ticket_id              BigInt
+  mission_id             BigInt
+  reason                 String
+  before_net             Decimal                      @db.Decimal(10, 2)
+  after_net              Decimal                      @db.Decimal(10, 2)
+  status                 WeighbridgeAdjustmentStatus  @default(PENDING)
+  requested_by_user_id   BigInt
+  approved_by_user_id    BigInt?
+  created_at             DateTime                     @default(now())
+
+  ticket  weighbridge_tickets @relation(fields: [ticket_id], references: [id])
+  mission missions           @relation(fields: [mission_id], references: [id])
+
+  @@index([ticket_id])
   @@index([mission_id])
 }
 

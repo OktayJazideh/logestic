@@ -7,6 +7,8 @@ import { MineDataStore } from "./stores/mineDataStore";
 import { MissionStore } from "./stores/missionStore";
 import { FinanceStore } from "./stores/financeStore";
 import { EntitiesStore } from "./stores/entitiesStore";
+import { SettlementStore } from "./stores/settlementStore";
+import { HourlyWorkLogStore } from "./stores/hourlyWorkLogStore";
 
 export const appContext = {
   otpStore: new OtpStore(),
@@ -18,6 +20,8 @@ export const appContext = {
   entities: new EntitiesStore(),
   mission: null as unknown as MissionStore,
   finance: new FinanceStore(),
+  settlement: new SettlementStore(),
+  hourlyLogs: null as unknown as HourlyWorkLogStore,
 };
 
 appContext.authService = new AuthService(
@@ -26,5 +30,6 @@ appContext.authService = new AuthService(
   appContext.sessionStore,
 );
 
-appContext.mission = new MissionStore(appContext.entities, appContext.finance);
+appContext.mission = new MissionStore(appContext.entities, appContext.finance, appContext.auditStore);
+appContext.hourlyLogs = new HourlyWorkLogStore(appContext.entities, appContext.finance);
 

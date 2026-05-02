@@ -25,7 +25,8 @@ export type Transaction = {
 export type HouseholdShare = {
   id: number;
   household_id: number;
-  mission_id: number;
+  mission_id?: number;
+  hourly_log_id?: number;
   amount: number;
   created_at: Date;
 };
@@ -164,6 +165,134 @@ export class FinanceStore {
     });
 
     return { totalFare, ownerAmount, householdAmount, platformAmount };
+  }
+
+  creditHourlyShares(params: {
+    mission_id?: number;
+    hourly_log_id?: number;
+    owner: FleetOwner;
+    household: Household;
+    hours: number;
+    hourly_rate: number;
+  }) {
+    const totalFare = params.hours * params.hourly_rate;
+    const ownerAmount = totalFare * 0.85;
+    const householdAmount = totalFare * 0.13;
+    const platformAmount = totalFare * 0.02;
+
+    const ownerWallet = this.getOrCreateWalletForOwner(params.owner);
+    const householdWallet = this.getOrCreateWalletForHousehold(params.household);
+    const platformWallet = this.getPlatformWallet();
+
+    const mid = params.mission_id;
+
+    if (ownerWallet.active) {
+      this.transactions.push({
+        id: this.idSeq++,
+        wallet_id: ownerWallet.id,
+        mission_id: mid,
+        amount: ownerAmount,
+        type: "CREDIT",
+        description: "HOURLY_CREDIT_OWNER",
+        created_at: new Date(),
+      });
+    }
+
+    if (householdWallet.active) {
+      this.transactions.push({
+        id: this.idSeq++,
+        wallet_id: householdWallet.id,
+        mission_id: mid,
+        amount: householdAmount,
+        type: "CREDIT",
+        description: "HOURLY_CREDIT_HOUSEHOLD",
+        created_at: new Date(),
+      });
+
+      this.shares.push({
+        id: this.idSeq++,
+        household_id: params.household.id,
+        hourly_log_id: params.hourly_log_id,
+        amount: householdAmount,
+        created_at: new Date(),
+      });
+    }
+
+    this.transactions.push({
+      id: this.idSeq++,
+      wallet_id: platformWallet.id,
+      mission_id: mid,
+      amount: platformAmount,
+      type: "CREDIT",
+      description: "HOURLY_CREDIT_PLATFORM",
+      created_at: new Date(),
+    });
+
+    return { totalFare, ownerAmount, householdAmount, platformAmount };
+  }
+
+  /**
+   * Correction after weighbridge/mission fare change (delta on total fare).
+   */
+  applyTonnageFareDelta(params: {
+    mission_id: number;
+    owner: FleetOwner;
+    household: Household;
+    delta_total_fare: number;
+  }) {
+    const d = params.delta_total_fare;
+    if (d === 0) return { deltaOwner: 0, deltaHousehold: 0, deltaPlatform: 0 };
+
+    const ownerAmount = d * 0.85;
+    const householdAmount = d * 0.13;
+    const platformAmount = d * 0.02;
+
+    const ownerWallet = this.getOrCreateWalletForOwner(params.owner);
+    const householdWallet = this.getOrCreateWalletForHousehold(params.household);
+    const platformWallet = this.getPlatformWallet();
+
+    const typeFor = (amt: number): "CREDIT" | "DEBIT" => (amt >= 0 ? "CREDIT" : "DEBIT");
+    const abs = (amt: number) => Math.abs(amt);
+
+    if (ownerWallet.active && ownerAmount !== 0) {
+      this.transactions.push({
+        id: this.idSeq++,
+        wallet_id: ownerWallet.id,
+        mission_id: params.mission_id,
+        amount: abs(ownerAmount),
+        type: typeFor(ownerAmount),
+        description: "MISSION_FARE_ADJUSTMENT_OWNER",
+        created_at: new Date(),
+      });
+    }
+    if (householdWallet.active && householdAmount !== 0) {
+      this.transactions.push({
+        id: this.idSeq++,
+        wallet_id: householdWallet.id,
+        mission_id: params.mission_id,
+        amount: abs(householdAmount),
+        type: typeFor(householdAmount),
+        description: "MISSION_FARE_ADJUSTMENT_HOUSEHOLD",
+        created_at: new Date(),
+      });
+    }
+    if (platformAmount !== 0) {
+      this.transactions.push({
+        id: this.idSeq++,
+        wallet_id: platformWallet.id,
+        mission_id: params.mission_id,
+        amount: abs(platformAmount),
+        type: typeFor(platformAmount),
+        description: "MISSION_FARE_ADJUSTMENT_PLATFORM",
+        created_at: new Date(),
+      });
+    }
+
+    return { deltaOwner: ownerAmount, deltaHousehold: householdAmount, deltaPlatform: platformAmount };
+  }
+
+  listRateCards() {
+    return this.rateCards.slice();
   }
 
   getTransactionsForWallet(walletId: number) {

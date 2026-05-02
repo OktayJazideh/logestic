@@ -70,6 +70,9 @@ class WeighbridgeTicket {
     required this.loadId,
     required this.ticketNumber,
     required this.status,
+    this.emptyWeight,
+    this.loadedWeight,
+    this.netWeight,
   });
 
   final int id;
@@ -77,14 +80,22 @@ class WeighbridgeTicket {
   final int loadId;
   final String ticketNumber;
   final String status;
+  final double? emptyWeight;
+  final double? loadedWeight;
+  final double? netWeight;
 
   factory WeighbridgeTicket.fromJson(Map<String, dynamic> json) {
+    double? n(dynamic v) => v == null ? null : (v as num).toDouble();
+
     return WeighbridgeTicket(
       id: json['id'] as int,
       missionId: json['mission_id'] as int,
       loadId: json['load_id'] as int,
       ticketNumber: json['ticket_number'] as String,
       status: json['status'] as String,
+      emptyWeight: n(json['empty_weight']),
+      loadedWeight: n(json['loaded_weight']),
+      netWeight: n(json['net_weight']),
     );
   }
 }

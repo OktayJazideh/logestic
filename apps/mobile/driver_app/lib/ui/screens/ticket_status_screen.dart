@@ -57,9 +57,15 @@ class _TicketStatusScreenState extends State<TicketStatusScreen> {
   String _statusTitle(String status) {
     switch (status) {
       case 'PENDING_EMPTY':
-        return 'در انتظار ثبت باسکول';
+        return 'منتظر ثبت وزن توسط اپراتور باسکول';
+      case 'EMPTY_REGISTERED':
+        return 'وزن خالی ثبت شد';
+      case 'LOADED_REGISTERED':
+        return 'وزن‌ها ثبت شد — منتظر تأیید ناظر';
+      case 'ADJUSTED':
+        return 'اصلاح وزن ثبت شد';
       case 'APPROVED':
-        return 'تایید شد';
+        return 'تأیید شد و سهم مالی ثبت شد';
       case 'REJECTED':
         return 'رد شد';
       default:
@@ -155,9 +161,17 @@ class _TicketStatusScreenState extends State<TicketStatusScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        if (_ticket!.netWeight != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Text(
+                              'وزن خالص ثبت‌شده: ${_ticket!.netWeight}',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        const SizedBox(height: 8),
                         const Text(
-                          'این صفحه وضعیت را از پنل اپراتور باسکول دریافت می‌کند.',
+                          'پس از اتمام ماموریت توسط شما، اپراتور باسکول وزن‌ها را در سیستم ثبت می‌کند؛ سپس ناظر تأیید می‌کند و سهم مالی محاسبه می‌شود.',
                           style: TextStyle(color: Colors.black54),
                         ),
                       ],

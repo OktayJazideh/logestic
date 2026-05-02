@@ -11,6 +11,9 @@ import { driverRouter } from "./routes/driver";
 import { devSeedRouter } from "./routes/devSeed";
 import { weighbridgeRouter } from "./routes/weighbridge";
 import { walletRouter } from "./routes/wallet";
+import { hourlyRouter } from "./routes/hourly";
+import { settlementRouter } from "./routes/settlement";
+import { rateCardsRouter } from "./routes/rateCards";
 import { ApiError } from "./http/errors";
 import { failure } from "./http/apiResponse";
 
@@ -32,6 +35,9 @@ export function createApp() {
   app.use("/api", devSeedRouter);
   app.use("/api", weighbridgeRouter);
   app.use("/api", walletRouter);
+  app.use("/api", hourlyRouter);
+  app.use("/api", settlementRouter);
+  app.use("/api", rateCardsRouter);
 
   app.use((_req, res) => {
     res.status(404).json({ error: "not_found" });
