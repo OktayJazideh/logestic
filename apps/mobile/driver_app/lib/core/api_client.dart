@@ -124,7 +124,8 @@ class ApiClient {
     return DriverMission.fromJson(body['data']['mission'] as Map<String, dynamic>);
   }
 
-  Future<WeighbridgeTicket> getMissionTicket({
+  /// Returns null when the backend has not yet created a ticket row for this mission.
+  Future<WeighbridgeTicket?> getMissionTicket({
     required String token,
     required int missionId,
   }) async {
@@ -135,7 +136,9 @@ class ApiClient {
     ),
     );
     final body = await _decodeResponse(res);
-    return WeighbridgeTicket.fromJson(body['data']['ticket'] as Map<String, dynamic>);
+    final raw = body['data']?['ticket'];
+    if (raw == null) return null;
+    return WeighbridgeTicket.fromJson(raw as Map<String, dynamic>);
   }
 }
 

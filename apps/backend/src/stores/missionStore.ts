@@ -1,6 +1,6 @@
 import type { EntitiesStore, Household, FleetOwner } from "./entitiesStore";
 import type { FinanceStore } from "./financeStore";
-import type { AuditLogStore } from "./auditLogStore";
+import type { AuditLogRecord, AuditLogStore } from "./auditLogStore";
 
 export type LoadStatus = "PENDING" | "IN_TRANSIT" | "DELIVERED" | "CANCELED";
 
@@ -72,8 +72,12 @@ export type WeighbridgeAdjustmentRequest = {
   status: "PENDING" | "APPROVED" | "REJECTED";
   requested_by_user_id: number;
   approved_by_user_id?: number;
+  /** Set when status is REJECTED (Q10 formal decline). */
+  rejected_by_user_id?: number;
   created_at: Date;
 };
+
+export type WeighbridgeWeightEntrySource = "OPERATOR" | "AGENT" | "MANUAL";
 
 export class MissionStore {
   private loads: Load[] = [];
@@ -209,10 +213,11 @@ export class MissionStore {
     return { ok: true as const, mission };
   }
 
-  weighbridgeApprove(params: { ticketId: number }) {
+  weighbridgeApprove(params: { ticketId: number; approvedByUserId: number }) {
     const ticket = this.tickets.find((t) => t.id === params.ticketId) ?? null;
     if (!ticket) return { ok: false as const, reason: "ticket_not_found" };
     if (ticket.status === "APPROVED") return { ok: false as const, reason: "already_approved" };
+    if (ticket.status === "REJECTED") return { ok: false as const, reason: "ticket_rejected" };
     if (ticket.status !== "LOADED_REGISTERED") return { ok: false as const, reason: "weights_required" };
 
     const mission = this.getMission(ticket.mission_id);
@@ -223,6 +228,9 @@ export class MissionStore {
     const owner = this.entities.findFleetOwnerById(mission.owner_id) as FleetOwner | null;
     const household = this.entities.findHouseholdById(load.household_id) as Household | null;
     if (!owner || !household) return { ok: false as const, reason: "missing_entities" };
+
+    const prevTicketStatus = ticket.status;
+    const prevMissionStatus = mission.status;
 
     const card = this.finance.getRateCard("HAULING_TONNAGE", load.material_type);
     if (card) mission.rate_per_ton_snapshot = card.rate;
@@ -247,7 +255,64 @@ export class MissionStore {
     });
     mission.payment_state = "DISTRIBUTED";
 
+    this.audit.record({
+      entity_type: "weighbridge_ticket",
+      entity_id: String(ticket.id),
+      action: "APPROVED",
+      before_value: { ticket_status: prevTicketStatus, mission_status: prevMissionStatus },
+      after_value: {
+        ticket_status: ticket.status,
+        mission_status: mission.status,
+        net_weight: ticket.net_weight,
+        quantity_tons: qtyTons,
+      },
+      performed_by_user_id: params.approvedByUserId,
+      reason: "weighbridge_approve",
+    });
+
     return { ok: true as const, ticket, mission, finance: financeRes };
+  }
+
+  /** Q10: formal rejection before payout (invalid / disputed ticket). */
+  weighbridgeRejectTicket(params: { ticketId: number; reason: string; rejectedByUserId: number }) {
+    const ticket = this.tickets.find((t) => t.id === params.ticketId) ?? null;
+    if (!ticket) return { ok: false as const, reason: "ticket_not_found" };
+    if (ticket.status === "APPROVED" || ticket.status === "ADJUSTED") {
+      return { ok: false as const, reason: "already_credited_use_adjustment" };
+    }
+    if (ticket.status === "REJECTED") return { ok: false as const, reason: "already_rejected" };
+
+    const mission = this.getMission(ticket.mission_id);
+    if (!mission) return { ok: false as const, reason: "mission_missing" };
+
+    const prev = { ticket_status: ticket.status, mission_status: mission.status };
+    ticket.status = "REJECTED";
+    ticket.updated_at = new Date();
+    mission.status = "REJECTED";
+    mission.updated_at = new Date();
+
+    this.audit.record({
+      entity_type: "weighbridge_ticket",
+      entity_id: String(ticket.id),
+      action: "REJECTED",
+      before_value: prev,
+      after_value: { ticket_status: ticket.status, mission_status: mission.status },
+      performed_by_user_id: params.rejectedByUserId,
+      reason: params.reason,
+    });
+
+    return { ok: true as const, ticket, mission };
+  }
+
+  /** Audit trail for Q10 / مغایرت: ticket rows + adjustment rows for this ticket. */
+  getWeighbridgeTicketAuditTrail(ticketId: number): AuditLogRecord[] {
+    const ticketLogs = this.audit.listByEntity("weighbridge_ticket", String(ticketId));
+    const adjLogs = this.adjustments
+      .filter((a) => a.ticket_id === ticketId)
+      .flatMap((a) => this.audit.listByEntity("weighbridge_adjustment", String(a.id)));
+    const merged = [...ticketLogs, ...adjLogs];
+    merged.sort((a, b) => a.at_created.getTime() - b.at_created.getTime());
+    return merged;
   }
 
   submitTicketWeights(params: {
@@ -255,6 +320,10 @@ export class MissionStore {
     empty_weight: number;
     loaded_weight: number;
     userId: number;
+    /** Q11: OPERATOR panel vs local agent vs manual correction path. */
+    entrySource: WeighbridgeWeightEntrySource;
+    /** Required when entrySource is AGENT or MANUAL (audit / dispute defense). */
+    entryNote?: string;
   }) {
     const ticket = this.tickets.find((t) => t.id === params.ticketId) ?? null;
     if (!ticket) return { ok: false as const, reason: "ticket_not_found" };
@@ -272,23 +341,40 @@ export class MissionStore {
       entity_type: "weighbridge_ticket",
       entity_id: String(ticket.id),
       action: "SUBMIT_WEIGHTS",
-      after_value: { empty_weight: params.empty_weight, loaded_weight: params.loaded_weight, net_weight: net },
+      after_value: {
+        empty_weight: params.empty_weight,
+        loaded_weight: params.loaded_weight,
+        net_weight: net,
+        entry_source: params.entrySource,
+        entry_note: params.entryNote,
+      },
       performed_by_user_id: params.userId,
-      reason: "operator_or_agent",
+      reason:
+        params.entrySource === "OPERATOR"
+          ? "operator_panel"
+          : params.entrySource === "AGENT"
+            ? "local_agent"
+            : "manual_entry",
     });
 
     return { ok: true as const, ticket };
   }
 
-  listAdjustmentRequests(params?: { mineId?: number }) {
+  listAdjustmentRequests(params?: { mineId?: number; status?: WeighbridgeAdjustmentRequest["status"] }) {
     const mineId = params?.mineId;
+    const status = params?.status;
     return this.adjustments
+      .filter((a) => (status ? a.status === status : true))
       .filter((a) => {
         if (!mineId) return true;
         const m = this.getMission(a.mission_id);
         return m ? m.mine_id === mineId : false;
       })
       .sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+  }
+
+  getTicketById(ticketId: number) {
+    return this.tickets.find((t) => t.id === ticketId) ?? null;
   }
 
   createAdjustmentRequest(params: {
@@ -370,6 +456,26 @@ export class MissionStore {
     });
 
     return { ok: true as const, adjustment: adj, ticket, mission, delta_total_fare };
+  }
+
+  rejectAdjustment(params: { adjustmentId: number; reason: string; rejectedByUserId: number }) {
+    const adj = this.adjustments.find((a) => a.id === params.adjustmentId) ?? null;
+    if (!adj || adj.status !== "PENDING") return { ok: false as const, reason: "invalid_adjustment" };
+
+    adj.status = "REJECTED";
+    adj.rejected_by_user_id = params.rejectedByUserId;
+
+    this.audit.record({
+      entity_type: "weighbridge_adjustment",
+      entity_id: String(adj.id),
+      action: "REJECTED",
+      before_value: { status: "PENDING", before_net: adj.before_net, after_net: adj.after_net },
+      after_value: { status: "REJECTED" },
+      performed_by_user_id: params.rejectedByUserId,
+      reason: params.reason,
+    });
+
+    return { ok: true as const, adjustment: adj };
   }
 }
 

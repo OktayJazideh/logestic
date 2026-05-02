@@ -26,5 +26,10 @@ export class AuditLogStore {
   getAll() {
     return this.logs.slice().reverse();
   }
+
+  /** Filter by entity (e.g. weighbridge_ticket + ticket id). */
+  listByEntity(entity_type: string, entity_id: string) {
+    return this.logs.filter((l) => l.entity_type === entity_type && l.entity_id === entity_id);
+  }
 }
 

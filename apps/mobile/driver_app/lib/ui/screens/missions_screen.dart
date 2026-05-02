@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import '../../core/mission_flow.dart';
 import '../../core/session_store.dart';
 import '../../models/api_models.dart';
 import '../widgets/mission_stepper.dart';
+import '../widgets/weighbridge_flow_strip.dart';
 
 class MissionsScreen extends StatefulWidget {
   const MissionsScreen({
@@ -25,6 +27,8 @@ class _MissionsScreenState extends State<MissionsScreen> {
   bool _loading = false;
   String? _error;
   List<DriverMission> _missions = [];
+  /// Weighbridge ticket per mission (only fetched for COMPLETED missions).
+  final Map<int, WeighbridgeTicket?> _ticketByMissionId = {};
 
   @override
   void initState() {
@@ -39,7 +43,26 @@ class _MissionsScreenState extends State<MissionsScreen> {
     });
     try {
       final missions = await widget.api.getDriverMissions(token: widget.token);
-      setState(() => _missions = missions);
+      final completed = missions.where((m) => m.status == 'COMPLETED').toList();
+      final tickets = <int, WeighbridgeTicket?>{};
+      await Future.wait(
+        completed.map((m) async {
+          try {
+            tickets[m.id] = await widget.api.getMissionTicket(
+              token: widget.token,
+              missionId: m.id,
+            );
+          } catch (_) {
+            tickets[m.id] = null;
+          }
+        }),
+      );
+      setState(() {
+        _missions = missions;
+        _ticketByMissionId
+          ..clear()
+          ..addAll(tickets);
+      });
     } catch (e) {
       if (e is ApiException && e.isUnauthorized) {
         await _logout();
@@ -52,18 +75,9 @@ class _MissionsScreenState extends State<MissionsScreen> {
   }
 
   String _nextStep(String status) {
-    switch (status) {
-      case 'ASSIGNED':
-        return 'LOADING';
-      case 'LOADING':
-        return 'ON_THE_WAY';
-      case 'ON_THE_WAY':
-        return 'UNLOADING';
-      case 'UNLOADING':
-        return 'COMPLETED';
-      default:
-        return status;
-    }
+    final i = MissionFlow.driverStepOrder.indexOf(status);
+    if (i < 0 || i >= MissionFlow.driverStepOrder.length - 1) return status;
+    return MissionFlow.driverStepOrder[i + 1];
   }
 
   Future<void> _goNext(DriverMission m) async {
@@ -91,23 +105,6 @@ class _MissionsScreenState extends State<MissionsScreen> {
     await widget.sessionStore.clearSession();
     if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-  }
-
-  String _statusTitle(String status) {
-    switch (status) {
-      case 'ASSIGNED':
-        return 'تخصیص داده شد';
-      case 'LOADING':
-        return 'در حال بارگیری';
-      case 'ON_THE_WAY':
-        return 'در مسیر';
-      case 'UNLOADING':
-        return 'در حال تخلیه';
-      case 'COMPLETED':
-        return 'تکمیل توسط راننده';
-      default:
-        return status;
-    }
   }
 
   Color _statusColor(String status) {
@@ -169,6 +166,8 @@ class _MissionsScreenState extends State<MissionsScreen> {
                             final m = _missions[i];
                             final canGoNext = m.status != 'COMPLETED';
                             final statusColor = _statusColor(m.status);
+                            final ticket = _ticketByMissionId[m.id];
+                            final showWbChain = m.status == 'COMPLETED';
 
                             return Card(
                               child: Padding(
@@ -194,7 +193,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
                                             border: Border.all(color: statusColor.withOpacity(0.3)),
                                           ),
                                           child: Text(
-                                            _statusTitle(m.status),
+                                            MissionFlow.labelFa(m.status),
                                             style: TextStyle(
                                               color: statusColor,
                                               fontSize: 12,
@@ -228,7 +227,24 @@ class _MissionsScreenState extends State<MissionsScreen> {
                                       onNext: () => _goNext(m),
                                       canGoNext: canGoNext,
                                     ),
-                                    if (!canGoNext) ...[
+                                    if (m.status != 'COMPLETED')
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
+                                          'پس از «اتمام عملیات راننده»، تیکت باسکول صادر و زنجیره وزن‌گیری آغاز می‌شود.',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.black.withOpacity(0.55),
+                                            height: 1.35,
+                                          ),
+                                        ),
+                                      ),
+                                    if (showWbChain) ...[
+                                      const SizedBox(height: 12),
+                                      WeighbridgeFlowStrip(
+                                        ticketStatus: ticket?.status,
+                                        ticketPending: ticket == null,
+                                      ),
                                       const SizedBox(height: 8),
                                       OutlinedButton.icon(
                                         onPressed: () {
@@ -239,7 +255,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
                                           );
                                         },
                                         icon: const Icon(Icons.receipt_long_outlined),
-                                        label: const Text('مشاهده وضعیت باسکول'),
+                                        label: const Text('جزئیات وضعیت باسکول'),
                                       ),
                                     ],
                                   ],

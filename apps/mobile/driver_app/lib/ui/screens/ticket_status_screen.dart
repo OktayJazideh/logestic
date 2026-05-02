@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/api_client.dart';
 import '../../core/session_store.dart';
 import '../../models/api_models.dart';
+import '../widgets/weighbridge_flow_strip.dart';
 
 class TicketStatusScreen extends StatefulWidget {
   const TicketStatusScreen({
@@ -102,8 +103,22 @@ class _TicketStatusScreenState extends State<TicketStatusScreen> {
                 Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                 const SizedBox(height: 12),
               ],
-              if (_ticket == null && !_loading) const Text('اطلاعاتی برای نمایش وجود ندارد'),
+              if (_ticket == null && !_loading)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Text(
+                    'هنوز ردیف تیکت باسکول برای این ماموریت ثبت نشده است. اگر تازه عملیات را تمام کرده‌اید، بروزرسانی کنید؛ '
+                    'در غیر این صورت با پشتیبانی تماس بگیرید.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.4),
+                  ),
+                ),
               if (_ticket != null) ...[
+                WeighbridgeFlowStrip(
+                  ticketStatus: _ticket!.status,
+                  ticketPending: false,
+                ),
+                const SizedBox(height: 12),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -161,18 +176,31 @@ class _TicketStatusScreenState extends State<TicketStatusScreen> {
                             ],
                           ),
                         ),
-                        if (_ticket!.netWeight != null)
+                        if (_ticket!.emptyWeight != null ||
+                            _ticket!.loadedWeight != null ||
+                            _ticket!.netWeight != null)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Text(
-                              'وزن خالص ثبت‌شده: ${_ticket!.netWeight}',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            padding: const EdgeInsets.only(top: 4, bottom: 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (_ticket!.emptyWeight != null)
+                                  Text('وزن خالی: ${_ticket!.emptyWeight}'),
+                                if (_ticket!.loadedWeight != null)
+                                  Text('وزن پر: ${_ticket!.loadedWeight}'),
+                                if (_ticket!.netWeight != null)
+                                  Text(
+                                    'وزن خالص: ${_ticket!.netWeight}',
+                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                              ],
                             ),
                           ),
                         const SizedBox(height: 8),
                         const Text(
-                          'پس از اتمام ماموریت توسط شما، اپراتور باسکول وزن‌ها را در سیستم ثبت می‌کند؛ سپس ناظر تأیید می‌کند و سهم مالی محاسبه می‌شود.',
-                          style: TextStyle(color: Colors.black54),
+                          'پس از اتمام ماموریت توسط شما، اپراتور باسکول وزن‌ها را ثبت می‌کند؛ ناظر پس از بررسی تأیید یا رد می‌کند. '
+                          'پس از تأیید معتبر، سهم طبق قانون مالی مصوب (تقسیم ۸۵/۱۳/۲) در کیف‌پول‌ها ثبت می‌شود.',
+                          style: TextStyle(color: Colors.black54, height: 1.35),
                         ),
                       ],
                     ),

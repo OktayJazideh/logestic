@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../core/mission_flow.dart';
+
+/// Stepper UI aligned with backend mission state machine (strictly forward steps).
 class MissionStepper extends StatelessWidget {
   const MissionStepper({
     super.key,
@@ -12,16 +15,8 @@ class MissionStepper extends StatelessWidget {
   final VoidCallback onNext;
   final bool canGoNext;
 
-  static const _steps = [
-    {'status': 'ASSIGNED', 'label': 'شروع سرویس'},
-    {'status': 'LOADING', 'label': 'ورود و بارگیری'},
-    {'status': 'ON_THE_WAY', 'label': 'حمل به مقصد'},
-    {'status': 'UNLOADING', 'label': 'ورود و تخلیه'},
-    {'status': 'COMPLETED', 'label': 'بستن سرویس'},
-  ];
-
   int get _currentIndex {
-    final idx = _steps.indexWhere((s) => s['status'] == currentStatus);
+    final idx = MissionFlow.driverStepOrder.indexOf(currentStatus);
     return idx < 0 ? 0 : idx;
   }
 
@@ -33,21 +28,21 @@ class MissionStepper extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 8),
-        for (int i = 0; i < _steps.length; i++) ...[
+        for (int i = 0; i < MissionFlow.driverStepOrder.length; i++) ...[
           _StepRow(
             index: i,
-            label: _steps[i]['label'] as String,
+            label: MissionFlow.labelFa(MissionFlow.driverStepOrder[i]),
             isDone: i < current,
             isActive: i == current,
           ),
-          if (i < _steps.length - 1) const Divider(height: 16),
+          if (i < MissionFlow.driverStepOrder.length - 1) const Divider(height: 16),
         ],
         const SizedBox(height: 16),
         SizedBox(
           height: 48,
           child: ElevatedButton(
             onPressed: canGoNext ? onNext : null,
-            child: Text(currentStatus == 'COMPLETED' ? 'تکمیل شده' : 'ثبت مرحله بعد'),
+            child: Text(MissionFlow.primaryActionLabel(currentStatus)),
           ),
         ),
       ],
@@ -111,4 +106,3 @@ class _StepRow extends StatelessWidget {
     );
   }
 }
-

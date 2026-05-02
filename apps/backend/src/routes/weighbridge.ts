@@ -9,6 +9,11 @@ import type { WeighbridgeTicketStatus } from "../stores/missionStore";
 
 const router = Router();
 
+/** Roles that may view weighbridge board / tickets (بخش ۱۳، اپراتور/تعاونی). */
+const BOARD_READ_ROLES = ["CONSULTANT", "COOP", "ADMIN"] as const;
+/** Submit weights: اپراتور پنل + مسیر ایجنت/دستی پس از Q11 (CONSULTANT/ADMIN). */
+const WEIGHT_ENTRY_ROLES = ["CONSULTANT", "ADMIN"] as const;
+
 const getAuthContext = (token: string): AuthContext | null => {
   const u = appContext.authService.getUserFromSession(token);
   if (!u) return null;
@@ -18,10 +23,12 @@ const getAuthContext = (token: string): AuthContext | null => {
 
 const requireAuth = authMiddleware(getAuthContext);
 
+const EntrySourceSchema = z.enum(["OPERATOR", "AGENT", "MANUAL"]);
+
 router.get(
   "/weighbridge/tickets",
   requireAuth,
-  requireRoles(["CONSULTANT"]),
+  requireRoles([...BOARD_READ_ROLES]),
   (req, res, next) => {
     const requestId = (req as any).requestId as string | undefined;
     const auth = (req as any).auth as AuthContext;
@@ -42,10 +49,73 @@ router.get(
   },
 );
 
+router.get(
+  "/weighbridge/tickets/:ticketId",
+  requireAuth,
+  requireRoles([...BOARD_READ_ROLES]),
+  (req, res, next) => {
+    const requestId = (req as any).requestId as string | undefined;
+    const auth = (req as any).auth as AuthContext;
+
+    const ticketId = z.coerce.number().int().positive().safeParse(req.params.ticketId);
+    if (!ticketId.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_ticket_id", message: "Invalid ticketId", requestId }));
+    }
+
+    const ticket = appContext.mission.getTicketById(ticketId.data);
+    if (!ticket) {
+      return next(new ApiError({ statusCode: 404, code: "ticket_not_found", message: "Ticket not found", requestId }));
+    }
+
+    const mission = appContext.mission.getMission(ticket.mission_id);
+    if (!mission) {
+      return next(new ApiError({ statusCode: 404, code: "mission_missing", message: "Mission missing", requestId }));
+    }
+
+    if (auth.mineId && mission.mine_id !== auth.mineId) {
+      return next(new ApiError({ statusCode: 403, code: "mine_mismatch", message: "Ticket does not belong to selected mine", requestId }));
+    }
+
+    return res.json(success({ ticket, mission }, requestId));
+  },
+);
+
+router.get(
+  "/weighbridge/tickets/:ticketId/audit",
+  requireAuth,
+  requireRoles([...BOARD_READ_ROLES]),
+  (req, res, next) => {
+    const requestId = (req as any).requestId as string | undefined;
+    const auth = (req as any).auth as AuthContext;
+
+    const ticketId = z.coerce.number().int().positive().safeParse(req.params.ticketId);
+    if (!ticketId.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_ticket_id", message: "Invalid ticketId", requestId }));
+    }
+
+    const ticket = appContext.mission.getTicketById(ticketId.data);
+    if (!ticket) {
+      return next(new ApiError({ statusCode: 404, code: "ticket_not_found", message: "Ticket not found", requestId }));
+    }
+
+    const mission = appContext.mission.getMission(ticket.mission_id);
+    if (!mission) {
+      return next(new ApiError({ statusCode: 404, code: "mission_missing", message: "Mission missing", requestId }));
+    }
+
+    if (auth.mineId && mission.mine_id !== auth.mineId) {
+      return next(new ApiError({ statusCode: 403, code: "mine_mismatch", message: "Ticket does not belong to selected mine", requestId }));
+    }
+
+    const audit_trail = appContext.mission.getWeighbridgeTicketAuditTrail(ticketId.data);
+    return res.json(success({ ticket_id: ticketId.data, audit_trail }, requestId));
+  },
+);
+
 router.post(
   "/weighbridge/tickets/:ticketId/approve",
   requireAuth,
-  requireRoles(["CONSULTANT"]),
+  requireRoles(["CONSULTANT", "ADMIN"]),
   (req, res, next) => {
     const requestId = (req as any).requestId as string | undefined;
     const auth = (req as any).auth as AuthContext;
@@ -80,7 +150,7 @@ router.post(
       );
     }
 
-    const r = appContext.mission.weighbridgeApprove({ ticketId: ticketId.data });
+    const r = appContext.mission.weighbridgeApprove({ ticketId: ticketId.data, approvedByUserId: auth.user.id });
     if (!r.ok) {
       return next(new ApiError({ statusCode: 409, code: "approve_failed", message: "Cannot approve ticket", details: r.reason, requestId }));
     }
@@ -89,10 +159,57 @@ router.post(
   },
 );
 
+/** Q10: رد رسمی تیکت قبل از واریز (مغایرت/خطا). */
+router.post(
+  "/weighbridge/tickets/:ticketId/reject",
+  requireAuth,
+  requireRoles(["CONSULTANT", "ADMIN"]),
+  (req, res, next) => {
+    const requestId = (req as any).requestId as string | undefined;
+    const auth = (req as any).auth as AuthContext;
+
+    const ticketId = z.coerce.number().int().positive().safeParse(req.params.ticketId);
+    if (!ticketId.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_ticket_id", message: "Invalid ticketId", requestId }));
+    }
+
+    const body = z.object({ reason: z.string().min(3) }).safeParse(req.body);
+    if (!body.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid body", requestId }));
+    }
+
+    const ticket = appContext.mission.getTicketById(ticketId.data);
+    if (!ticket) {
+      return next(new ApiError({ statusCode: 404, code: "ticket_not_found", message: "Ticket not found", requestId }));
+    }
+
+    const mission = appContext.mission.getMission(ticket.mission_id);
+    if (!mission) {
+      return next(new ApiError({ statusCode: 404, code: "mission_missing", message: "Mission missing", requestId }));
+    }
+
+    if (auth.mineId && mission.mine_id !== auth.mineId) {
+      return next(new ApiError({ statusCode: 403, code: "mine_mismatch", message: "Ticket does not belong to selected mine", requestId }));
+    }
+
+    const r = appContext.mission.weighbridgeRejectTicket({
+      ticketId: ticketId.data,
+      reason: body.data.reason,
+      rejectedByUserId: auth.user.id,
+    });
+
+    if (!r.ok) {
+      return next(new ApiError({ statusCode: 409, code: "reject_failed", message: "Cannot reject ticket", details: r.reason, requestId }));
+    }
+
+    return res.json(success({ ticket: r.ticket, mission: r.mission }, requestId));
+  },
+);
+
 router.post(
   "/weighbridge/tickets/:ticketId/weights",
   requireAuth,
-  requireRoles(["CONSULTANT", "ADMIN"]),
+  requireRoles([...WEIGHT_ENTRY_ROLES]),
   (req, res, next) => {
     const requestId = (req as any).requestId as string | undefined;
     const auth = (req as any).auth as AuthContext;
@@ -106,10 +223,17 @@ router.post(
       .object({
         empty_weight: z.number(),
         loaded_weight: z.number(),
+        entry_source: EntrySourceSchema.optional().default("OPERATOR"),
+        entry_note: z.string().min(3).optional(),
       })
+      .refine(
+        (d) =>
+          d.entry_source === "OPERATOR" || (d.entry_note !== undefined && d.entry_note.trim().length >= 3),
+        { message: "entry_note (min 3 chars) is required when entry_source is AGENT or MANUAL", path: ["entry_note"] },
+      )
       .safeParse(req.body);
     if (!body.success) {
-      return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid body", requestId }));
+      return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid body", details: body.error.flatten(), requestId }));
     }
 
     const ticket = appContext.mission.listTickets().find((t) => t.id === ticketId.data) ?? null;
@@ -131,6 +255,8 @@ router.post(
       empty_weight: body.data.empty_weight,
       loaded_weight: body.data.loaded_weight,
       userId: auth.user.id,
+      entrySource: body.data.entry_source,
+      entryNote: body.data.entry_note?.trim(),
     });
 
     if (!r.ok) {
@@ -141,11 +267,14 @@ router.post(
   },
 );
 
-router.get("/weighbridge/adjustments", requireAuth, requireRoles(["CONSULTANT", "ADMIN"]), (req, res, next) => {
+router.get("/weighbridge/adjustments", requireAuth, requireRoles([...BOARD_READ_ROLES]), (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
   const auth = (req as any).auth as AuthContext;
   const mineId = auth.mineId ?? undefined;
-  const list = appContext.mission.listAdjustmentRequests({ mineId });
+  const qStatus = req.query.status as string | undefined;
+  const st =
+    qStatus === "PENDING" || qStatus === "APPROVED" || qStatus === "REJECTED" ? qStatus : undefined;
+  const list = appContext.mission.listAdjustmentRequests({ mineId, status: st });
   return res.json(success({ adjustments: list }, requestId));
 });
 
@@ -213,5 +342,37 @@ router.post(
   },
 );
 
-export const weighbridgeRouter = router;
+/** Q10: رد درخواست اصلاح وزن (رویه رسمی کنار approve). */
+router.post(
+  "/weighbridge/adjustments/:adjustmentId/reject",
+  requireAuth,
+  requireRoles(["CONSULTANT", "ADMIN"]),
+  (req, res, next) => {
+    const requestId = (req as any).requestId as string | undefined;
+    const auth = (req as any).auth as AuthContext;
 
+    const adjustmentId = z.coerce.number().int().positive().safeParse(req.params.adjustmentId);
+    if (!adjustmentId.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_id", message: "Invalid adjustmentId", requestId }));
+    }
+
+    const body = z.object({ reason: z.string().min(3) }).safeParse(req.body);
+    if (!body.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid body", requestId }));
+    }
+
+    const r = appContext.mission.rejectAdjustment({
+      adjustmentId: adjustmentId.data,
+      reason: body.data.reason,
+      rejectedByUserId: auth.user.id,
+    });
+
+    if (!r.ok) {
+      return next(new ApiError({ statusCode: 409, code: "reject_failed", message: "Cannot reject adjustment", details: r.reason, requestId }));
+    }
+
+    return res.json(success({ adjustment: r.adjustment }, requestId));
+  },
+);
+
+export const weighbridgeRouter = router;
