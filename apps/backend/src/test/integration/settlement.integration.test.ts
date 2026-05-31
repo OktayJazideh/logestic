@@ -12,15 +12,16 @@ async function deleteCurrentMonthBatch(mineId: number, year: number, month: numb
   });
 }
 
-async function waitForBatchStatus(batchId: number, statuses: string[], timeoutMs = 5000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    const row = await prisma.settlement_batches.findUnique({ where: { id: BigInt(batchId) } });
-    if (row && statuses.includes(row.status)) return row.status;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  const row = await prisma.settlement_batches.findUnique({ where: { id: BigInt(batchId) } });
-  return row?.status ?? null;
+async function ensureBatchInBankQueue(batchId: number, opAdminToken: string): Promise<string> {
+  const autoQueued = await waitForBatchStatus(batchId, ["IN_BANK_QUEUE"], 10_000);
+  if (autoQueued === "IN_BANK_QUEUE") return autoQueued;
+
+  const bank = await http(`/api/admin/settlement/${batchId}/send-to-bank`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${opAdminToken}` },
+  });
+  expect(bank.status).toBe(200);
+  return bank.json.data.batch.status as string;
 }
 
 describe("settlement monthly-close", () => {
@@ -90,15 +91,7 @@ describe("settlement monthly-close", () => {
     expect(lock.status).toBe(200);
     expect(lock.json.data.batch.status).toBe("READY_FOR_SETTLEMENT");
 
-    let batchStatus = await waitForBatchStatus(batchId, ["READY_FOR_SETTLEMENT", "IN_BANK_QUEUE"]);
-    if (batchStatus === "READY_FOR_SETTLEMENT") {
-      const bank = await http(`/api/admin/settlement/${batchId}/send-to-bank`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${opAdminToken}` },
-      });
-      expect(bank.status).toBe(200);
-      batchStatus = bank.json.data.batch.status as string;
-    }
+    const batchStatus = await ensureBatchInBankQueue(batchId, opAdminToken);
     expect(batchStatus).toBe("IN_BANK_QUEUE");
 
     const noRef = await http(`/api/admin/settlement/${batchId}/mark-paid`, {
