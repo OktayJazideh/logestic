@@ -35,9 +35,11 @@ export async function loginViaUi(page: Page, mobile: string, request: APIRequest
   await page.getByTestId("login-verify").click();
   await page.waitForURL(/\/(panel|workspace-select)/, { timeout: 15_000 });
   if (page.url().includes("workspace-select")) {
-    const operational = page.getByTestId(/^workspace-operational-/);
-    await expect(operational.first()).toBeVisible({ timeout: 15_000 });
-    await operational.first().click();
+    const workspace = page.locator(
+      '[data-testid^="workspace-operational-"], [data-testid^="workspace-community-"]',
+    );
+    await expect(workspace.first()).toBeVisible({ timeout: 15_000 });
+    await workspace.first().click();
     await page.waitForURL(/\/panel/, { timeout: 15_000 });
   }
 }
