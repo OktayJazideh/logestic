@@ -83,7 +83,7 @@ export async function loginDriverForAssignment(
     throw new Error(`ensure-driver-mine failed: ${JSON.stringify(grantJson)}`);
   }
   const token = await loginApi(request, grantJson.data.mobile_number);
-  await selectWorkspace(request, token, mineId, { cooperativeId: 1 });
+  await selectWorkspace(request, token, mineId);
   return token;
 }
 
