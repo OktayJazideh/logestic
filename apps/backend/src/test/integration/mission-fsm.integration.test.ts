@@ -114,7 +114,6 @@ describe("mission FSM integration", () => {
       expect(r.status, step).toBe(200);
     }
 
-    const opAdminToken = await loginAs("09000000002");
     const approve = await http(`/api/weighbridge/tickets/${ticketId}/approve`, {
       method: "POST",
       headers: { Authorization: `Bearer ${opAdminToken}` },
