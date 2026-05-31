@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { loginViaUi } from "./helpers/auth";
+import { loginApi, selectWorkspace } from "./helpers/api";
 import { advanceDriverToDelivered, seedMissionWithTicket } from "./helpers/weighbridge";
 
 test("operator ثبت وزن → coop admin approve", async ({ page, request }) => {
@@ -27,8 +28,9 @@ test("operator ثبت وزن → coop admin approve", async ({ page, request }) 
 
   await advanceDriverToDelivered(request, missionId);
 
-  await page.goto("/login");
-  await loginViaUi(page, "09000000001", request);
+  const coopAdminToken = await loginApi(request, "09000000001");
+  await selectWorkspace(request, coopAdminToken, 1, { cooperativeId: 1, membership_kind: "COMMUNITY" });
+  await page.evaluate((token) => localStorage.setItem("auth_token", token), coopAdminToken);
   await page.goto("/panel/weighbridge");
 
   await mineSelect.selectOption({ index: 1 });
