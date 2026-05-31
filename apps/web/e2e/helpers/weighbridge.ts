@@ -27,7 +27,7 @@ export async function seedMissionWithTicket(
   }
   const missionId = seedJson.data.mission.id;
 
-  await selectWorkspace(request, driverToken, mineId, { cooperativeId: 1 });
+  await selectWorkspace(request, driverToken, mineId);
 
   for (const step of ["ACCEPTED", "ARRIVED"] as const) {
     const body =
@@ -54,7 +54,7 @@ export async function seedMissionWithTicket(
 
 export async function advanceDriverToDelivered(request: APIRequestContext, missionId: number, mineId = 1) {
   const driverToken = await loginApi(request, "09000000003");
-  await selectWorkspace(request, driverToken, mineId, { cooperativeId: 1 });
+  await selectWorkspace(request, driverToken, mineId);
   for (const step of ["LOADED", "IN_TRANSIT", "DELIVERED"] as const) {
     const body = step === "DELIVERED" ? { step, latitude: 27.05, longitude: 55.05 } : { step };
     const r = await request.post(`${apiBase}/api/driver/missions/${missionId}/steps`, {
