@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "../../db/prisma";
-import { http, isServerUp, loginAs } from "../helpers/http";
+import { http, isServerUp, loginAs, selectMine } from "../helpers/http";
 
 describe("mission FSM integration", () => {
   let serverUp = false;
@@ -24,6 +24,8 @@ describe("mission FSM integration", () => {
     });
     expect(seed.status).toBe(200);
     const missionId = seed.json.data.mission.id as number;
+
+    await selectMine(driverToken, 1);
 
     const skip = await http(`/api/driver/missions/${missionId}/steps`, {
       method: "POST",
@@ -62,12 +64,16 @@ describe("mission FSM integration", () => {
     });
     const missionId = seed.json.data.mission.id as number;
 
+    await selectMine(driverToken, 1);
+
     const accept = await http(`/api/driver/missions/${missionId}/steps`, {
       method: "POST",
       headers: { Authorization: `Bearer ${driverToken}` },
       body: JSON.stringify({ step: "ACCEPTED" }),
     });
     expect(accept.status).toBe(200);
+
+    await selectMine(coopOpToken, 1);
 
     const arrived = await http(`/api/driver/missions/${missionId}/steps`, {
       method: "POST",
@@ -102,6 +108,7 @@ describe("mission FSM integration", () => {
     }
 
     const opAdminToken = await loginAs("09000000002");
+    await selectMine(opAdminToken, 1);
     const approve = await http(`/api/weighbridge/tickets/${ticketId}/approve`, {
       method: "POST",
       headers: { Authorization: `Bearer ${opAdminToken}` },

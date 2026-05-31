@@ -19,6 +19,7 @@ describe("missionFsm (9-state)", () => {
       DELIVERED: "VERIFIED",
       VERIFIED: "SETTLED",
       SETTLED: null,
+      CANCELLED: null,
     };
     expect(MISSION_STATUSES).toHaveLength(10);
     for (const status of MISSION_STATUSES) {

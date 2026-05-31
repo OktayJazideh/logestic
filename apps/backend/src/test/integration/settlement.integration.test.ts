@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "../../db/prisma";
-import { http, isServerUp, loginAs, pollJobHttp } from "../helpers/http";
+import { http, isServerUp, loginAs, pollJobHttp, selectMine } from "../helpers/http";
 import { seedMissionToVerified } from "../helpers/missionFlow";
 
 describe("settlement monthly-close", () => {
@@ -115,6 +115,7 @@ describe("settlement monthly-close", () => {
     const month = now.getUTCMonth() + 1;
 
     const opAdminToken = await loginAs("09000000002");
+    await selectMine(opAdminToken, 1);
     const close = await http("/api/admin/settlement/monthly-close", {
       method: "POST",
       headers: { Authorization: `Bearer ${opAdminToken}` },

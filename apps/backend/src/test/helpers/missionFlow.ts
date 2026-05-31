@@ -1,4 +1,4 @@
-import { http } from "./http";
+import { http, selectMine } from "./http";
 
 export type VerifiedMission = {
   missionId: number;
@@ -36,6 +36,10 @@ export async function seedMissionToVerified(params: {
   const ownerId = seed.json.data.entities.fleetOwner.id as number;
   const householdId = seed.json.data.entities.household.id as number;
   const mineId = seed.json.data.mine_id as number;
+
+  await selectMine(driverToken, mineId);
+  await selectMine(coopOpToken, mineId);
+  await selectMine(opAdminToken, mineId);
 
   const accept = await http(`/api/driver/missions/${missionId}/steps`, {
     method: "POST",
