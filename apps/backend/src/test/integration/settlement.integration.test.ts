@@ -12,26 +12,40 @@ async function deleteCurrentMonthBatch(mineId: number, year: number, month: numb
   });
 }
 
-async function waitForBatchStatus(batchId: number, statuses: string[], timeoutMs = 5000) {
-  const deadline = Date.now() + timeoutMs;
+async function ensureBatchInBankQueue(batchId: number, opAdminToken: string): Promise<string> {
+  const deadline = Date.now() + 15_000;
   while (Date.now() < deadline) {
     const row = await prisma.settlement_batches.findUnique({ where: { id: BigInt(batchId) } });
-    if (row && statuses.includes(row.status)) return row.status;
+    if (!row) throw new Error(`batch ${batchId} missing`);
+    if (row.status === "IN_BANK_QUEUE") return "IN_BANK_QUEUE";
+
+    if (row.status === "READY_FOR_SETTLEMENT") {
+      const bank = await http(`/api/admin/settlement/${batchId}/send-to-bank`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${opAdminToken}` },
+      });
+      if (bank.status === 200) {
+        return bank.json.data.batch.status as string;
+      }
+      // Lost race to bank-auto job — re-read status on next loop
+      if (bank.status === 409) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        continue;
+      }
+      expect(bank.status, JSON.stringify(bank.json)).toBe(200);
+    }
+
+    if (row.status === "SETTLED" || row.status === "MANUAL_REVIEW") {
+      throw new Error(
+        `batch ${batchId} reached ${row.status} before manual send-to-bank; run CI/tests with BANK_ADAPTER=none`,
+      );
+    }
+
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  return null;
-}
 
-async function ensureBatchInBankQueue(batchId: number, opAdminToken: string): Promise<string> {
-  const autoQueued = await waitForBatchStatus(batchId, ["IN_BANK_QUEUE"], 10_000);
-  if (autoQueued === "IN_BANK_QUEUE") return autoQueued;
-
-  const bank = await http(`/api/admin/settlement/${batchId}/send-to-bank`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${opAdminToken}` },
-  });
-  expect(bank.status).toBe(200);
-  return bank.json.data.batch.status as string;
+  const last = await prisma.settlement_batches.findUnique({ where: { id: BigInt(batchId) } });
+  throw new Error(`batch ${batchId} did not reach IN_BANK_QUEUE (last=${last?.status ?? "missing"})`);
 }
 
 describe("settlement monthly-close", () => {
