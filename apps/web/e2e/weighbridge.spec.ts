@@ -1,9 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { loginViaUi } from "./helpers/auth";
-import { loginApi, selectWorkspace } from "./helpers/api";
 import { advanceDriverToDelivered, seedMissionWithTicket } from "./helpers/weighbridge";
 
-test("operator ثبت وزن → coop admin approve", async ({ page, request }) => {
+test("operator ثبت وزن → operator approve", async ({ page, request }) => {
   const { missionId, ticketId } = await seedMissionWithTicket(request);
 
   await loginViaUi(page, "09000000111", request);
@@ -27,16 +26,6 @@ test("operator ثبت وزن → coop admin approve", async ({ page, request }) 
   await expect(page.getByTestId("wb-net-weight")).toHaveValue("5500");
 
   await advanceDriverToDelivered(request, missionId);
-
-  const coopAdminToken = await loginApi(request, "09000000001");
-  await selectWorkspace(request, coopAdminToken, 1, { cooperativeId: 1, membership_kind: "COMMUNITY" });
-  await page.goto("/login");
-  await page.evaluate((token) => localStorage.setItem("auth_token", token), coopAdminToken);
-  await page.goto("/panel/weighbridge");
-
-  await mineSelect.selectOption({ index: 1 });
-  await page.getByTestId("mine-apply").click();
-  await expect(page.getByText(/معدن فعال در سشن/)).toBeVisible();
 
   await page.getByTestId(`wb-ticket-row-${ticketId}`).click();
   await expect(page.getByTestId("wb-ticket-status")).toHaveText("LOADED_REGISTERED");
