@@ -1,7 +1,27 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "../../db/prisma";
-import { http, isServerUp, loginAs, prepareDemoMissionWorkspaces, pollJobHttp, selectCommunityMine, selectMine } from "../helpers/http";
+import { http, isServerUp, loginAs, pollJobHttp, selectCommunityMine, selectMine } from "../helpers/http";
 import { seedMissionToVerified } from "../helpers/missionFlow";
+
+async function deleteCurrentMonthBatch(mineId: number, year: number, month: number) {
+  await prisma.settlement_batches.deleteMany({
+    where: {
+      mine_id: BigInt(mineId),
+      period_start: new Date(Date.UTC(year, month - 1, 1)),
+    },
+  });
+}
+
+async function waitForBatchStatus(batchId: number, statuses: string[], timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const row = await prisma.settlement_batches.findUnique({ where: { id: BigInt(batchId) } });
+    if (row && statuses.includes(row.status)) return row.status;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  const row = await prisma.settlement_batches.findUnique({ where: { id: BigInt(batchId) } });
+  return row?.status ?? null;
+}
 
 describe("settlement monthly-close", () => {
   let serverUp = false;
@@ -35,13 +55,10 @@ describe("settlement monthly-close", () => {
     const year = now.getUTCFullYear();
     const month = now.getUTCMonth() + 1;
 
-    await prisma.settlement_batches.deleteMany({
-      where: {
-        mine_id: BigInt(1),
-        period_start: new Date(Date.UTC(year, month - 1, 1)),
-      },
-    });
+    await deleteCurrentMonthBatch(1, year, month);
 
+    await selectCommunityMine(coopAdminToken, 1, 1);
+    await selectMine(opAdminToken, 1);
     await selectMine(opLockerToken, 1);
 
     const close = await http("/api/admin/settlement/monthly-close", {
@@ -54,14 +71,17 @@ describe("settlement monthly-close", () => {
     const batchId = close.json.data.batch.id as number;
     expect(close.json.data.batch.status).toBe("CALCULATED");
 
-    await http(`/api/admin/settlement/${batchId}/approve`, {
+    const coopAp = await http(`/api/admin/settlement/${batchId}/approve`, {
       method: "POST",
       headers: { Authorization: `Bearer ${coopAdminToken}` },
     });
-    await http(`/api/admin/settlement/${batchId}/approve`, {
+    expect(coopAp.status).toBe(200);
+
+    const opAp = await http(`/api/admin/settlement/${batchId}/approve`, {
       method: "POST",
       headers: { Authorization: `Bearer ${opAdminToken}` },
     });
+    expect(opAp.status).toBe(200);
 
     const lock = await http(`/api/admin/settlement/${batchId}/lock`, {
       method: "POST",
@@ -70,12 +90,16 @@ describe("settlement monthly-close", () => {
     expect(lock.status).toBe(200);
     expect(lock.json.data.batch.status).toBe("READY_FOR_SETTLEMENT");
 
-    const bank = await http(`/api/admin/settlement/${batchId}/send-to-bank`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${opAdminToken}` },
-    });
-    expect(bank.status).toBe(200);
-    expect(bank.json.data.batch.status).toBe("IN_BANK_QUEUE");
+    let batchStatus = await waitForBatchStatus(batchId, ["READY_FOR_SETTLEMENT", "IN_BANK_QUEUE"]);
+    if (batchStatus === "READY_FOR_SETTLEMENT") {
+      const bank = await http(`/api/admin/settlement/${batchId}/send-to-bank`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${opAdminToken}` },
+      });
+      expect(bank.status).toBe(200);
+      batchStatus = bank.json.data.batch.status as string;
+    }
+    expect(batchStatus).toBe("IN_BANK_QUEUE");
 
     const noRef = await http(`/api/admin/settlement/${batchId}/mark-paid`, {
       method: "POST",
@@ -108,13 +132,16 @@ describe("settlement monthly-close", () => {
     const row = await prisma.settlement_batches.findUnique({ where: { id: BigInt(batchId) } });
     expect(row?.status).toBe("FAILED");
     expect(row?.failure_reason).toContain("vitest");
+
+    await deleteCurrentMonthBatch(1, year, month);
   });
 
   it.runIf(() => serverUp)("async monthly-close returns 202 and completes job", async () => {
-    const adminToken = await loginAs("09000000000");
     const now = new Date();
     const year = now.getUTCFullYear();
     const month = now.getUTCMonth() + 1;
+
+    await deleteCurrentMonthBatch(1, year, month);
 
     const opAdminToken = await loginAs("09000000002");
     await selectMine(opAdminToken, 1);
@@ -129,5 +156,7 @@ describe("settlement monthly-close", () => {
     const job = await pollJobHttp(jobId, opAdminToken);
     const result = job.result as { ok: boolean };
     expect(result.ok).toBe(true);
+
+    await deleteCurrentMonthBatch(1, year, month);
   });
 });

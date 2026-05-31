@@ -89,6 +89,21 @@ export async function prepareDemoMissionWorkspaces(params: {
   await selectMine(params.opAdminToken, params.mineId);
 }
 
+/** Wait until idempotency record is persisted (async on res.finish). */
+export async function httpIdempotentReplay(
+  path: string,
+  init: RequestInit & { idempotencyKey: string },
+  expectedStatus: number,
+) {
+  for (let i = 0; i < 40; i++) {
+    const res = await http(path, init);
+    if (res.replayed === "true" && res.status === expectedStatus) return res;
+    if (res.json.error?.code !== "idempotency_in_progress") return res;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error("idempotency replay timeout");
+}
+
 export async function pollJobHttp(jobId: string, token: string) {
   for (let i = 0; i < 150; i++) {
     const r = await http(`/api/admin/jobs/${jobId}`, {

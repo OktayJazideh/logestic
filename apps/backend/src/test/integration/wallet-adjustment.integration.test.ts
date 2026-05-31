@@ -52,7 +52,7 @@ describe("weighbridge adjustment delta on wallet", () => {
 
     const createAdj = await http("/api/weighbridge/adjustments", {
       method: "POST",
-      headers: { Authorization: `Bearer ${coopAdminToken}` },
+      headers: { Authorization: `Bearer ${opAdminToken}` },
       body: JSON.stringify({
         ticket_id: verified.ticketId,
         reason: "vitest adjustment delta",
@@ -64,7 +64,7 @@ describe("weighbridge adjustment delta on wallet", () => {
 
     const approveAdj = await http(`/api/weighbridge/adjustments/${adjustmentId}/approve`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${coopAdminToken}` },
+      headers: { Authorization: `Bearer ${opAdminToken}` },
     });
     expect(approveAdj.status).toBe(200);
     const delta = approveAdj.json.data.delta_total_fare as number;

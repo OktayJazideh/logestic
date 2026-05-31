@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { initAppContext } from "../../lib/appInit";
 import { appContext } from "../../appContext";
 import { prisma } from "../../db/prisma";
-import { http, isServerUp, loginAs, selectMine } from "../helpers/http";
+import { http, isServerUp, loginAs, httpIdempotentReplay, selectMine } from "../helpers/http";
 
 function uuidV4(): string {
   return crypto.randomUUID();
@@ -47,12 +47,16 @@ describe("idempotency integration", () => {
     expect(first.json.success).toBe(true);
     const needId1 = first.json.data.need.id as number;
 
-    const second = await http("/api/employer/needs", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${employerToken}` },
-      body: JSON.stringify(body),
-      idempotencyKey: idemKey,
-    });
+    const second = await httpIdempotentReplay(
+      "/api/employer/needs",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${employerToken}` },
+        body: JSON.stringify(body),
+        idempotencyKey: idemKey,
+      },
+      first.status,
+    );
     expect(second.status).toBe(first.status);
     expect(second.json.success).toBe(true);
     expect(second.replayed).toBe("true");
