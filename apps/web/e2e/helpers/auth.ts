@@ -11,6 +11,7 @@ export async function fetchDevOtp(request: APIRequestContext, mobile: string): P
 }
 
 export async function loginViaUi(page: Page, mobile: string, request: APIRequestContext) {
+  await page.goto("/login");
   await page.evaluate(() => localStorage.removeItem("auth_token"));
   await page.goto("/login");
   await expect(page.getByTestId("login-mobile")).toBeVisible({ timeout: 15_000 });

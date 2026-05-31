@@ -30,6 +30,7 @@ test("operator ثبت وزن → coop admin approve", async ({ page, request }) 
 
   const coopAdminToken = await loginApi(request, "09000000001");
   await selectWorkspace(request, coopAdminToken, 1, { cooperativeId: 1, membership_kind: "COMMUNITY" });
+  await page.goto("/login");
   await page.evaluate((token) => localStorage.setItem("auth_token", token), coopAdminToken);
   await page.goto("/panel/weighbridge");
 
