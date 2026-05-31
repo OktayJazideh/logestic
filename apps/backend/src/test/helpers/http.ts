@@ -73,6 +73,22 @@ export async function selectCommunityMine(token: string, mineId: number, coopera
   return selectMine(token, mineId, { cooperativeId, membershipKind: "COMMUNITY" });
 }
 
+/** Standard workspace selection for demo mission / settlement integration flows. */
+export async function prepareDemoMissionWorkspaces(params: {
+  mineId: number;
+  cooperativeId?: number;
+  driverToken: string;
+  coopOpToken: string;
+  coopAdminToken: string;
+  opAdminToken: string;
+}) {
+  const coopId = params.cooperativeId ?? 1;
+  await selectMine(params.driverToken, params.mineId);
+  await selectCommunityMine(params.coopOpToken, params.mineId, coopId);
+  await selectCommunityMine(params.coopAdminToken, params.mineId, coopId);
+  await selectMine(params.opAdminToken, params.mineId);
+}
+
 export async function pollJobHttp(jobId: string, token: string) {
   for (let i = 0; i < 150; i++) {
     const r = await http(`/api/admin/jobs/${jobId}`, {

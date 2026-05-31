@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "../../db/prisma";
-import { http, isServerUp, loginAs, pollJobHttp, selectMine } from "../helpers/http";
+import { http, isServerUp, loginAs, prepareDemoMissionWorkspaces, pollJobHttp, selectCommunityMine, selectMine } from "../helpers/http";
 import { seedMissionToVerified } from "../helpers/missionFlow";
 
 describe("settlement monthly-close", () => {
@@ -41,6 +41,8 @@ describe("settlement monthly-close", () => {
         period_start: new Date(Date.UTC(year, month - 1, 1)),
       },
     });
+
+    await selectMine(opLockerToken, 1);
 
     const close = await http("/api/admin/settlement/monthly-close", {
       method: "POST",

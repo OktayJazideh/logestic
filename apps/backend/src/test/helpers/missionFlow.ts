@@ -1,4 +1,4 @@
-import { http, selectCommunityMine, selectMine } from "./http";
+import { http, prepareDemoMissionWorkspaces } from "./http";
 
 export type VerifiedMission = {
   missionId: number;
@@ -21,7 +21,7 @@ export async function seedMissionToVerified(params: {
   opAdminToken: string;
   quantityTons: number;
 }): Promise<VerifiedMission> {
-  const { adminToken, driverToken, coopOpToken, opAdminToken, quantityTons } = params;
+  const { adminToken, driverToken, coopOpToken, coopAdminToken, opAdminToken, quantityTons } = params;
 
   const seed = await http("/api/__dev/seed/demo", {
     method: "POST",
@@ -37,9 +37,14 @@ export async function seedMissionToVerified(params: {
   const householdId = seed.json.data.entities.household.id as number;
   const mineId = seed.json.data.mine_id as number;
 
-  await selectMine(driverToken, mineId);
-  await selectCommunityMine(coopOpToken, mineId, 1);
-  await selectMine(opAdminToken, mineId);
+  await prepareDemoMissionWorkspaces({
+    mineId,
+    cooperativeId: 1,
+    driverToken,
+    coopOpToken,
+    coopAdminToken,
+    opAdminToken,
+  });
 
   const accept = await http(`/api/driver/missions/${missionId}/steps`, {
     method: "POST",
