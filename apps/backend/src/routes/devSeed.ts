@@ -3,22 +3,18 @@ import { z } from "zod";
 import { appContext } from "../appContext";
 import { success } from "../http/apiResponse";
 import { requireRoles } from "../middleware/rbac";
-import { authMiddleware, type AuthContext } from "../middleware/authMiddleware";
-import { ApiError } from "../http/errors";
+import { authMiddleware } from "../middleware/authMiddleware";
+import { resolveAuthContext } from "../lib/authContext";
+import { ACTIVE_MISSION_STATUSES } from "../lib/missionFsm";
+import { prisma } from "../db/prisma";
+import * as workspaceRepo from "../repositories/workspaceMembershipsRepository";
+import { toNum } from "../repositories/id";
 
 const router = Router();
 
-// Dev-only endpoint to quickly seed a demo environment for Flutter testing.
-const getAuthContext = (token: string): AuthContext | null => {
-  const u = appContext.authService.getUserFromSession(token);
-  if (!u) return null;
-  const session = appContext.sessionStore.getSession(token);
-  return { token, user: u, mineId: session?.mineId };
-};
+const requireAuth = authMiddleware(resolveAuthContext);
 
-const requireAuth = authMiddleware(getAuthContext);
-
-router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), (req, res, next) => {
+router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
   try {
     const body = z
@@ -42,23 +38,22 @@ router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), (req, res,
       return res.status(404).json({ success: false, error: { code: "mine_not_found", message: "Mine not found", requestId } });
     }
 
-    // Seed users (roles are set directly in userStore so auth keeps them).
-    const admin = appContext.userStore.upsertUserByMobile("09000000000", "ADMIN", { is_active: true });
-    const coop = appContext.userStore.upsertUserByMobile("09000000001", "COOP", { is_active: true });
-    const employer = appContext.userStore.upsertUserByMobile("09000000002", "EMPLOYER", { is_active: true });
-    const driverUser = appContext.userStore.upsertUserByMobile("09000000003", "DRIVER", { is_active: true });
-    const fleetOwnerUser = appContext.userStore.upsertUserByMobile("09000000004", "FLEET_OWNER", { is_active: true });
-    const householdUser = appContext.userStore.upsertUserByMobile("09000000005", "HOUSEHOLD", { is_active: true });
-    const consultantUser = appContext.userStore.upsertUserByMobile("09000000006", "CONSULTANT", { is_active: true });
+    const admin = await appContext.userStore.upsertUserByMobile("09000000000", "ADMIN", { is_active: true });
+    await appContext.userStore.upsertUserByMobile("09000000001", "COOP_ADMIN", { is_active: true, cooperative_id: 1 });
+    await appContext.userStore.upsertUserByMobile("09000000002", "OPERATION_ADMIN", { is_active: true });
+    const driverUser = await appContext.userStore.upsertUserByMobile("09000000003", "DRIVER", { is_active: true });
+    const fleetOwnerUser = await appContext.userStore.upsertUserByMobile("09000000004", "FLEET_OWNER", { is_active: true });
+    const householdUser = await appContext.userStore.upsertUserByMobile("09000000005", "HOUSEHOLD", { is_active: true });
+    const consultantUser = await appContext.userStore.upsertUserByMobile("09000000006", "CONSULTANT", { is_active: true });
+    await appContext.userStore.upsertUserByMobile("09000000007", "EMPLOYER", { is_active: true });
 
-    // Seed entities
     const villages = appContext.mineData.listVillagesByMine(mineId);
     const villageId = villages[0]?.id;
     if (!villageId) {
       return res.status(400).json({ success: false, error: { code: "no_villages", message: "Missing villages for mine", requestId } });
     }
 
-    const household = appContext.entities.upsertHousehold({
+    const household = await appContext.entities.upsertHousehold({
       user_id: householdUser.id,
       village_id: villageId,
       head_name: "نمونه سرپرست خانوار",
@@ -67,31 +62,41 @@ router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), (req, res,
       status: "APPROVED",
     });
 
-    const fleetOwner = appContext.entities.upsertFleetOwner({
+    const fleetOwner = await appContext.entities.upsertFleetOwner({
       user_id: fleetOwnerUser.id,
+      cooperative_id: 1,
       full_name: "نمونه مالک ناوگان",
       national_id: "2345678901",
       bank_iban: "IR0000000000000000000001",
       status: "APPROVED",
     });
 
-    const driver = appContext.entities.upsertDriver({
+    const driver = await appContext.entities.upsertDriver({
       user_id: driverUser.id,
+      cooperative_id: 1,
       full_name: "نمونه راننده",
       license_number: "LIC-123",
       status: "APPROVED",
     });
 
-    const vehicle = appContext.entities.upsertVehicle({
+    const vehicle = await appContext.entities.upsertVehicle({
       owner_id: fleetOwner.id,
+      cooperative_id: 1,
       license_plate: "IR-DEMO-01",
       vehicle_type: "TRUCK",
       capacity_tons: 20,
       status: "APPROVED",
     });
 
-    // Seed one mission and load
-    const { load, mission } = appContext.mission.createDemoLoadAndMission({
+    await workspaceRepo.upsertMembership({
+      user_id: driverUser.id,
+      mine_id: mineId,
+      cooperative_id: 1,
+      role_in_workspace: "DRIVER",
+      status: "ACTIVE",
+    });
+
+    const { load, mission } = await appContext.mission.createDemoLoadAndMission({
       mine_id: mineId,
       household_id: household.id,
       owner_id: fleetOwner.id,
@@ -114,6 +119,7 @@ router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), (req, res,
             household: { id: household.id, user_id: household.user_id, mobile: householdUser.mobile_number },
             consultant: { user_id: consultantUser.id, mobile: consultantUser.mobile_number },
           },
+          admin_mobile: admin.mobile_number,
         },
         requestId,
       ),
@@ -123,5 +129,147 @@ router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), (req, res,
   }
 });
 
-export const devSeedRouter = router;
+/** E2E-UAT-HAUL-1: grant workspace for dispatched driver (dev only). */
+router.post(
+  "/__dev/workspaces/ensure-driver-mine",
+  requireAuth,
+  requireRoles(["ADMIN"]),
+  async (req, res, next) => {
+    const requestId = (req as { requestId?: string }).requestId;
+    try {
+      const body = z
+        .object({
+          mine_id: z.number().int().positive(),
+          driver_id: z.number().int().positive(),
+        })
+        .safeParse(req.body);
+      if (!body.success) {
+        return res.status(400).json({
+          success: false,
+          error: { code: "invalid_request", message: "Invalid input", details: body.error.flatten(), requestId },
+        });
+      }
 
+      const driver = await prisma.drivers.findUnique({ where: { id: BigInt(body.data.driver_id) } });
+      if (!driver) {
+        return res.status(404).json({
+          success: false,
+          error: { code: "driver_not_found", message: "Driver not found", requestId },
+        });
+      }
+
+      const coopId = driver.cooperative_id != null ? toNum(driver.cooperative_id) : 1;
+      await workspaceRepo.upsertMembership({
+        user_id: toNum(driver.user_id),
+        mine_id: body.data.mine_id,
+        cooperative_id: coopId,
+        role_in_workspace: "DRIVER",
+        status: "ACTIVE",
+      });
+
+      const user = await prisma.users.findUnique({ where: { id: driver.user_id } });
+      return res.json(
+        success(
+          {
+            ok: true,
+            mine_id: body.data.mine_id,
+            driver_id: body.data.driver_id,
+            mobile_number: user?.mobile_number ?? null,
+          },
+          requestId,
+        ),
+      );
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+/** E2E-UAT-HAUL-1 / PILOT reruns: clear settlement + period_statement for mine/month (dev only). */
+router.post(
+  "/__dev/cleanup/settlement-period",
+  requireAuth,
+  requireRoles(["ADMIN"]),
+  async (req, res, next) => {
+    const requestId = (req as { requestId?: string }).requestId;
+    try {
+      const body = z
+        .object({
+          mine_id: z.number().int().positive(),
+          year: z.number().int().min(2000).max(2100).optional(),
+          month: z.number().int().min(1).max(12).optional(),
+        })
+        .safeParse(req.body);
+      if (!body.success) {
+        return res.status(400).json({
+          success: false,
+          error: { code: "invalid_request", message: "Invalid input", details: body.error.flatten(), requestId },
+        });
+      }
+
+      const now = new Date();
+      const year = body.data.year ?? now.getUTCFullYear();
+      const month = body.data.month ?? now.getUTCMonth() + 1;
+      const periodStart = new Date(Date.UTC(year, month - 1, 1));
+      const period_key = `${year}-${String(month).padStart(2, "0")}`;
+      const mineId = BigInt(body.data.mine_id);
+
+      const loads = await prisma.loads.findMany({
+        where: { mine_id: mineId },
+        select: { id: true },
+      });
+      let closedMissions = 0;
+      if (loads.length > 0) {
+        const result = await prisma.missions.updateMany({
+          where: {
+            load_id: { in: loads.map((l) => l.id) },
+            status: { in: ACTIVE_MISSION_STATUSES },
+          },
+          data: { status: "VERIFIED", verified_at: new Date() },
+        });
+        closedMissions = result.count;
+      }
+
+      const batches = await prisma.settlement_batches.findMany({
+        where: { mine_id: mineId, period_start: periodStart },
+        select: { id: true },
+      });
+      for (const b of batches) {
+        await prisma.settlement_batch_approvals.deleteMany({ where: { settlement_batch_id: b.id } });
+        await prisma.payment_payouts.deleteMany({ where: { settlement_batch_id: b.id } });
+        await prisma.settlement_lines.deleteMany({ where: { batch_id: b.id } });
+      }
+      const deletedBatches = await prisma.settlement_batches.deleteMany({
+        where: { mine_id: mineId, period_start: periodStart },
+      });
+
+      const statements = await prisma.period_statements.findMany({
+        where: { mine_id: mineId, period_key },
+      });
+      for (const row of statements) {
+        await prisma.period_statement_approvals.deleteMany({ where: { period_statement_id: row.id } });
+        await prisma.period_statement_lines.deleteMany({ where: { period_statement_id: row.id } });
+        await prisma.period_statements.delete({ where: { id: row.id } });
+      }
+
+      return res.json(
+        success(
+          {
+            ok: true,
+            mine_id: body.data.mine_id,
+            year,
+            month,
+            deleted_batches: deletedBatches.count,
+            deleted_statements: statements.length,
+            closed_active_missions: closedMissions,
+          },
+          requestId,
+        ),
+      );
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+export const devSeedRouter = router;

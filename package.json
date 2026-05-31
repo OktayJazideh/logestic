@@ -8,6 +8,12 @@
     "dev": "npm -w @app/backend run dev",
     "dev:web": "npm -w @app/web run dev",
     "build": "npm -ws run build",
-    "lint": "npm -ws run lint"
+    "lint": "npm -ws run lint",
+    "test": "npm -w @app/backend run test",
+    "test:infra-regression": "npm -w @app/backend run test:infra-regression",
+    "test:infra-regression:finance": "npm -w @app/backend run test:infra-regression:finance",
+    "test:comm-ton1": "npm -w @app/backend run test:comm-ton1",
+    "test:invoice-draft1": "npm -w @app/backend run test:invoice-draft1",
+    "test:e2e": "npm -w @app/web run test:e2e"
   }
 }

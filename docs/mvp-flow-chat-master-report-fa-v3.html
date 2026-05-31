@@ -1,0 +1,1454 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<title>گزارش مستر MVP — نسخهٔ ۳ (بازبینی کامل اسناد کارفرما + کد)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#FAFAF7; --panel:#FFFFFF; --text:#1F2937; --muted:#6B7280;
+    --border:#E5E7EB; --soft:#F3F4F6;
+    --primary:#1B5E20; --ok:#16A34A; --part:#D97706; --no:#DC2626; --info:#0369A1;
+    --code-bg:#0B1020; --code-text:#E5E7EB;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Tahoma,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.85}
+  a{color:var(--primary)}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 18px 80px}
+  header.hero{background:linear-gradient(180deg,#0F3D17 0%,#1B5E20 100%);color:#fff;border-radius:14px;padding:22px;margin-bottom:18px}
+  header.hero h1{margin:0 0 6px;font-size:22px}
+  header.hero p{margin:4px 0;color:#D1FAE5;font-size:13.5px}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;background:#FFFFFF20;border:1px solid #FFFFFF30;margin:4px 0 0 4px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
+  .panel h2{margin:0 0 10px;font-size:18px;color:#0F3D17;border-bottom:2px solid var(--soft);padding-bottom:8px}
+  .panel h3{margin:14px 0 6px;font-size:15px}
+  .muted{color:var(--muted);font-size:13px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  .status{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;border:1px solid}
+  .s-ok{background:#ECFDF5;color:#065F46;border-color:#A7F3D0}
+  .s-part{background:#FFFBEB;color:#92400E;border-color:#FCD34D}
+  .s-no{background:#FEF2F2;color:#991B1B;border-color:#FCA5A5}
+  .s-info{background:#E0F2FE;color:#075985;border-color:#7DD3FC}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{border:1px solid var(--border);padding:8px 10px;vertical-align:top;text-align:right}
+  th{background:#F3F6F1;color:#0F3D17}
+  tbody tr:nth-child(2n){background:#FBFCFA}
+  .toc ol{margin:0;padding-inline-start:22px}
+  .golden{background:#FFFBEB;border:2px dashed #D97706;border-radius:10px;padding:14px;color:#7C2D12}
+  .note,.good,.bad,.info{padding:10px 12px;border-radius:8px;font-size:13.5px;margin:8px 0}
+  .note{background:#FFFBEB;border:1px solid #FCD34D;color:#92400E}
+  .good{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46}
+  .bad{background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B}
+  .info{background:#E0F2FE;border:1px solid #7DD3FC;color:#075985}
+  ul.tasks{list-style:none;padding:0;margin:0}
+  li.task{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:#fff}
+  li.task .title{font-weight:700;color:#0F3D17}
+  .priority{font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px}
+  .p0{background:#7F1D1D;color:#fff}
+  .p1{background:#FEE2E2;color:#991B1B}
+  .p2{background:#FEF3C7;color:#92400E}
+  .p3{background:#E0E7FF;color:#3730A3}
+  .arch-warn{background:#FEF2F2;border:2px solid #DC2626;border-radius:10px;padding:14px;margin:12px 0}
+  details.prompt{margin-top:8px;background:#F8FAF7;border:1px dashed #C7DDC8;border-radius:8px;padding:8px}
+  details.prompt pre{background:var(--code-bg);color:var(--code-text);padding:12px;border-radius:8px;direction:ltr;font-size:12px;white-space:pre-wrap}
+  details.prompt .promptfa{font-size:13.4px;line-height:1.95;margin-top:8px}
+  .badge{display:inline-block;background:#0F3D17;color:#fff;border-radius:6px;padding:1px 7px;font-size:11.5px;margin-left:6px}
+  .badge.done{background:#16A34A}
+  .badge.new{background:#7C3AED}
+  code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12.5px}
+  .progress-bar{height:10px;background:#E5E7EB;border-radius:5px;overflow:hidden;margin:8px 0}
+  .progress-bar span{display:block;height:100%;background:linear-gradient(90deg,#16A34A,#2E7D32)}
+  .test-step{border-right:3px solid var(--primary);padding:6px 12px;margin:8px 0;background:#FAFCF9}
+  .test-step strong{color:#0F3D17}
+  .prompt-pro{margin-top:10px}
+  .prompt-pro h4{margin:12px 0 6px;font-size:14px;color:#0F3D17}
+  .prompt-pro pre{background:#0B1020;color:#E5E7EB;padding:14px 16px;border-radius:8px;direction:ltr;text-align:left;font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:520px;overflow:auto}
+  .prompt-pro .fa-block{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:13.4px}
+  .prompt-pro ul{margin:6px 0;padding-inline-start:20px}
+  details.prompt[open] summary{margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>گزارش مستر MVP — نسخهٔ ۳</h1>
+  <p>بازبینی خط‌به‌خط پیام‌ها و اسناد معماری کارفرما + مقایسه با کل کدبیس <code>logestic</code> (backend، web، driver_app، community_app). نسخهٔ ۲ منسوخ است؛ این سند مرجع فعلی است.</p>
+  <div>
+    <span class="pill">تاریخ بازبینی: ۱۴۰۵/۰۳/۰۱ (۲۰ مه ۲۰۲۶) — پاسخ مکاتبه کارفرما + Service Contract + HSA</span>
+    <span class="pill">منبع: کد + Freeze + پاسخ ۵ سؤال مکاتبه (۱۴۰۵/۰۲) + Industrial OS</span>
+    <span class="pill">فایل: docs/mvp-flow-chat-master-report-fa-v3.html</span>
+    <span class="pill">وایرفریم: docs/wireframes-review/ (۲۰ اسکرین)</span>
+    <span class="pill"><a href="mvp-task-prompts-pro-fa.html" style="color:#D1FAE5">پرامپت‌ها: ۶۷ کارت (۴۳ انجام‌شده · ۲۴ باقی)</a> — <a href="#client-arch-qa">پاسخ معماری کارفرما</a> · <a href="#coverage-gap">بازبینی شکاف</a></span>
+  </div>
+</header>
+
+<nav class="panel toc">
+  <h2>فهرست</h2>
+  <ol>
+    <li><a href="#progress">پیشرفت کلی</a></li>
+    <li><a href="#vision">چشم‌انداز و اصل طلایی</a></li>
+    <li><a href="#platform-role">نقش پلتفرم (Infrastructure — مثل اسنپ)</a></li>
+    <li><a href="#comm-share-arch">۱۴. Community Share — Service Contract</a></li>
+    <li><a href="#client-answers">پاسخ مکاتبه کارفرما (۵ سؤال)</a> · <a href="#client-answers-detail">جزئیات زیرسؤال‌ها</a></li>
+    <li><a href="#client-arch-qa">پاسخ ۱۰ سؤال معماری (مکاتبه جدید)</a> · <a href="#hsa-matrix">ماتریس HSA</a></li>
+    <li><a href="#hsa">Human Supervised Automation</a></li>
+    <li><a href="#governance">Governance چندلایه</a></li>
+    <li><a href="#industrial-os">۱۷. Industrial Service OS</a></li>
+    <li><a href="#fin-policy-ledger">۱۸. سیاست مالی + لایهٔ حسابداری (کارفرما)</a></li>
+    <li><a href="#decisions">تصمیمات قطعی کارفرما</a></li>
+    <li><a href="#conflicts">تعارضات بین اسناد (باید قفل شود)</a></li>
+    <li><a href="#matrix">ماتریس اسپک ↔ کد (۵۰ ردیف)</a></li>
+    <li><a href="#code-sync">هم‌ترازی اخیر با کد</a></li>
+    <li><a href="#rewrite">کجا بازنویسی / کجا نگه‌داری</a></li>
+    <li><a href="#wireframes">۱۵. وایرفریم UI (۲۰ اسکرین)</a></li>
+    <li><a href="#testing">راهنمای تست (دستی + اتومات)</a></li>
+    <li><a href="#priority">اولویت‌بندی P1→P3</a></li>
+    <li><a href="#prompt-checklist">چک‌لیست اجرای پرامپت</a></li>
+    <li><a href="#coverage-gap">بازبینی کد + شکاف تسک‌ها</a></li>
+    <li><a href="#todo">تسک‌های باقی‌مانده</a></li>
+    <li><a href="#done">تسک‌های انجام‌شده (۱۸ کارت پرامپت)</a></li>
+    <li><a href="#prompts-pro">۱۶. راهنمای نوشتن پرامپت (الگو)</a></li>
+    <li><a href="#dod">Definition of Done — سناریوی UAT کارفرما</a></li>
+    <li><a href="#client-delivery">۱۹. تحویل، پاسخ کارفرما، سرور</a></li>
+    <li><a href="#files">نقشه فایل‌ها</a></li>
+  </ol>
+</nav>
+
+<section class="panel" id="progress">
+  <h2>پیشرفت کلی</h2>
+  <p><strong>تخمین پوشش MVP فاز ۱:</strong> حدود <strong>۸۵٪</strong> هسته بک‌اند، <strong>۶۲٪</strong> پنل وب، <strong>۸۲٪</strong> اپ راننده، <strong>۵۰٪</strong> اپ جامعه.</p>
+  <div class="progress-bar"><span style="width:66%"></span></div>
+  <div class="grid2">
+    <div>
+      <h3>هسته آماده برای دمو ✅</h3>
+      <ul>
+        <li>OTP + Session + Postgres</li>
+        <li>۸ نقش + RBAC + scope تعاونی</li>
+        <li>KYC تعاونی + خانوار/راننده/مالک/وسیله</li>
+        <li>نیاز کارفرما + Dispatch + FSM ۹‌حالته</li>
+        <li>باسکول + Threshold ۵٪ + Adjustment</li>
+        <li>عملیات ساعتی OPERATOR + تأیید CONSULTANT</li>
+        <li>تقسیم مالی Operational + Community تن‌محور + Pool (<strong>COMM-TON-1</strong> ✓)</li>
+        <li>Settlement lifecycle + export بانکی</li>
+        <li>Audit، Event، Queue، Reconciliation، KPI</li>
+        <li>اپ راننده + آفلاین + community_app پایه</li>
+      </ul>
+    </div>
+    <div>
+      <h3>شکاف‌های باقی‌مانده قبل از UAT اولین پایلوت (tenant: طلای تفتان)</h3>
+      <ul>
+        <li><strong>P1 مالی:</strong> FIN-POLICY-1 ✅، ACC-FUND-1 ✅، FIN-DUAL-1 ✅، COMM-UI-LEGACY-1 ✅، SVC-CONTRACT-1 ✅، INVOICE-DRAFT-1 ✅، MINE-PAY-FLOW-1 ✅، E2E-UAT-HAUL-1 ✅</li>
+        <li><strong>CORE-OS-0:</strong> کاتالوگ — <strong>CORE-OS-1:</strong> FK + backfill — <a href="#industrial-os">§۱۷</a></li>
+        <li><strong>Governance:</strong> GOV-WORKFLOW-1 ✅ (maker/checker)، WB-MANUAL-1 ✅، WB-INT-1 ✅ (Agent ingest API)</li>
+        <li><strong>پایلوت:</strong> PILOT-TAFTAN-1 ✅ — seed TAFTAN + `test:pilot-taftan1` (۳×)؛ `fixed_community_amount` در DB (placeholder 400k/تن تا دریافت قرارداد کارفرما)</li>
+        <li>پرداخت بانکی خودکار (BANK-AUTO-1) — <strong>✓ MockAdapter + queue</strong> — <code>npm run test:bank-auto1</code></li>
+        <li>ساعتی / NEED-HOURLY — <strong>خارج فاز ۱</strong></li>
+        <li>وایرفریم وب: OPS-DASH ✓، FIN-LOAD؛ WB-READ ✓ در اپ راننده</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="vision">
+  <h2>چشم‌انداز</h2>
+  <div class="golden">
+    <strong>اصل طلایی:</strong> هیچ فرآیند رسمی خارج از سیستم معتبر نیست — مأموریت، تأیید، تسویه، عضویت، اعتراض، باسکول.
+  </div>
+  <p>پلتفرم = Logistics + Settlement + Cooperative OS + Governance. جهت ارائه به ذی‌نفعان: <strong>زیرساخت تعاونی صنعتی (Industrial Cooperative Infrastructure)</strong> / حاکمیت مبتنی بر قانون، audit و شفافیت — نه صرفاً «اپ حمل». کارفرما فقط <strong>نیاز عملیاتی</strong> ثبت می‌کند؛ پلتفرم <strong>Dispatch</strong> می‌کند؛ باسکول/مشاور <strong>measurement</strong> معتبر می‌دهند؛ سیستم <strong>پرداخت عملیاتی</strong> (مالک + کارمزد پلتفرم) و <strong>مشارکت اجتماعی تن‌محور</strong> (<a href="#comm-share-arch">§۱۴</a>) را جدا محاسبه و <strong>تسویه</strong> می‌کند.</p>
+  <div class="info">
+    <strong>مقیاس محصول (نه پروژه تک‌معدنی):</strong> هدف انتشار <strong>پلتفرم ملی/جهانی</strong> — هر معدن و هر تعاونی tenant مستقل با قرارداد و Rate Card خودش. <strong>پایلوت طلای تفتان</strong> فقط اولین استقرار واقعی برای UAT است؛ معماری از روز اول Multi-Mine / Multi-Cooperative (Workspace، scope، Service Contract per طرفین). فاز ۱ محدودیت <em>نوع سرویس</em> است (فعلاً حمل)، نه محدودیت <em>تعداد</em> معادن یا تعاونی‌ها.
+  </div>
+  <div class="info">
+    <strong>اولویت اجرای واقعی (کارفرما — پس از بالا آمدن MVP):</strong> دقت تسویه، Audit، Permission، خطاها و edge caseها، Backup، Logging، تأیید داده، Performance — پیش از UI تزئینی یا فیچرهای جانبی غیرضروری.
+  </div>
+  <p><strong>مسیر طلایی (طبق کارفرما):</strong> نیاز کارفرما → تخصیص → اجرا → باسکول/ساعت → تأیید مرجع → محاسبه → تراکنش‌ها → نمایش → تسویه ادمین.</p>
+</section>
+
+<section class="panel" id="platform-role">
+  <h2>نقش پلتفرم — Operational Financial Infrastructure (کارفرما)</h2>
+  <div class="golden">
+    <strong>اصل:</strong> پلتفرم <em>پیمانکار اجرایی</em> یا <em>کارفرمای عملیات معدن</em> نیست — نقش <strong>Infrastructure / Settlement / Transparency</strong> (مشابه مدل اسنپ).
+  </div>
+  <table>
+    <thead><tr><th>بازیگر</th><th>نقش در سیستم</th><th>در Ledger / گزارش</th></tr></thead>
+    <tbody>
+      <tr><td>راننده، مالک ناوگان، تعاونی، پیمانکار خدمات</td><td>User مستقل — نه کارمند پلتفرم</td><td>ذی‌نفع تسویه</td></tr>
+      <tr><td>پلتفرم</td><td>ثبت عملیات، محاسبه، Settlement Sheet، Audit، شفافیت</td><td>مالک پول عملیات نیست</td></tr>
+      <tr><td>۱٪ کرایه</td><td><strong>Platform Service Fee</strong></td><td>درآمد پلتفرم — نه سهم از عملیات معدن</td></tr>
+      <tr><td>Community Fund</td><td><strong>Restricted / Dedicated Fund</strong></td><td>امانی — نه درآمد شرکت</td></tr>
+      <tr><td>کرایه مالک</td><td><strong>Settlement عبوری</strong></td><td>Operational pass-through</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">در Naming، API، Ledger، Terms و Workflow این تفکیک رعایت می‌شود — <a href="mvp-task-prompts-pro-fa.html#platform-legal-1">PLATFORM-LEGAL-1</a> ✓ + <a href="mvp-task-prompts-pro-fa.html#acc-fund-1">ACC-FUND-1</a> ✓ — <code>npm run test:platform-legal1</code></p>
+</section>
+
+<section class="panel" id="comm-share-arch">
+  <h2>۱۴. Community Share — Service Contract (قابل تعمیم به همه خدمات)</h2>
+
+  <div class="arch-warn">
+    <strong>ارزیابی (تصمیم کارفرما):</strong> تغییر <strong>اساسی در Core Financial Architecture</strong> (نه UI). مدل قبلی: سهم اجتماعی = <strong>۱۳٪ از کرایه</strong> — ریسک <em>Operational Inflation</em>.<br>
+    <strong>قابل انجام است:</strong> <code>distributePool</code> می‌ماند؛ ورودی = تن × نرخ ثابت. عملیاتی و جامعه <strong>کاملاً جدا</strong>.
+  </div>
+  <div class="good">
+    <strong>✅ انجام شد — COMM-TON-1:</strong> <code>splitOperational</code> + <code>computeCommunityContribution</code> — <code>npm run test:comm-ton1</code> PASS. UI دوخطی: <a href="#t-fin-dual-1">FIN-DUAL-1</a>.
+  </div>
+
+  <h3>ریسک مدل قبلی (چرا حذف می‌شود)</h3>
+  <ul>
+    <li>اگر Community Share درصدی از کرایه باشد → تعاونی/شبکه انگیزه دارد نرخ کرایه را مصنوعی بالا ببرد → سهم اجتماعی بیشتر شود.</li>
+    <li>عوارض: تورم عملیاتی، فشار به معدن، اختلاف اقتصادی، از دست رفتن اعتماد کارفرما.</li>
+  </ul>
+
+  <h3>کشف اولیه عدد (خارج سیستم) → ثابت در قرارداد</h3>
+  <ol>
+    <li>قیمت واقعی خدمت توسط <strong>کارشناس رسمی دادگستری</strong> یا کارشناس مورد تأیید طرفین کشف و مستند می‌شود.</li>
+    <li><strong>۱۵٪</strong> از آن قیمت یک‌بار محاسبه می‌شود → <code>Fixed Rial Community Amount</code> در قرارداد سالانه معدن–تعاونی.</li>
+    <li>سیستم فقط با <strong>مبلغ ثابت ریالی</strong> کار می‌کند — <strong>درصد در DB ذخیره نمی‌شود</strong>.</li>
+  </ol>
+
+  <h3>فرمول در سیستم (همه خدمات)</h3>
+  <pre style="background:#F3F4F6;padding:12px;border-radius:8px;direction:ltr;text-align:left;font-size:13px">Community Contribution = Usage Quantity × Fixed Community Amount (per Service Contract)</pre>
+  <p>برای MVP فاز ۱ (حمل): <code>Usage = Verified Net Tonnage</code> از باسکول (پر − خالی). فاز بعد: لیتر (آب)، تعداد (غذا)، ساعت (ماشین‌آلات)، …</p>
+
+  <h3>مدل نهایی (قطعی کارفرما — مکاتبه ۱۴۰۵/۰۲)</h3>
+  <table>
+    <thead><tr><th>لایه</th><th>فرمول</th><th>منبع داده</th><th>کارمزد پلتفرم</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>پرداخت عملیاتی</strong><br><small>Operational Economy</small></td>
+        <td>کرایه (Rate Card قراردادی — MVP: <strong>per ton</strong>) → <strong>۹۹٪ مالک + ۱٪ Platform Fee</strong></td>
+        <td>مأموریت، Rate Card، باسکول (برای مبلغ کرایه)</td>
+        <td><span class="status s-ok">قفل</span> فقط از کرایه — <a href="mvp-task-prompts-pro-fa.html#fin-policy-1">FIN-POLICY-1</a></td>
+      </tr>
+      <tr>
+        <td><strong>مشارکت اجتماعی</strong><br><small>Community Economy — مستقل</small></td>
+        <td><code>Usage × fixed_community_amount_rial</code> (واحد: تن / لیتر / ساعت / تعداد)</td>
+        <td>حمل: Net Weight باسکول؛ استثنا: Manual با reason + تأیید + audit — <a href="mvp-task-prompts-pro-fa.html#wb-manual-1">WB-MANUAL-1</a> ✅</td>
+        <td><span class="status s-no">خیر</span> از جیب راننده/مالک کم نمی‌شود</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>فیلدهای Service Contract (هر قرارداد در سیستم)</h3>
+  <table>
+    <thead><tr><th>فیلد</th><th>مثال MVP (حمل)</th></tr></thead>
+    <tbody>
+      <tr><td>نوع خدمت (<code>operation_type</code>)</td><td>HAUL_TONNAGE</td></tr>
+      <tr><td>واحد محاسبه (<code>unit</code>)</td><td>TON</td></tr>
+      <tr><td>نرخ پایه قرارداد (<code>base_rate_rial</code>)</td><td>Rate Card عملیاتی</td></tr>
+      <tr><td>Community Amount ثابت</td><td>ریال per unit — <em>عدد پایلوت هنوز نیامده</em></td></tr>
+      <tr><td>تاریخ اعتبار، نسخه قرارداد، الحاقیه</td><td>تغییر فقط با amendment + audit — <a href="mvp-task-prompts-pro-fa.html#svc-contract-1">SVC-CONTRACT-1</a></td></tr>
+    </tbody>
+  </table>
+  <p class="note"><strong>۱۳۰ / ۱۵۰ هزار تومان:</strong> فقط مثال توضیحی — عدد نهایی قرارداد پایلوت اعلام نشده.</p>
+
+  <div class="good">
+    <strong>مثال کارفرما:</strong> کرایه حمل ۱,۰۰۰,۰۰۰ تومان — مشارکت اجتماعی ۵۰,۰۰۰ تومان <em>به‌ازای هر تن خالص تأییدشده</em> (مستقل از کرایه). افزایش نرخ کرایه → سهم اجتماعی تغییر نمی‌کند.
+  </div>
+
+  <h3>پرداخت معدن (ساختار نهایی — مکاتبه)</h3>
+  <pre style="background:#F3F4F6;padding:12px;border-radius:8px;direction:ltr;text-align:left;font-size:13px">معدن وارد تسویه خرد نمی‌شود.
+
+معدن → صورت وضعیت رسمی تعاونی (پس از Draft + Review + Lock)
+     → واریز به حساب رسمی تعاونی
+     → Settlement داخلی (Excel + mark-paid در MVP)
+
+Operational + Community در صورت وضعیت جمع می‌شوند؛ تسویه به مالک/خانوار داخلی تعاونی است.</pre>
+
+  <h3>وضعیت در کد logestic</h3>
+  <table>
+    <thead><tr><th>اجزا</th><th>وضعیت</th></tr></thead>
+    <tbody>
+      <tr><td><code>splitOperational</code> + <code>computeCommunityContribution</code></td><td><span class="status s-ok">✓</span> COMM-TON-1</td></tr>
+      <tr><td><code>community.rial_per_verified_ton</code> در ruleEngine</td><td><span class="status s-ok">✓</span></td></tr>
+      <tr><td><code>distributePool</code> (snapshot مساوی)</td><td><span class="status s-ok">✓</span> بدون تغییر منطق</td></tr>
+      <tr><td>AdminFinance دوخطی</td><td><span class="status s-ok">✓</span> FIN-DUAL-1 — <code>test:fin-dual1</code></td></tr>
+      <tr><td>WF-FIN-LOAD (صفحه جدا)</td><td><span class="status s-ok">✓</span> <code>FinanceByLoadPage</code> + <code>GET /by-load</code></td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>تسک:</strong> <a href="mvp-task-prompts-pro-fa.html#comm-ton-1">COMM-TON-1</a> ✅ — <a href="#done">§ done</a>.</p>
+</section>
+
+
+<section class="panel" id="industrial-os">
+  <h2>۱۷. Industrial Service OS — معماری Service-Agnostic (تصمیم جدید کارفرما)</h2>
+
+  <div class="good">
+    <strong>جمع‌بندی:</strong> هدف نهایی «سیستم‌عامل خدمات صنعتی» است نه فقط اپ حمل معدن. این <strong>جهت‌گیری معماری</strong> از الان باید دیده شود؛ پیاده‌سازی کامل همه دسته‌ها خارج MVP فاز ۱ است.
+  </div>
+
+  <h3>اصل طلایی پلتفرم</h3>
+  <pre style="background:#F3F4F6;padding:12px;border-radius:8px;direction:ltr;text-align:left">Operation → Verification → Settlement</pre>
+  <p>هر خدمتی که این سه مرحله را داشته باشد باید بتواند وارد اکوسیستم شود — بدون Hard-Code «حمل بار».</p>
+
+  <h3>چهار ستون معماری (به‌جای Hard-Code حمل)</h3>
+  <table>
+    <thead><tr><th>ستون</th><th>معنی</th><th>وضعیت در کد logestic</th></tr></thead>
+    <tbody>
+      <tr><td><strong>OperationType</strong></td><td>نوع عملیات (حمل، ساعتی، غذا، …)</td><td><span class="status s-part">△</span> <code>operation_needs.operation_type</code> فقط TONNAGE|HOURLY؛ نیاز کاتالوگ</td></tr>
+      <tr><td><strong>VerificationRule</strong></td><td>چگونه «تأیید» می‌شود (باسکول، GPS، شیفت، …)</td><td><span class="status s-part">△</span> باسکول+ساعتی پیاده؛ rule جدول عمومی ندارد</td></tr>
+      <tr><td><strong>PricingRule</strong></td><td>Rate Card / RuleEngine</td><td><span class="status s-ok">✓</span> <code>rateCardsRepository</code> + <code>ruleEngine</code></td></tr>
+      <tr><td><strong>SettlementRule</strong></td><td>عملیاتی + Community تن‌محور + Pool</td><td><span class="status s-ok">✓</span> پس از COMM-TON-1</td></tr>
+    </tbody>
+  </table>
+
+  <h3>دسته‌های آینده (کارفرما — فاز ۲+)</h3>
+  <ol>
+    <li>حمل و لجستیک (خاک، کنسانتره، سوخت، آب، تجهیزات)</li>
+    <li>ماشین‌آلات (لودر، بیل، حفاری، گریدر، ساعتی)</li>
+    <li>نیروی انسانی و شیفتی</li>
+    <li>رفاهی و کمپ</li>
+    <li>مصرفی و پشتیبانی</li>
+    <li>پروژه‌ای (عمرانی، برق، …)</li>
+  </ol>
+
+  <h3>تأثیر روی لایه‌های سیستم</h3>
+  <table>
+    <thead><tr><th>لایه</th><th>الان</th><th>باید رعایت شود</th></tr></thead>
+    <tbody>
+      <tr><td>Data Model</td><td>missions, loads, hourly</td><td>کاتالوگ <code>operation_types</code> + FK</td></tr>
+      <tr><td>Workflow / FSM</td><td>FSM ۹‌حالته مأموریت</td><td>FSM per OperationType یا adapter</td></tr>
+      <tr><td>Dispatch</td><td>راننده+وسیله برای حمل</td><td>dispatch strategy per type</td></tr>
+      <tr><td>Settlement</td><td>تن‌محور + عملیاتی</td><td>SettlementRule per type</td></tr>
+      <tr><td>Permission / UI</td><td>نقش‌های فعلی</td><td>منو و فرم بر اساس OperationType</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>تسک‌های MVP (مرحله‌ای — کم‌ریسک):</strong> <span class="status s-ok">✓</span> <a href="#t-core-os-0">CORE-OS-0</a> کاتالوگ افزودنی → <span class="status s-ok">✓</span> <a href="#t-core-os-1">CORE-OS-1</a> FK nullable + backfill → <span class="status s-ok">✓</span> <a href="#t-core-os-2">CORE-OS-2</a> dispatch registry. بدون پیاده‌سازی همه ۶ دسته.</p>
+  <p class="muted">فاز ۱ MVP: <strong>فقط حمل</strong> (ساعتی و سرویس‌های غیرحمل پیچیده → فاز بعد). schema و نام‌گذاری از الان Service-Agnostic باشد.</p>
+</section>
+
+<section class="panel" id="client-answers">
+  <h2>پاسخ کارفرما به مکاتبه (۵ سؤال — ۱۴۰۵/۰۲)</h2>
+  <p class="muted">مرجع کامل: <a href="gozaresh-tahvil-karfarma-mvp-fa.html#answers">برگه تحویل § answers</a></p>
+  <table>
+    <thead><tr><th>#</th><th>سؤال</th><th>پاسخ کارفرما</th><th>اثر در سیستم</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>۱</td><td>Community</td>
+        <td>مدل برای <strong>همه خدمات</strong>؛ واحد متغیر (تن/لیتر/ساعت/تعداد)؛ کشف ۱۵٪ یک‌بار → ثابت ریالی؛ باسکول = net weight؛ manual استثنا با audit؛ تغییر فقط الحاقیه + permission مالی</td>
+        <td><a href="mvp-task-prompts-pro-fa.html#svc-contract-1">SVC-CONTRACT-1</a>, <a href="mvp-task-prompts-pro-fa.html#wb-manual-1">WB-MANUAL-1</a> ✅</td>
+      </tr>
+      <tr>
+        <td>۲</td><td>کرایه ۹۹/۱</td>
+        <td>Rate Card <strong>قراردادی</strong>؛ MVP: per ton؛ یک Rate Card فعال per قرارداد کافی؛ معماری بعداً per trip / hourly</td>
+        <td><a href="mvp-task-prompts-pro-fa.html#fin-policy-1">FIN-POLICY-1</a>, RateCards</td>
+      </tr>
+      <tr>
+        <td>۳</td><td>واریز بانکی</td>
+        <td>معدن فقط به <strong>حساب تعاونی</strong> (صورت وضعیت رسمی)؛ MVP: Excel + واریز دستی + mark-paid؛ Community می‌تواند ابتدا حساب تعاونی سپس distribute</td>
+        <td><a href="mvp-task-prompts-pro-fa.html#mine-pay-flow-1">MINE-PAY-FLOW-1</a></td>
+      </tr>
+      <tr>
+        <td>۴</td><td>پایلوت UAT</td>
+        <td><strong>معدن طلای تفتان</strong>؛ سناریوی حداقل: راننده/ناوگان، قرارداد+Rate Card، مأموریت، باسکول، settlement، community، صورت وضعیت، یک monthly-close — نام تعاونی/مسئولین/تاریخ <em>بعداً</em></td>
+        <td><a href="mvp-task-prompts-pro-fa.html#pilot-taftan-1">PILOT-TAFTAN-1</a>, <a href="uat-handover-checklist-fa.md">UAT checklist</a></td>
+      </tr>
+      <tr>
+        <td>۵</td><td>محدوده فاز ۱</td>
+        <td>بله — عمداً خارج: ساعتی پیچیده، نیاز ساعتی کارفرما، <strong>تسویه هفتگی مالک</strong>, Auto Bank، کافه‌بازار، سرویس غیرحمل پیچیده، governance سنگین چندلایه مالی</td>
+        <td>HOURLY-* ، SET-CYCLE ، BANK-AUTO در P3</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="client-answers-detail">جزئیات زیرسؤال‌ها (برای جلوگیری از اشتباه در پیاده‌سازی)</h3>
+  <table>
+    <thead><tr><th>زیرسؤال</th><th>جواب کارفرما</th><th>نباید در کد/UI</th></tr></thead>
+    <tbody>
+      <tr><td>یک مبلغ برای همه بار؟</td><td>نه لزوماً — <strong>هر Service Contract</strong> (نوع خدمت/ماده) می‌تواند <code>fixed_community_amount</code> جدا داشته باشد</td><td>یک عدد global برای همه معادن/مواد</td></tr>
+      <tr><td>تن از کجا؟</td><td>حمل: <strong>Net Weight باسکول</strong> (پر−خالی) = Source of Truth</td><td>راننده وزن وارد کند؛ net دستی بدون audit</td></tr>
+      <tr><td>تعیین مبلغ ثابت</td><td>کارشناس رسمی/مورد تأیید → ۱۵٪ یک‌بار → ثبت در <strong>قرارداد سالانه</strong> معدن–تعاونی</td><td>ذخیره ۰.۱۵ یا درصد در DB</td></tr>
+      <tr><td>تغییر وسط سال</td><td>فقط <strong>الحاقیه</strong> + نسخه جدید + تأیید طرفین؛ permission مالی/قراردادی</td><td>ویرایش بی‌audit</td></tr>
+      <tr><td>کرایه از کجا؟</td><td><strong>Rate Card قراردادی</strong>؛ MVP: per ton؛ یک Rate Card فعال per قرارداد</td><td>چند کارت فعال همزمان بدون نسخه</td></tr>
+      <tr><td>Community از کرایه؟</td><td><strong>خیر</strong> — کاملاً مستقل؛ از جیب مالک/راننده کم نمی‌شود</td><td>کسر community از operational split</td></tr>
+      <tr><td>معدن به مالک می‌زند؟</td><td><strong>خیر</strong> — معدن فقط به <strong>حساب رسمی تعاونی</strong> (صورت وضعیت Lock شده)</td><td>export با برچسب «پرداخت از معدن به IBAN مالک»</td></tr>
+      <tr><td>مالک/خانوار چطور؟</td><td>تعاونی/پلتفرم: Settlement Sheet داخلی → Excel IBAN → واریز دستی → mark-paid</td><td>API بانک در MVP</td></tr>
+      <tr><td>Community به خانوار</td><td>می‌تواند ابتدا <strong>حساب تعاونی</strong> سپس distribute طبق pool</td><td>—</td></tr>
+      <tr><td>صورت وضعیت</td><td>سیستم <strong>Draft</strong> می‌سازد؛ مستقیم «رسمی» به معدن نمی‌فرستد تا Review/تأیید</td><td>Auto-Pilot بدون تأیید انسانی</td></tr>
+      <tr><td>پلتفرم نقش اجرایی؟</td><td><strong>خیر</strong> — Infrastructure؛ staff فقط Audit/Monitor</td><td>ADMIN تأیید روزمره باسکول/عملیات</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" id="client-arch-qa">
+  <h2>پاسخ ۱۰ سؤال معماری کارفرما (مکاتبه جدید)</h2>
+  <p class="muted">خلاصهٔ فنی برای تیم — متن محاوره‌ای برای ارسال به کارفرما جداگانه. کارت‌های پیاده‌سازی در § <a href="#todo">todo</a>.</p>
+  <ol>
+    <li><strong>عضویت Community vs کار عملیاتی:</strong> <strong>جدا</strong> — یک نفر، یک لاگین؛ «عضو تعاونی» و «کار در معدن» دو کلاه متفاوت. <a href="#t-ws-dual-role-1">WS-DUAL-ROLE-1</a></li>
+    <li><strong>چند معدن — اکانت:</strong> <strong>یک اکانت مرکزی</strong> + انتخاب معدن/workspace (TENANT-1 ✓).</li>
+    <li><strong>تأخیر چندروزه تأیید — SLA:</strong> MVP: گزارش معطل‌ها؛ از الان <code>due_at</code> در DB؛ Escalation خودکار فاز بعد. <a href="#t-sla-escalation-1">SLA-ESCALATION-1</a> پس از <a href="#t-gov-workflow-1">GOV-WORKFLOW-1</a></li>
+    <li><strong>جلوگیری از وابستگی به یک نفر:</strong> MVP: <strong>صندوق مشترک نقش</strong> (هر COOP_ADMIN/OPERATION_ADMIN مجاز) + audit؛ نه صف اختصاصی per-user. <strong>WF-ROLE-INBOX-1 ✓</strong> — <a href="#t-wf-queue-1">WF-QUEUE-1</a> فقط spike راننده (P3).</li>
+    <li><strong>عضویت خانوار:</strong> <strong>ثبت + تأیید</strong>؛ import گروهی پایلوت — <strong>انجام شد ✓</strong> <code>POST /api/coop/households/import</code> + تب «ورود گروهی» در <code>CoopRequests.tsx</code> — <code>npm run test:hh-bulk-import1</code></li>
+    <li><strong>نسخه قرارداد/تعرفه:</strong> <strong>انجام شد ✓</strong> — <code>POST /api/service-contracts/:id/new-version</code> + لیست نسخه در <code>RateCards.tsx</code> — <code>npm run test:contract-version-ui1</code></li>
+    <li><strong>تأیید Community:</strong> پایلوت: <strong>یک تأییدکننده تعاونی</strong>؛ صورت‌وضعیت مالی: <strong>دو نقش</strong> (✓ INVOICE-DRAFT). کمیته خانوار: <a href="#t-hh-kyc-committee-1">HH-KYC-COMMITTEE-1</a> (P3)</li>
+    <li><strong>API بانک:</strong> <a href="#t-bank-auto-1">BANK-AUTO-1</a> ✓ — MockAdapter + <code>settlement:execute-payouts</code> پس از lock؛ Excel + mark-paid همچنان برای MVP دستی.</li>
+    <li><strong>Audit:</strong> <strong>از اول جدی</strong> (audit_logs + events ✓) — نه MVP سبک.</li>
+    <li><strong>خودکار vs دستی:</strong> سیستم حساب و پیش‌نویس؛ انسان قفل/پرداخت/KYC/Dispatch. <a href="#hsa-matrix">§ hsa-matrix</a> ✅ · <a href="#t-hsa-matrix-1">HSA-MATRIX-1</a> ✅</li>
+  </ol>
+</section>
+
+<section class="panel" id="hsa-matrix">
+  <h2>ماتریس HSA — خودکار / بازبینی انسان / دستی <span class="status s-ok">✓ HSA-MATRIX-1</span></h2>
+  <div class="info">
+    <strong>Human Supervised Automation:</strong> سیستم محاسبه و پیش‌نویس می‌سازد؛ <strong>قفل مالی، پرداخت بانکی، Dispatch و KYC</strong> بدون تأیید انسان انجام نمی‌شود.
+  </div>
+  <table>
+    <thead><tr><th>مرحله</th><th>سیستم</th><th>انسان</th></tr></thead>
+    <tbody>
+      <tr><td>محاسبه ۹۹/۱</td><td>خودکار</td><td>بازبینی صورت وضعیت</td></tr>
+      <tr><td>Community (تن × ثابت)</td><td>خودکار</td><td>Lock دوره</td></tr>
+      <tr><td>Draft صورت وضعیت</td><td>خودکار</td><td>Review + Approve</td></tr>
+      <tr><td>Dispatch</td><td>—</td><td>انسان</td></tr>
+      <tr><td>KYC</td><td>—</td><td>تأیید / رد</td></tr>
+      <tr><td>واریز بانک</td><td>فایل Excel</td><td>mark-paid + رسید</td></tr>
+      <tr><td>Pool distribute</td><td>محاسبه سهم</td><td>تریگر ادمین</td></tr>
+    </tbody>
+  </table>
+  <div class="bad" style="margin-top:12px">
+    <strong>آنتی‌پترن (ممنوع):</strong>
+    <ul style="margin:6px 0 0;padding-inline-start:20px">
+      <li>auto-pay بدون Lock دوره / صورت وضعیت</li>
+      <li>راننده وزن وارد کند (فقط باسکول / OPERATION_ADMIN — <a href="mvp-task-prompts-pro-fa.html#wb-manual-1">WB-MANUAL-1</a>)</li>
+    </ul>
+  </div>
+  <p class="note" style="margin-top:12px">
+    <strong>کارت‌های مرتبط:</strong>
+    <a href="mvp-task-prompts-pro-fa.html#invoice-draft-1">INVOICE-DRAFT-1</a> ✅ ·
+    <a href="mvp-task-prompts-pro-fa.html#gov-workflow-1">GOV-WORKFLOW-1</a> ✅ ·
+    <a href="mvp-task-prompts-pro-fa.html#mine-pay-flow-1">MINE-PAY-FLOW-1</a> ✅ ·
+    راهنمای پنل: <code>PanelHome.tsx</code> — Collapse «راهنمای نقش انسان در سیستم»
+  </p>
+</section>
+
+<section class="panel" id="hsa">
+  <h2>Human Supervised Automation (HSA)</h2>
+  <div class="info">
+    <strong>نه Auto-Pilot کامل، نه دستی کامل:</strong> سیستم محاسبه و پیش‌نویس می‌سازد؛ <strong>تأیید نهایی و قفل مالی انسانی</strong> می‌ماند.
+  </div>
+  <table>
+    <thead><tr><th>مرحله</th><th>اتوماتیک</th><th>انسانی</th></tr></thead>
+    <tbody>
+      <tr><td>۱ عملیات</td><td>باسکول، مأموریت، راننده ثبت</td><td>—</td></tr>
+      <tr><td>۲ محاسبه</td><td>تناژ، کرایه، community جمع ماه</td><td>—</td></tr>
+      <tr><td>۳ صورت وضعیت</td><td><strong>Draft Invoice</strong> توسط پلتفرم</td><td>Review معدن / تعاونی / مالی</td></tr>
+      <tr><td>۴ تأیید</td><td>—</td><td>تأیید نهایی → <strong>Lock</strong> مالی</td></tr>
+      <tr><td>۵ پرداخت معدن</td><td>—</td><td>واریز به حساب تعاونی</td></tr>
+      <tr><td>۶ Settlement</td><td>Settlement Sheet + Excel (پیشنهاد تقسیم)</td><td><strong>تأیید نهایی انسانی</strong> قبل از payout گروهی — خطر ۵ میلیارد اشتباه</td></tr>
+      <tr><td>۷ بانک (MVP)</td><td>—</td><td>واریز دستی؛ ثبت «پول نشست» / payment_reference</td></tr>
+      <tr><td>۸ پس از تأیید بانک</td><td>آزادسازی مرحله Settlement داخلی</td><td>payout خودکار بدون تأیید</td></tr>
+    </tbody>
+  </table>
+  <p class="note"><strong>Reviewers صورت وضعیت (کارفرما):</strong> مدیر تعاونی، مدیر عملیات معدن، نماینده مالی — مغایرت: باسکول اشتباه، برگشتی، مأموریت باطل.</p>
+  <p><strong>کارت‌ها:</strong> <a href="mvp-task-prompts-pro-fa.html#invoice-draft-1">INVOICE-DRAFT-1</a> · <a href="mvp-task-prompts-pro-fa.html#mine-pay-flow-1">MINE-PAY-FLOW-1</a> ✅ · <a href="mvp-task-prompts-pro-fa.html#gov-workflow-1">GOV-WORKFLOW-1</a> ✅</p>
+</section>
+
+<section class="panel" id="governance">
+  <h2>Governance — Human Supervised، نه Human Dependent</h2>
+  <p>تأیید <strong>چندلایه</strong> — پلتفرم اپراتور اجرایی روزمره نیست:</p>
+  <table>
+    <thead><tr><th>لایه</th><th>مسئول ترجیحی</th><th>MVP</th></tr></thead>
+    <tbody>
+      <tr><td>Operational Verification (تناژ/باسکول)</td><td>معدن / اپراتور باسکول</td><td>WeighbridgePage ✓</td></tr>
+      <tr><td>Contract / Rate</td><td>Dual: معدن + تعاونی</td><td>SVC-CONTRACT-1</td></tr>
+      <tr><td>Settlement Release</td><td>Maker / Checker</td><td>GOV-WORKFLOW-1</td></tr>
+      <tr><td>Community</td><td>کمیته / تعاونی</td><td>stub — بدون single user</td></tr>
+      <tr><td>Platform Staff</td><td>Audit / Monitor — نه تأیید عملیات</td><td>permissions موجود</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>SLA / Timeout</strong> — تأیید معطل نشود کل عملیات را (Human Supervised، نه Human Dependent)</li>
+    <li><strong>Escalation Chain</strong> — عدم تأیید → ارجاع به نقش بالاتر</li>
+    <li><strong>Queue-Based</strong> — کار وابسته به یک اپراتور خاص نباشد</li>
+    <li><strong>Exception-Based</strong> — ناظر فقط روی مغایرت/مشکوک</li>
+    <li><strong>Audit & Fraud Check</strong> — لایه جدا از تأیید عملیاتی</li>
+    <li><strong>Full Audit Trail</strong> — همه Override، Manual، Approval</li>
+  </ul>
+  <p>کارت: <a href="mvp-task-prompts-pro-fa.html#gov-workflow-1">GOV-WORKFLOW-1</a> (MVP: dual approval + stub SLA).</p>
+</section>
+
+<section class="panel" id="fin-policy-ledger">
+  <h2>۱۸. سیاست مالی قابل‌پیکربندی + تفکیک حسابداری (کارفرما)</h2>
+  <div class="good">
+    <strong>اصل معماری (کارفرما):</strong> <em>Core Stable — Policy Flexible.</em> مفاهیم ثابت می‌مانند: Operational Settlement، Platform Fee، Community Share، Ledger، Settlement Batch. تغییر «چگونگی محاسبه» (مثلاً <strong>۹۹٪ مالک / ۱٪ پلتفرم</strong> در برابر اعداد قبلی rule، یا فعال‌سازی <strong>LEGACY</strong> ۸۵/۱۳/۲ فقط با پرچم صریح معدن) از مسیر <strong>Policy / Config</strong> وارد می‌شود تا امکان <strong>اضافه / تغییر / حذف</strong> مدل مالی بدون بازنویسی ستون فقرات حفظ شود.
+  </div>
+
+  <h3>۱۸.۱ حالت‌های پیشنهادی (قرارداد داده)</h3>
+  <table>
+    <thead><tr><th>کلید</th><th>مقادیر / معنی</th><th>یادداشت</th></tr></thead>
+    <tbody>
+      <tr><td><code>community_contribution_mode</code></td><td><code>FIXED_RIAL_PER_UNIT</code> (از Service Contract — تن/لیتر/ساعت/تعداد)؛ legacy: <code>PERCENTAGE_OF_OPERATIONAL</code> فقط با فلگ</td><td>درصد در DB ذخیره نشود</td></tr>
+      <tr><td><code>community_contribution_base</code></td><td><code>VERIFIED_NET_TONNAGE</code> | <code>OPERATIONAL_PAYMENT</code></td><td>برای legacy درصد از کرایه</td></tr>
+      <tr><td><code>community_contribution_value</code></td><td>عدد ریالی ثابت یا درصد (بسته به mode)</td><td>قرارداد سالانه → قفل در config دوره</td></tr>
+      <tr><td><code>platform_fee_mode</code></td><td><code>PERCENTAGE_OF_OPERATIONAL_PAYMENT</code></td><td>بدون hard-code در کد مسیر اصلی</td></tr>
+      <tr><td><code>platform_fee_base</code></td><td><code>OPERATIONAL_PAYMENT</code></td><td>کارمزد فقط از کرایهٔ عملیاتی</td></tr>
+      <tr><td><code>platform_fee_value</code></td><td>مثلاً <code>0.01</code> برای ۱٪</td><td><span class="status s-ok">✓</span> FIN-POLICY-1 — معدن جدید ۱٪؛ seed regression ۲٪</td></tr>
+    </tbody>
+  </table>
+
+  <h3>۱۸.۲ تفکیک حسابداری (Operational / Platform / Community Restricted)</h3>
+  <p>کارفرما خواسته از همین نسل داده، برای گزارش مالی، audit، مالیات و مفاصاحساب بعدی قابل تفکیک باشد:</p>
+  <ul>
+    <li><strong>Operational Money</strong> — تسویه ناوگان / کرایهٔ عملیاتی.</li>
+    <li><strong>Platform Revenue</strong> — کارمزد پلتفرم (درآمد پلتفرم، نه امانی).</li>
+    <li><strong>Community Fund (Restricted)</strong> — سهم اجتماعی / pool؛ از نظر حسابداری جدا از درآمد عملیاتی.</li>
+  </ul>
+  <p class="muted">در کد فعلی enum <code>TransactionType</code> (CREDIT/DEBIT/POOL_DISTRIBUTION) باقی می‌ماند؛ لایهٔ دوم تگ (<code>fund_type</code> / <code>ledger_lane</code>) با <a href="mvp-task-prompts-pro-fa.html#acc-fund-1">ACC-FUND-1</a> ✓ اضافه شد — بدون شکستن reconciliation.</p>
+
+  <h3>۱۸.۳ ارتباط با §۱۴ و تعارض ۱٪/۲٪</h3>
+  <p>بخش <a href="#conflicts">تعارض ۱٪ vs ۲٪</a> با <strong>FIN-POLICY-1</strong> بسته می‌شود: مقدار از rule/mine خوانده می‌شود؛ پیش‌فرض demo تا زمان تأیید کارفرما همان رفتار فعلی regression است.</p>
+
+  <h3>۱۸.۴ کارت‌های پرامپت</h3>
+  <ul>
+    <li><a href="mvp-task-prompts-pro-fa.html#fin-policy-1"><strong>FIN-POLICY-1</strong></a> ✓ — <code>resolveFinancePolicy</code> + wire به split — <code>test:fin-policy1</code> + <code>test:comm-ton1</code> PASS.</li>
+    <li><a href="mvp-task-prompts-pro-fa.html#acc-fund-1"><strong>ACC-FUND-1</strong></a> ✓ — <code>fund_type</code> / <code>ledger_lane</code> + backfill + wire در split — <code>npm run test:acc-fund1</code></li>
+  </ul>
+  <p class="info"><strong>ترتیب پیشنهادی:</strong> بعد از <a href="#t-fin-dual-1">FIN-DUAL-1</a> (نمایش) → FIN-POLICY-1 (اعداد) → ACC-FUND-1 (تگ حسابداری)؛ یا ACC قبل از POLICY اگر اول دیتامدل می‌خواهید — هر دو باید بدون خراب کردن <code>npm run test:comm-ton1</code> تحویل شوند. هر کارت ترجیحاً یک PR جدا.</p>
+</section>
+
+<section class="panel" id="decisions">
+  <h2>تصمیمات قطعی کارفرما (جمع‌بندی همه پیام‌ها)</h2>
+  <table>
+    <thead><tr><th>موضوع</th><th>تصمیم</th><th>وضعیت در کد</th></tr></thead>
+    <tbody>
+      <tr><td>Community Share</td><td><strong>Usage × Fixed Rial</strong> per Service Contract — کشف ۱۵٪ فقط خارج سیستم؛ مستقل از کرایه</td><td><span class="status s-ok">✓</span> COMM-TON-1 + <a href="mvp-task-prompts-pro-fa.html#svc-contract-1">SVC-CONTRACT-1</a></td></tr>
+      <tr><td>Service Contract</td><td>نوع خدمت + واحد + نرخ پایه + Community ثابت + نسخه/الحاقیه</td><td><span class="status s-ok">✓</span> <code>service_contracts</code> — <code>test:svc-contract1</code></td></tr>
+      <tr><td>صورت وضعیت ماهانه</td><td>Draft → Review → Lock → پرداخت معدن به تعاونی</td><td><span class="status s-ok">✓</span> <code>period_statements</code> — <code>npm run test:invoice-draft1</code></td></tr>
+      <tr><td>نقش پلتفرم</td><td>Infrastructure — نه کارفرمای عملیات</td><td><span class="status s-ok">✓</span> <a href="mvp-task-prompts-pro-fa.html#platform-legal-1">PLATFORM-LEGAL-1</a> — <code>test:platform-legal1</code> + <code>test:fin-dual1</code></td></tr>
+      <tr><td>توزیع Pool</td><td>جمع مشارکت‌های دوره → تقسیم مساوی بین snapshot خانوارهای APPROVED</td><td><span class="status s-ok">عملیاتی</span> <code>distributePool</code> — ورودی Pool باید تن‌محور شود</td></tr>
+      <tr><td>پرداخت عملیاتی</td><td>مالک ناوگان + کارمزد پلتفرم <strong>فقط</strong> از کرایه؛ <strong>۹۹٪ / ۱٪</strong> (قفل کارفرما ۱۴۰۵/۰۲)</td><td><span class="status s-ok">✓</span> <a href="mvp-task-prompts-pro-fa.html#fin-policy-1">FIN-POLICY-1</a> — <code>resolveFinancePolicy</code> + <code>test:fin-policy1</code>؛ seed regression هنوز ۲٪</td></tr>
+      <tr><td>توزیع Community Fund</td><td><strong>Equal Distribution</strong> روی Approved Household Snapshot</td><td><span class="status s-ok">عملیاتی</span> <code>distributePool</code> — بدون ضریب منطقه‌ای در MVP</td></tr>
+      <tr><td>فاز ۱ scope</td><td>فقط حمل + باسکول + Settlement + Community + Audit — <strong>بدون ساعتی</strong></td><td><span class="status s-ok">قفل کارفرما</span> ساعتی → فاز ۲</td></tr>
+      <tr><td>تفکیک حسابداری جریان‌ها</td><td>Operational / Platform / Community Restricted در گزارش و لجر</td><td><span class="status s-ok">✓</span> <code>fund_type</code> + <code>ledger_lane</code> — <a href="mvp-task-prompts-pro-fa.html#acc-fund-1">ACC-FUND-1</a></td></tr>
+      <tr><td>ثبت مالی vs واریز بانکی</td><td>جداسازی ledger و transfer واقعی</td><td><span class="status s-part">ناقص</span> ledger ✓؛ بانک دستی</td></tr>
+      <tr><td>تسویه مالک</td><td>هفتگی (هدف کارفرما)</td><td><span class="status s-no">ندارد</span> فقط monthly-close</td></tr>
+      <tr><td>تسویه خانوار</td><td>ماهانه + pool</td><td><span class="status s-ok">عملیاتی</span></td></tr>
+      <tr><td>پس از LOCK batch</td><td>پرداخت خودکار + رسید</td><td><span class="status s-no">ندارد</span> mark-paid دستی</td></tr>
+      <tr><td>اعتراض</td><td><strong>ناشناس ممنوع</strong> — فقط user احرازشده</td><td><span class="status s-ok">عملیاتی</span> <code>POST /api/coop/objections</code> + <code>reporter_user_id</code> از session؛ Prisma NOT NULL؛ رگرسیون <a href="#t-obj-rep-1">OBJ-REP-1</a> ✓ — <code>test:obj1</code> (۳×) + <code>test:obj-db1</code></td></tr>
+      <tr><td>روستا</td><td>فقط از لیست مجاز؛ ورود دستی ممنوع</td><td><span class="status s-ok">عملیاتی</span> FK village_id</td></tr>
+      <tr><td>Dispatch</td><td>سیستمی؛ کارفرما راننده انتخاب نمی‌کند</td><td><span class="status s-ok">عملیاتی</span></td></tr>
+      <tr><td>باسکول</td><td>net_weight سیستمی؛ دستی ممنوع؛ integration حرفه‌ای</td><td><span class="status s-part">ناقص</span> API داخلی ✓؛ hardware ✗</td></tr>
+      <tr><td>Multi-Tenant</td><td>Login مرکزی → انتخاب Workspace معدن</td><td><span class="status s-part">△</span> صفحه انتخاب + <code>requireMineContext</code> روی عملیاتی ✓ TENANT-1؛ <strong>RLS سطح DB / جداسازی سخت между معدن‌ها</strong> هنوز سیاست دستی است</td></tr>
+      <tr><td>واحد پول</td><td>ریال در DB؛ تومان در UI</td><td><span class="status s-part">ناقص</span> ریال implicit؛ تبدیل UI ✗</td></tr>
+      <tr><td>PDF رسید</td><td>قابل دانلود</td><td><span class="status s-no">ندارد</span></td></tr>
+      <tr><td>شفافیت اعضا</td><td>نام+روستا+وضعیت عمومی در محدوده؛ مالی مخفی</td><td><span class="status s-ok">عملیاتی</span> MembersTransparencyPage</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" id="conflicts">
+  <h2>تعارضات بین اسناد — باید با کارفرما قفل شود</h2>
+  <div class="bad">
+    <strong>۰) مدل مالی ۸۵/۱۳/۲ vs Community تن‌محور (جدید — قطعی)</strong><br>
+    <strong>حل شد ✅ COMM-TON-1:</strong> مدل قبلی <code>totalFare × 0.13</code> جایگزین شد با <code>net_tons × fixed_per_ton</code>. توزیع Pool بدون تغییر. UI: <a href="#t-fin-dual-1">FIN-DUAL-1</a>.
+  </div>
+  <div class="good">
+    <strong>۱) کارمزد پلتفرم ۱٪ vs ۲٪ — قفل کارفرما ✅</strong><br>
+    کارفرما (مکاتبه Freeze): <strong>۹۹٪ مالک ناوگان، ۱٪ Platform Fee</strong> از کرایه عملیاتی. <strong>انجام شد ✅</strong> <a href="mvp-task-prompts-pro-fa.html#fin-policy-1">FIN-POLICY-1</a> — <code>test:fin-policy1</code>؛ seed/demo regression هنوز rule ۲٪.
+  </div>
+  <div class="good">
+    <strong>۲) واریز بانکی — قفل (مکاتبه ۱۴۰۵/۰۲) ✅</strong><br>
+    <strong>معدن:</strong> فقط صورت وضعیت رسمی → واریز به <strong>حساب رسمی تعاونی</strong> (نه تسویه خرد مستقیم به مالک/خانوار از طرف معدن).<br>
+    <strong>داخلی تعاونی:</strong> Settlement Sheet + Excel IBAN برای مالک/خانوار — MVP دستی + mark-paid.<br>
+    <strong>Community:</strong> می‌تواند ابتدا حساب تعاونی سپس distribute طبق سیستم. کارت: <a href="mvp-task-prompts-pro-fa.html#mine-pay-flow-1">MINE-PAY-FLOW-1</a>.
+  </div>
+  <div class="good">
+    <strong>۳) HOLD پرداخت — هم‌تراز با کد فعلی (۱۴۰۵/۰۳)</strong><br>
+    مسیر <code>POST .../payment/hold</code> نیاز به <code>hold:create</code> دارد. طبق <code>permissions.ts</code>: <strong>OPERATION_ADMIN</strong> و <strong>ADMIN</strong>؛ <strong>CONSULTANT</strong> فقط <code>hourly:verify</code> دارد و نمی‌تواند hold ایجاد کند. ادعای قبلی گزارش (CONSULTANT روی hold) دیگر با کد هم‌خوان نیست.
+  </div>
+  <div class="info">
+    <strong>۴) وضعیت‌های Mission قدیمی vs FSM جدید</strong><br>
+    اسپک اولیه: ASSIGNED→LOADING→ON_THE_WAY… — کد و Flutter از FSM ۹‌حالته CREATED→…→SETTLED استفاده می‌کنند. <em>اسپک اولیه منسوخ؛ FSM جدید مرجع است.</em>
+  </div>
+</section>
+
+<section class="panel" id="matrix">
+  <h2>ماتریس اسپک ↔ کد (۵۰ قابلیت)</h2>
+  <table>
+    <thead><tr><th>#</th><th>قابلیت</th><th>وضعیت</th><th>کد / UI</th><th>یادداشت</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>OTP موبایل یکتا</td><td><span class="status s-ok">✓</span></td><td><code>routes/auth.ts</code></td><td>SMS stub بدون API key</td></tr>
+      <tr><td>2</td><td>۸ نقش + RBAC</td><td><span class="status s-ok">✓</span></td><td><code>permissions.ts</code>, <code>rbac.ts</code>, <code>employer.ts</code></td><td><code>EMPLOYER</code> با <code>needs:create|read_own|cancel</code>؛ <code>employer.ts</code> از <code>requirePermission</code> — <a href="mvp-task-prompts-pro-fa.html#emp-perm-1">EMP-PERM-1</a> ✅</td></tr>
+      <tr><td>3</td><td>KYC تعاونی حقوقی</td><td><span class="status s-ok">✓</span></td><td><code>adminCooperatives.ts</code></td><td></td></tr>
+      <tr><td>4</td><td>KYC خانوار/راننده/مالک/وسیله</td><td><span class="status s-ok">✓</span></td><td><code>coopKyc.ts</code>, <code>KycInbox.tsx</code></td><td>NEEDS_CORRECTION ✓ (KYC-NC-1)</td></tr>
+      <tr><td>5</td><td>mines + villages</td><td><span class="status s-part">△</span></td><td><code>minesRepository</code></td><td>جاده/مسیر رسمی نیست</td></tr>
+      <tr><td>6</td><td>ثبت نیاز کارفرما</td><td><span class="status s-ok">✓</span></td><td><code>employer.ts</code>, <code>EmployerNeed.tsx</code></td><td>فقط TONNAGE ساده</td></tr>
+      <tr><td>7</td><td>Dispatch سیستمی</td><td><span class="status s-ok">✓</span></td><td><code>dispatchService.ts</code></td><td>DISPATCH_MODE=manual پیش‌فرض</td></tr>
+      <tr><td>8</td><td>FSM ماموریت ۹‌حالته</td><td><span class="status s-ok">✓</span></td><td><code>missionFsm.ts</code>, Flutter</td><td></td></tr>
+      <tr><td>9</td><td>load_tracking_code یکتا</td><td><span class="status s-ok">✓</span></td><td>schema <code>loads</code></td><td></td></tr>
+      <tr><td>10</td><td>یک راننده/یک دستگاه فعال</td><td><span class="status s-ok">✓</span></td><td><code>hasActiveMissionForDriver/Vehicle</code> + 409 <code>active_mission_exists</code></td><td><code>npm run test:disp-lock1</code> (۳×) + <code>test:disp1</code></td></tr>
+      <tr><td>11</td><td>ماژول باسکول مستقل</td><td><span class="status s-ok">✓</span></td><td><code>weighbridge.ts</code></td><td>جدول جدا</td></tr>
+      <tr><td>12</td><td>net_weight سیستمی</td><td><span class="status s-ok">✓</span></td><td><code>missionStore</code></td><td></td></tr>
+      <tr><td>13</td><td>Threshold ۵٪ → HOLD</td><td><span class="status s-ok">✓</span></td><td><code>weighbridgeAnomaly.ts</code></td><td>configurable</td></tr>
+      <tr><td>14</td><td>Adjustment + Audit</td><td><span class="status s-ok">✓</span></td><td><code>weighbridge.ts</code></td><td></td></tr>
+      <tr><td>15</td><td>UI باسکول (ثبت/تأیید)</td><td><span class="status s-ok">✓</span></td><td><code>WeighbridgePage.tsx</code></td><td><strong>WB-UI-1</strong> ثبت وزن + approve از وب؛ راننده همچنان بدون ورود وزن</td></tr>
+      <tr><td>16</td><td>Integration سخت‌افزار باسکول</td><td><span class="status s-no">✗</span></td><td>—</td><td>فقط API داخلی</td></tr>
+      <tr><td>17</td><td>عملیات ساعتی START/END</td><td><span class="status s-ok">✓</span></td><td><code>hourly.ts</code></td><td>UI اپراتور ندارد</td></tr>
+      <tr><td>18</td><td>تأیید billable_hours مشاور</td><td><span class="status s-ok">✓</span></td><td><code>hourlyWorkLogStore</code></td><td>reject API ندارد</td></tr>
+      <tr><td>19</td><td>Rate Card + snapshot</td><td><span class="status s-ok">✓</span></td><td><code>rateCardsRepository</code></td><td></td></tr>
+      <tr><td>20</td><td>Rule Engine</td><td><span class="status s-ok">✓</span></td><td><code>ruleEngine.ts</code></td><td></td></tr>
+      <tr><td>21</td><td>تقسیم عملیاتی (مالک + پلتفرم)</td><td><span class="status s-ok">✓</span></td><td><code>financeLedgerRepository</code></td><td><a href="mvp-task-prompts-pro-fa.html#fin-policy-1">FIN-POLICY-1</a> ✓ — community جدا از کرایه</td></tr>
+      <tr><td>22</td><td>Community تن‌محور → Pool</td><td><span class="status s-ok">✓</span></td><td><code>computeCommunityContribution</code></td><td>FIN-DUAL-1 برای UI</td></tr>
+      <tr><td>23</td><td>کیف‌پول owner/household/platform</td><td><span class="status s-ok">✓</span></td><td><code>walletsRepository</code></td><td>راننده wallet ندارد ✓</td></tr>
+      <tr><td>24</td><td>تراکنش ledger-only</td><td><span class="status s-ok">✓</span></td><td><code>transactions</code></td><td><code>fund_type</code> / <code>ledger_lane</code> — ACC-FUND-1 ✓</td></tr>
+      <tr><td>25</td><td>Settlement batch lifecycle</td><td><span class="status s-ok">✓</span></td><td><code>settlementRepository</code></td><td>enum گسترده‌تر از ۵ حالت</td></tr>
+      <tr><td>26</td><td>payment_reference + receipt</td><td><span class="status s-ok">✓</span></td><td><code>SettlementPage.tsx</code></td><td></td></tr>
+      <tr><td>27</td><td>Reverse ۷۲h + Adjustment</td><td><span class="status s-ok">✓</span></td><td><code>test:rev1</code></td><td></td></tr>
+      <tr><td>28</td><td>payment_status HOLD</td><td><span class="status s-ok">✓</span></td><td><code>weighbridge.ts</code></td><td><code>hold:create</code>؛ CONSULTANT بدون آن — هم‌خوان با § تعارض ۳ به‌روز</td></tr>
+      <tr><td>29</td><td>Audit Log</td><td><span class="status s-ok">✓</span></td><td><code>AuditViewer.tsx</code></td><td></td></tr>
+      <tr><td>30</td><td>شفافیت اعضا + اعتراض</td><td><span class="status s-part">△</span></td><td><code>MembersTransparencyPage</code>، <code>coop.ts</code></td><td><strong>OBJ-DB-1:</strong> اعتراض Postgres؛ لیست از API — UI/فیلتر نهایی ممکن است نیاز به ارتقا داشته باشد</td></tr>
+      <tr><td>31</td><td>Idempotency</td><td><span class="status s-ok">✓</span></td><td><code>idempotency.ts</code></td><td></td></tr>
+      <tr><td>32</td><td>Event Bus</td><td><span class="status s-ok">✓</span></td><td><code>eventBus.ts</code></td><td>in-process</td></tr>
+      <tr><td>33</td><td>Queue + Jobs</td><td><span class="status s-ok">✓</span></td><td><code>jobQueue.ts</code></td><td>in-memory</td></tr>
+      <tr><td>34</td><td>Reconciliation</td><td><span class="status s-ok">✓</span></td><td><code>reconciliationService.ts</code></td><td></td></tr>
+      <tr><td>35</td><td>Notification</td><td><span class="status s-part">△</span></td><td><code>notificationService.ts</code></td><td>SMS/Push stub</td></tr>
+      <tr><td>36</td><td>Soft Delete</td><td><span class="status s-ok">✓</span></td><td><code>softDeleteService.ts</code></td><td></td></tr>
+      <tr><td>37</td><td>Offline راننده</td><td><span class="status s-ok">✓</span></td><td><code>mission_sync_service.dart</code></td><td></td></tr>
+      <tr><td>38</td><td>Community App</td><td><span class="status s-ok">✓</span></td><td><code>community_app</code></td><td>KYC household ✓؛ UI تن‌محور (<a href="mvp-task-prompts-pro-fa.html#comm-ui-legacy-1">COMM-UI-LEGACY-1</a> ✓)؛ coop KYC inbox موبایل (<a href="mvp-task-prompts-pro-fa.html#comm-coop-mobile-1">COMM-COOP-MOBILE-1</a> ✓) — tabs + approve/request-correction</td></tr>
+      <tr><td>39</td><td>Multi-Tenant Workspace</td><td><span class="status s-part">△</span></td><td><code>WorkspaceSelectPage.tsx</code>, <code>requireMineContext</code></td><td>انتخاب معدن + الزام mine در عملیاتی ✓؛ RLS چندمستاجرهٔ سخت هنوز نه</td></tr>
+      <tr><td>40</td><td>کدملی یکتا + قفل تغییر</td><td><span class="status s-part">△</span></td><td>schema unique</td><td>API enforce ناقص</td></tr>
+      <tr><td>41</td><td>تغییر شبا فقط با Audit</td><td><span class="status s-part">△</span></td><td>—</td><td>endpoint اختصاصی ندارد</td></tr>
+      <tr><td>42</td><td>PDF رسید + تومان UI</td><td><span class="status s-no">✗</span></td><td>—</td><td></td></tr>
+      <tr><td>43</td><td>UI ورود OTP + Pending/Suspended (وایرفریم ۱)</td><td><span class="status s-ok">✓</span></td><td><code>login_screen.dart</code></td><td>WF-AUTH-1</td></tr>
+      <tr><td>44</td><td>داشبورد راننده ۳ حالت (وایرفریم ۲)</td><td><span class="status s-ok">✓</span></td><td><code>driver_home_screen.dart</code></td><td>WF-DASH-1</td></tr>
+      <tr><td>45</td><td>جزئیات مأموریت + استپر ۷ گام (وایرفریم ۳)</td><td><span class="status s-ok">✓</span></td><td><code>mission_detail_screen.dart</code></td><td>WF-STEPPER-1</td></tr>
+      <tr><td>46</td><td>Geofence معدن/کارخانه (وایرفریم ۴، ۷)</td><td><span class="status s-ok">✓</span></td><td>mine/factory_entry</td><td>WF-GEOFENCE-1</td></tr>
+      <tr><td>47</td><td>تأیید تخلیه + قفل (وایرفریم ۸)</td><td><span class="status s-ok">✓</span></td><td><code>unload_confirm_screen.dart</code></td><td>WF-UNLOAD-1</td></tr>
+      <tr><td>48</td><td>داشبورد عملیاتی وب (وایرفریم ۹)</td><td><span class="status s-ok">✓</span></td><td><code>OpsDashboard.tsx</code> + <code>GET /admin/ops-dashboard</code></td><td>WF-OPS-DASH-1 — <code>test:ops-dash1</code></td></tr>
+      <tr><td>49</td><td>داشبورد KYC تعاونی جدولی (وایرفریم ۱۰)</td><td><span class="status s-ok">✓</span></td><td><code>KycInbox.tsx</code> + <code>GET /coop/kyc/inbox</code></td><td>WF-COOP-KYC-WF-1 — <code>test:kyc-inbox1</code> + e2e <code>kyc-inbox</code></td></tr>
+      <tr><td>50</td><td>نمای مالی per Load (وایرفریم ۱۱)</td><td><span class="status s-ok">✓</span></td><td><code>test:fin-load1</code></td><td>WF-FIN-LOAD-1 ✅</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" id="code-sync">
+  <h2>هم‌ترازی اخیر گزارش با کد (بازبینی)</h2>
+  <p class="muted">این بند پس از مرور دوبارهٔ <code>permissions.ts</code>، <code>weighbridge.ts</code>، <code>coop.ts</code>، Prisma <code>membership_objections</code>، <code>WeighbridgePage.tsx</code>، <code>requireMineContext</code>، و اپ راننده به‌روز شد.</p>
+  <ul>
+    <li><strong>وب باسکول:</strong> ثبت وزن خالی/پر + تأیید در <code>WeighbridgePage.tsx</code>؛ ماتریس #۱۵ و جدول § rewrite از «فقط GET» اصلاح شد.</li>
+    <li><strong>HOLD:</strong> فقط نقش‌هایی با <code>hold:create</code> (OPERATION_ADMIN و ADMIN)؛ CONSULTANT نه — § تعارض ۳ از «انحراف امنیتی» به وضعیت هم‌خوان با کد تبدیل شد.</li>
+    <li><strong>اعتراض:</strong> مسیر ثبت با <code>reporter_user_id</code> از session و NOT NULL در DB؛ <a href="#t-obj-rep-1">OBJ-REP-1</a> ✓ — تست ۴۰۱/۴۰۳، جعل reporter در body رد، UI شفاف — <code>test:obj1</code> (۳×) + <code>test:obj-db1</code>.</li>
+    <li><strong>چندمستأجری:</strong> از «✗ بدون binding» به <strong>△</strong>: انتخاب workspace + الزام mine روی عملیاتی ✓؛ RLS سطح پایگاه هنوز نه.</li>
+    <li><strong>جدول §۱۵.۲</strong> (مقایسه وایرفریم اپ) قبلاً قدیمی مانده بود؛ با WFهای انجام‌شده (AUTH/DASH/STEPPER/GEOFENCE/UNLOAD) هم‌خوان شد.</li>
+    <li><strong>پاسخ مکاتبه ۱۴۰۵/۰۲:</strong> Service Contract، HSA، معدن→تعاونی، طلای تفتان — § <a href="#client-answers">client-answers</a> · <a href="#client-answers-detail">جزئیات</a>.</li>
+    <li><strong>Freeze فاز ۱:</strong> ۹۹/۱، Community ثابت، Equal pool، فقط حمل — §۱۹.۰.</li>
+    <li><strong>HOURLY / ساعتی:</strong> خارج scope فاز ۱ — فاز ۲.</li>
+    <li><strong>جدول § rewrite:</strong> ردیف اعتراض و hold با کد فعلی هم‌خوان شد؛ ردیف RAM دیگر «فقط objections» را نشان نمی‌دهد.</li>
+  </ul>
+</section>
+
+<section class="panel" id="rewrite">
+  <h2>کجا بازنویسی شود / کجا نگه داریم</h2>
+  <table>
+    <thead><tr><th>بخش</th><th>اقدام</th><th>دلیل</th></tr></thead>
+    <tbody>
+      <tr><td><code>financeLedgerRepository</code> + policy</td><td><strong>تکمیل</strong></td><td>FIN-POLICY-1 resolver؛ بدون rewrite معماری — §۱۸</td></tr>
+      <tr><td><code>ruleEngine</code>, <code>missionFsm</code></td><td><strong>نگه‌داری</strong></td><td>هسته پایدار؛ ruleها از DB — FSM مرجع نسخهٔ جدید</td></tr>
+      <tr><td><code>dispatchService</code></td><td><strong>تکمیل</strong> نه بازنویسی</td><td>الگوریتم MVP کافی؛ نیاز re-dispatch اضطراری + hourly need type</td></tr>
+      <tr><td><code>objectionsRepository</code> + <code>membership_objections</code></td><td><strong>نگه‌داری</strong></td><td>ذخیرهٔ Postgres از طریق repository؛ RAM دیگر مسیر اصلی نیست</td></tr>
+      <tr><td><code>routes/weighbridge.ts</code> hold/release</td><td><strong>نگه‌داری</strong></td><td><code>hold:create</code> برای OPERATION_ADMIN/ADMIN ✓ — <a href="mvp-task-prompts-pro-fa.html#wb-int-1">WB-INT-1</a> ✅ ingest Agent</td></tr>
+      <tr><td><code>PanelShell.tsx</code> + روت‌ها</td><td><strong>بازنویسی ناوبری</strong></td><td>همه منو را می‌بینند</td></tr>
+      <tr><td><code>WeighbridgePage.tsx</code></td><td><strong>نگه‌داری + تکمیل</strong></td><td>WB-UI-1 ✓؛ WF-WB-READ-1 ✓ read-only اپ راننده</td></tr>
+      <tr><td>کل لایه tenant</td><td><strong>تکمیل + سخت‌سازی</strong></td><td>انتخاب workspace + <code>requireMineContext</code> روی عملیاتی ✓؛ RLS DB و تست جداسازی عمیق باقی مانده</td></tr>
+      <tr><td>Flutter driver FSM</td><td><strong>نگه‌داری</strong></td><td>هم‌تراز backend است — UI را به وایرفریم map کنید نه API را عوض کنید</td></tr>
+      <tr><td><code>driver_app</code> UI کل</td><td><strong>بازطراحی تدریجی</strong></td><td>طبق <a href="#wireframes">§۱۵</a> — داشبورد، geofence، جزئیات مأموریت</td></tr>
+      <tr><td><code>apps/web</code> پنل عملیاتی</td><td><strong>بازطراحی/ادغام</strong></td><td>داشبورد ۹، تخصیص ۹، KYC ۱۰، مالی ۱۱</td></tr>
+      <tr><td>stores قدیمی RAM</td><td><strong>پاکسازی تدریجی</strong></td><td>اعتراض‌ها از مسیر <code>objectionsRepository</code> در Postgres؛ هر ارجاع RAM باقیمانده را حذف یا آرشیو کنید</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== WIREFRAMES ========== -->
+<section class="panel" id="wireframes">
+  <h2>۱۵. وایرفریم UI — مرجع طراحی (۲۰ اسکرین)</h2>
+  <p class="muted">منبع: <code>wireframe Screenshots.zip</code> (دسکتاپ کاربر) — استخراج در <code>docs/wireframes-review/wireframe Screenshots/</code>. هدف: اپ و پنل وب <strong>از نظر UX و چیدمان</strong> شبیه این وایرفریم‌ها باشند؛ منطق بک‌اند فعلی حفظ شود مگر جایی با اسپک کارفرما تعارض داشته باشد (جدول تعارض پایین).</p>
+
+  <div class="info">
+    <strong>سیستم طراحی مشترک (از روی اسکرین‌ها):</strong> RTL فارسی؛ عنوان «سیستم لجستیک معادن»؛ کارت‌های bordered؛ استپر عمودی (✓ / قفل / برچسب «جاری»)؛ نوار وضعیت رنگی؛ دکمه CTA تمام‌عرض پایین؛ رنگ اصلی سبز معدن — نزدیک <code>MineralTheme</code> فعلی (<code>#1B5E20</code> در <code>packages/mineral_api/lib/src/mineral_theme.dart</code>).
+  </div>
+
+  <h3>۱۵.۱ فهرست اسکرین‌ها</h3>
+  <table>
+    <thead><tr><th>فایل</th><th>محتوا</th><th>کلاینت</th></tr></thead>
+    <tbody>
+      <tr><td><code>1.png</code></td><td>ورود OTP، تأیید کد، <strong>در انتظار تأیید</strong>، <strong>حساب مسدود</strong>، خطای OTP (۳ تلاش / قفل ۱۵ دقیقه)</td><td>اپ راننده</td></tr>
+      <tr><td><code>2.png</code>, <code>2.5.png</code></td><td>داشبورد راننده: <strong>بدون مأموریت</strong> / <strong>تخصیص‌یافته</strong> / <strong>در حال حمل</strong> + خلاصه امروز + پروفایل</td><td>اپ راننده</td></tr>
+      <tr><td><code>3.png</code>, <code>3.5.png</code></td><td>جزئیات مأموریت — استپر <strong>۷ مرحله</strong> با قفل مراحل آینده</td><td>اپ راننده</td></tr>
+      <tr><td><code>4.png</code>, <code>4.5.png</code></td><td><strong>ورود به معدن</strong> — GPS + geofence (۵ حالت UI)</td><td>اپ راننده</td></tr>
+      <tr><td><code>5.png</code></td><td>ثبت وزن باسکول: خودکار / دستی (flagged) / بررسی / قفل</td><td>اپ راننده</td></tr>
+      <tr><td><code>6.png</code></td><td>در حال حمل — صفحه فقط‌خواندنی + استپر</td><td>اپ راننده</td></tr>
+      <tr><td><code>7.png</code></td><td><strong>ورود به کارخانه</strong> — همان الگوی geofence</td><td>اپ راننده</td></tr>
+      <tr><td><code>8.png</code></td><td>تأیید تخلیه — چک‌باکس اجباری + قفل نهایی مأموریت</td><td>اپ راننده</td></tr>
+      <tr><td><code>9.png</code></td><td>داشبورد عملیاتی (KPI، مأموریت فعال، رانندگان، هشدار)</td><td>پنل وب</td></tr>
+      <tr><td><code>9.3.png</code></td><td>صف و زمان‌بندی مأموریت (اسلات ۳۰ دقیقه، اولویت)</td><td>پنل وب</td></tr>
+      <tr><td><code>9.7.png</code></td><td>تخصیص مأموریت (۳ ستون: راننده + بار + پیش‌نمایش)</td><td>پنل وب</td></tr>
+      <tr><td><code>10.png</code>, <code>10.3.png</code>, <code>10.7.png</code></td><td>داشبورد تأیید تعاونی — درخواست‌های معلق KYC</td><td>پنل وب</td></tr>
+      <tr><td><code>11.png</code>, <code>11.3.png</code>, <code>11.7.png</code></td><td>نمای مالی به ازای هر بار (ناخالص، کسورات، بلوکه، آزاد)</td><td>پنل وب</td></tr>
+    </tbody>
+  </table>
+
+  <h3>۱۵.۲ مقایسه اپ راننده — وایرفریم در برابر کد فعلی</h3>
+  <table>
+    <thead><tr><th>بخش وایرفریم</th><th>وضعیت</th><th>فایل فعلی</th><th>یادداشت</th></tr></thead>
+    <tbody>
+      <tr><td>OTP دو مرحله‌ای + ۶ باکس + resend</td><td><span class="status s-part">△</span></td><td><code>login_screen.dart</code></td><td>عملکرد هست؛ UI ساده‌تر</td></tr>
+      <tr><td>صفحه Pending / Suspended پس از login</td><td><span class="status s-ok">✓</span></td><td><code>kyc_pending_screen.dart</code>, <code>suspended_screen.dart</code></td><td>WF-AUTH-1؛ <code>driver/kyc-status</code></td></tr>
+      <tr><td>داشبورد ۳ حالت (Available / Assigned / In Transit)</td><td><span class="status s-ok">✓</span></td><td><code>driver_home_screen.dart</code></td><td>WF-DASH-1؛ API dashboard</td></tr>
+      <tr><td>کارت پروفایل + آمار روز (مأموریت، کیلومتر، تحویل)</td><td><span class="status s-part">△</span></td><td><code>driver_home_screen.dart</code></td><td>آمار از API؛ چیدمان با وایرفریم یکی نیست</td></tr>
+      <tr><td>دکمه «اعلام آمادگی»</td><td><span class="status s-no">✗</span></td><td>—</td><td>endpoint ندارد — با کارفرما قفل شود</td></tr>
+      <tr><td>صفحه جزئیات مأموریت (کارت مسیر MSN/LOAD)</td><td><span class="status s-ok">✓</span></td><td><code>mission_detail_screen.dart</code></td><td>WF-STEPPER-1</td></tr>
+      <tr><td>استپر ۷ گام UI</td><td><span class="status s-ok">✓</span></td><td><code>mission_detail_screen.dart</code>، <code>mission_stepper.dart</code></td><td>نگاشت FSM ۹→۷ UI</td></tr>
+      <tr><td>Geofence ورود معدن / کارخانه</td><td><span class="status s-ok">✓</span></td><td><code>mine_entry_screen.dart</code>, <code>factory_entry_screen.dart</code></td><td>WF-GEOFENCE-1</td></tr>
+      <tr><td>باسکول در اپ (خودکار/دستی)</td><td><span class="status s-part">△</span></td><td><code>weighbridge_flow_strip.dart</code></td><td>فقط read-only؛ <strong>دستی ممنوع طبق اسپک</strong></td></tr>
+      <tr><td>صفحه In Transit فقط‌خواندنی</td><td><span class="status s-part">△</span></td><td><code>mission_detail_screen.dart</code></td><td>جریان واحد جزئیات؛ برخی CTA در نقش‌ها فعال است</td></tr>
+      <tr><td>تأیید تخلیه + checkbox</td><td><span class="status s-ok">✓</span></td><td><code>unload_confirm_screen.dart</code></td><td>WF-UNLOAD-1</td></tr>
+      <tr><td>آفلاین + Sync</td><td><span class="status s-ok">✓</span></td><td><code>mission_sync_service.dart</code></td><td>در وایرفریم نیامده؛ نگه دارید</td></tr>
+    </tbody>
+  </table>
+
+  <h3>۱۵.۳ map استپر ۷‌گانه UI ← FSM ۹‌حالته بک‌اند</h3>
+  <p>وایرفریم ۷ مرحله نشان می‌دهد؛ بک‌اند <code>missionFsm.ts</code> ۹ state دارد. <strong>API را عوض نکنید</strong> — فقط لایه نمایش:</p>
+  <table>
+    <thead><tr><th>گام UI (وایرفریم)</th><th>معادل FSM بک‌اند</th><th>CTA پیشنهادی</th></tr></thead>
+    <tbody>
+      <tr><td>۱ تخصیص یافته</td><td>CREATED → ASSIGNED</td><td>شروع مأموریت → ACCEPTED</td></tr>
+      <tr><td>۲ رسیدن به معدن</td><td>ACCEPTED → ARRIVED</td><td>ثبت ورود (geofence) → ARRIVED</td></tr>
+      <tr><td>۳ بارگیری</td><td>ARRIVED → LOADED</td><td>تأیید بارگیری</td></tr>
+      <tr><td>۴ توزین خروجی</td><td>باسکول (ticket) — نه state جدا</td><td>نمایش وزن از API؛ بدون ورود دستی راننده</td></tr>
+      <tr><td>۵ در حال حمل</td><td>LOADED → IN_TRANSIT</td><td>شروع حمل</td></tr>
+      <tr><td>۶ رسیدن به کارخانه</td><td>IN_TRANSIT → (geofence) → نزدیک DELIVERED</td><td>ثبت ورود کارخانه</td></tr>
+      <tr><td>۷ تخلیه شده</td><td>DELIVERED → VERIFIED (باسکول) → SETTLED</td><td>تأیید تخلیه + checkbox</td></tr>
+    </tbody>
+  </table>
+
+  <h3>۱۵.۴ مقایسه پنل وب — وایرفریم در برابر کد فعلی</h3>
+  <table>
+    <thead><tr><th>وایرفریم</th><th>وضعیت</th><th>فایل فعلی</th></tr></thead>
+    <tbody>
+      <tr><td>داشبورد عملیاتی + KPI + هشدار</td><td><span class="status s-ok">✓</span></td><td><code>OpsDashboard.tsx</code> — WF-OPS-DASH-1؛ KPI تحلیلی در <code>AdminKpi.tsx</code></td></tr>
+      <tr><td>تخصیص سه‌ستونه</td><td><span class="status s-part">△</span></td><td>Dispatch API؛ UI ندارد</td></tr>
+      <tr><td>صف زمان‌بندی ۳۰ دقیقه</td><td><span class="status s-no">✗</span></td><td>—</td></tr>
+      <tr><td>داشبورد KYC تعاونی (جدول + فیلتر)</td><td><span class="status s-part">△</span></td><td><code>KycInbox.tsx</code> ساده‌تر</td></tr>
+      <tr><td>نمای مالی per Load</td><td><span class="status s-part">△</span></td><td><code>AdminFinance.tsx</code> تجمیعی</td></tr>
+    </tbody>
+  </table>
+
+  <h3>۱۵.۵ تعارض وایرفریم با اسپک کارفرما (باید قفل شود)</h3>
+  <table>
+    <thead><tr><th>وایرفریم</th><th>اسپک کارفرما</th><th>تصمیم پیشنهادی برای پیاده‌سازی</th></tr></thead>
+    <tbody>
+      <tr><td>راننده وزن <strong>دستی</strong> وارد می‌کند (اسکرین ۵)</td><td>وزن فقط از باسکول/API؛ net دستی ممنوع</td><td><strong>حذف حالت دستی راننده</strong>؛ فقط نمایش وزن دریافتی + fallback اضطراری برای اپراتور با flag</td></tr>
+      <tr><td>تخصیص دستی راننده در پنل (اسکرین ۹.۷)</td><td>Dispatch فقط سیستمی</td><td>پنل = مشاهده + دکمه «اجرای Dispatch» — <strong>بدون drag انتخاب راننده</strong></td></tr>
+      <tr><td>نمای مالی per-load</td><td>Operational + Community تن‌محور + HOLD</td><td><span class="status s-ok">✓</span> WF-FIN-LOAD-1</td></tr>
+      <tr><td>«اعلام آمادگی» راننده</td><td>availability سبک در اسپک</td><td>اختیاری MVP — یا <code>POST /driver/availability</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>۱۵.۶ نقشه اجرای UI (اپیک وایرفریم)</h3>
+  <div class="grid2">
+    <div>
+      <h4>فاز A — اپ راننده (P1)</h4>
+      <ol>
+        <li><strong>AUTH-WF</strong> — OTP ۶ خانه، Pending/Suspended</li>
+        <li><strong>DASH-WF</strong> — Home سه‌حالته + پروفایل</li>
+        <li><strong>MISSION-DETAIL-WF</strong> — کارت MSN/LOAD/مسیر</li>
+        <li><strong>STEPPER-WF</strong> — ۷ گام نمایشی</li>
+        <li><strong>GEOFENCE-WF</strong> — معدن + کارخانه</li>
+        <li><strong>UNLOAD-WF</strong> — checkbox قبل از DELIVERED</li>
+      </ol>
+    </div>
+    <div>
+      <h4>فاز B — باسکول (با احتیاط)</h4>
+      <ol>
+        <li><strong>WB-READONLY-WF</strong> — فقط وزن API در اپ راننده</li>
+        <li>ثبت/تأیید وزن: وب یا community (WB-UI-1)</li>
+      </ol>
+      <h4>فاز C — پنل وب (P2)</h4>
+      <ol>
+        <li><strong>OPS-DASH-WF</strong> — داشبورد اسکرین ۹ ✓ WF-OPS-DASH-1</li>
+        <li><strong>DISPATCH-BOARD-WF</strong> — inbox + dispatch</li>
+        <li><strong>COOP-KYC-WF</strong> — جدول اسکرین ۱۰</li>
+        <li><strong>FIN-LOAD-WF</strong> — مالی per load</li>
+      </ol>
+    </div>
+  </div>
+
+  <p class="note">تسک‌های اجرایی با پرامپت در بخش <a href="#todo">تسک‌های باقی‌مانده</a> (کارت‌های WF-*).</p>
+</section>
+
+<section class="panel" id="testing">
+  <h2>راهنمای تست — برای شما (از ریز به درشت)</h2>
+
+  <h3>۰) پیش‌نیاز محیط</h3>
+  <div class="test-step">
+    <strong>Docker Postgres:</strong><br>
+    <code>docker compose up -d</code> در ریشه پروژه (پورت <strong>5434</strong>).<br>
+    <code>DATABASE_URL=postgresql://mineral:mineral_password@localhost:5434/mineral_mvp</code> در <code>apps/backend/.env</code>
+  </div>
+  <div class="test-step">
+    <strong>Backend:</strong><br>
+    <code>cd apps/backend && npm run db:migrate && npm run db:seed && npm run dev</code> → <code>http://localhost:4000</code><br>
+    OTP توسعه: <code>GET /api/auth/__dev/otp?mobile_number=09000000000</code>
+  </div>
+  <div class="test-step">
+    <strong>Web:</strong> <code>cd apps/web && npm run dev</code> → معمولاً <code>http://localhost:5173</code><br>
+    <strong>Driver app:</strong> Flutter؛ API base را به IP LAN ماشین تنظیم کنید (نه localhost روی گوشی واقعی).
+  </div>
+
+  <h3>۱) تست‌های اتوماتیک (سریع — ۱۵ دقیقه)</h3>
+  <table>
+    <thead><tr><th>دستور</th><th>چه چیزی را ثابت می‌کند</th></tr></thead>
+    <tbody>
+      <tr><td><code>cd apps/backend && npm run smoke</code></td><td>OTP + health</td></tr>
+      <tr><td><code>npm run test:rbac</code></td><td>جداسازی تعاونی</td></tr>
+      <tr><td><code>npm run test:emp1</code></td><td>ثبت نیاز کارفرما</td></tr>
+      <tr><td><code>npm run test:disp1</code></td><td>Dispatch ۳۰تن → ۲۰+۱۰</td></tr>
+      <tr><td><code>npm run test:fsm1</code></td><td>گذارهای FSM</td></tr>
+      <tr><td><code>npm run test:wb1</code></td><td>Threshold HOLD</td></tr>
+      <tr><td><code>npm run test:duty-db2</code></td><td>E2E باسکول → split ۱۰۰٪</td></tr>
+      <tr><td><code>npm run test:pool1</code></td><td>فرمول ۱۳٪ ÷ snapshot</td></tr>
+      <tr><td><code>npm run test:set1</code></td><td>Settlement lifecycle</td></tr>
+      <tr><td><code>npm run test:hourly1</code></td><td>ساعتی + verify</td></tr>
+      <tr><td><code>npm test</code></td><td>Vitest integration</td></tr>
+      <tr><td><code>npm run test:infra-regression</code></td><td><span class="status s-ok">✓</span> زنجیره idem/audit/event/queue/recon/soft (قبل از UAT)</td></tr>
+      <tr><td><code>npm run test:infra-regression:finance</code></td><td>همان + comm-ton1 + set1 (اختیاری)</td></tr>
+      <tr><td><code>cd ../web && npm run test:e2e</code></td><td>Playwright login + employer need</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">هر اسکریپت را در صورت شک، <strong>۳ بار</strong> اجرا کنید (طبق عرف پروژه).</p>
+
+  <h3>۲) کاربران seed (ورود OTP)</h3>
+  <table>
+    <thead><tr><th>موبایل</th><th>نقش</th><th>کاربرد تست</th></tr></thead>
+    <tbody>
+      <tr><td>09000000000</td><td>ADMIN</td><td>همه پنل‌ها، settlement، rules</td></tr>
+      <tr><td>09000000007</td><td>EMPLOYER</td><td>ثبت نیاز</td></tr>
+      <tr><td>09000000001</td><td>COOP_ADMIN</td><td>KYC، اعتراض</td></tr>
+      <tr><td>09000000111</td><td>COOP_OPERATOR</td><td>وزن باسکول</td></tr>
+      <tr><td>09000000002</td><td>OPERATION_ADMIN</td><td>Dispatch، settlement</td></tr>
+      <tr><td>09000000003</td><td>DRIVER</td><td>اپ راننده</td></tr>
+      <tr><td>09000000004</td><td>FLEET_OWNER</td><td>کیف پول مالک</td></tr>
+      <tr><td>09000000005</td><td>HOUSEHOLD</td><td>کیف پول + community app</td></tr>
+      <tr><td>09000000006</td><td>CONSULTANT</td><td>تأیید ساعتی</td></tr>
+      <tr><td>09000000008</td><td>OPERATOR</td><td>شروع/پایان ساعتی API</td></tr>
+    </tbody>
+  </table>
+
+  <h3>۳) سناریوی UAT دستی — حمل تنی (۴۵–۹۰ دقیقه)</h3>
+  <ol>
+    <li><strong>ADMIN:</strong> <code>POST /api/__dev/seed/demo</code> از پنل یا curl (با توکن ADMIN) — خانوار/مالک/راننده/وسیله APPROVED می‌سازد.</li>
+    <li><strong>EMPLOYER</strong> (وب <code>/panel/employer</code>): معدن را در MineScope انتخاب کنید؛ نیاز ۱۰ تن ثبت کنید.</li>
+    <li><strong>OPERATION_ADMIN:</strong> <code>POST /api/admin/needs/{id}/dispatch</code> — از Jobs/Inbox یا API؛ مأموریت ASSIGNED ساخته شود.</li>
+    <li><strong>DRIVER</strong> (اپ): معدن را انتخاب → مأموریت → ACCEPTED → ARRIVED (با GPS) → … → DELIVERED.</li>
+    <li><strong>COOP_OPERATOR</strong> (فعلاً فقط API):<br>
+      <code>POST /api/weighbridge/tickets/{id}/weights</code> با empty_weight و loaded_weight (kg).<br>
+      انتظار: net_weight خودکار؛ اگر اختلاف ≥۵٪ → PENDING_HOLD.</li>
+    <li><strong>COOP_ADMIN / OPERATION_ADMIN:</strong> <code>POST .../approve</code> — مأموریت VERIFIED + ۳ تراکنش (owner credit, pool+, platform+).</li>
+    <li><strong>ADMIN:</strong> monthly-close → lock → send-to-bank → mark-paid با payment_reference و receipt URL.</li>
+    <li><strong>FLEET_OWNER / HOUSEHOLD:</strong> <code>/panel/wallet</code> یا community app — موجودی و تاریخچه.</li>
+    <li><strong>ADMIN:</strong> <code>/panel/admin/audit</code> — همه اقدامات حساس ثبت شده باشد.</li>
+  </ol>
+
+  <h3>۴) سناریوی عملیات ساعتی — <em>خارج فاز ۱</em></h3>
+  <p class="note">کارفرما: ساعتی عمداً فاز بعد — فقط برای تست فنی اختیاری.</p>
+  <ol>
+    <li>مأموریت HOURLY (نیاز نوع ساعتی — اگر فقط TONNAGE دارید، از dev/demo + hourly mission دستی seed کنید).</li>
+    <li><strong>OPERATOR:</strong> <code>POST /api/hourly/start</code> سپس <code>.../end</code> — raw_hours محاسبه شود.</li>
+    <li><strong>CONSULTANT:</strong> <code>POST /api/hourly/{id}/verify</code> با billable_hours ≤ raw_hours.</li>
+    <li>بررسی wallet مالک و pool مثل حمل تنی.</li>
+  </ol>
+
+  <h3>۵) تست‌های منفی (ضدتقلب)</h3>
+  <ul>
+    <li>ارسال net_weight دستی در body → باید نادیده یا ۴۰۰.</li>
+    <li>تأیید باسکول بدون وزن → ۴۰۹.</li>
+    <li>گذار FSM پرش‌دار (مثلاً ASSIGNED→DELIVERED) → ۴۰۹ invalid_transition.</li>
+    <li>Idempotency-Key تکراری → همان پاسخ + هدر Replay.</li>
+    <li>COOP_ADMIN تعاونی دیگر → ۴۰۳ روی members/KYC.</li>
+    <li>Reverse بعد از ۷۲ ساعت → ۴۰۹.</li>
+  </ul>
+
+  <h3>۶) تست آفلاین راننده</h3>
+  <ol>
+    <li>Airplane Mode روشن → یک گام ماموریت بزنید → بج «در انتظار Sync».</li>
+    <li>شبکه بر → Sync خودکار؛ سرور همان Idempotency-Key را بپذیرد.</li>
+    <li>اسکریپت: <code>apps/mobile/driver_app/scripts/test-offline1.ps1</code></li>
+  </ol>
+
+  <h3>۷) چک‌لیست Definition of Done کارفرما (۱۸ مرحله)</h3>
+  <table>
+    <thead><tr><th>مرحله DoD</th><th>قابل تست؟</th></tr></thead>
+    <tbody>
+      <tr><td>خانوار ثبت + تعاونی تأیید + wallet فعال</td><td>△ KYC API ✓؛ wallet پس از APPROVED ✓؛ ثبت خودخدمت △</td></tr>
+      <tr><td>مالک+وسیله+راننده تأیید</td><td>✓ coop KYC + demo seed</td></tr>
+      <tr><td>کارفرما نیاز + dispatch</td><td>✓</td></tr>
+      <tr><td>راننده اجرا + باسکول</td><td>✓ API + WB-UI-1</td></tr>
+      <tr><td>ساعتی + مشاور</td><td>✓ API</td></tr>
+      <tr><td>محاسبه Operational + Community تن‌محور</td><td>✓ COMM-TON-1</td></tr>
+      <tr><td>نمایش درآمد مالک/سهم خانوار/کارمزد</td><td>△</td></tr>
+      <tr><td>Audit همه اقدامات حساس</td><td>✓</td></tr>
+      <tr><td>تسویه بانکی واقعی خودکار</td><td>✗ دستی</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" id="priority">
+  <h2>اولویت‌بندی به‌روز (پس از پاسخ مکاتبه — ۱۴۰۵/۰۳)</h2>
+  <table>
+    <thead><tr><th>اولویت</th><th>کارت‌ها</th><th>منطق</th></tr></thead>
+    <tbody>
+      <tr><td><span class="priority p1">P1</span></td><td>FIN-POLICY → ACC-FUND → FIN-DUAL → <strong>COMM-UI-LEGACY</strong> → SVC-CONTRACT → CORE-OS → INVOICE → MINE-PAY → <strong>E2E-UAT-HAUL</strong></td><td>مسیر بحرانی UAT</td></tr>
+      <tr><td><span class="priority p2">P2</span></td><td>GOV, <strong>WS-DUAL-ROLE</strong>, <strong>SLA-ESCALATION</strong>, <strong>WF-ROLE-INBOX ✓</strong>, <strong>WB-MANUAL ✓</strong>, <strong>CONTRACT-VERSION-UI ✓</strong>, <strong>HH-BULK-IMPORT ✓</strong>, <strong>HSA-MATRIX ✓</strong>, <strong>TENANT-SCOPE ✓</strong>, <strong>DISPATCH-LOCK ✓</strong>, <strong>COMM-COOP-MOBILE ✓</strong>, <strong>PILOT-TAFTAN ✓</strong>, WF-*, <strong>INFRA-REGRESSION ✓</strong>, WB-INT</td><td>حاکمیت + پاسخ معماری کارفرما</td></tr>
+      <tr><td><span class="priority p3">P3</span></td><td>BANK-AUTO, SET-CYCLE, HOURLY-*, …, <strong>HH-KYC-COMMITTEE</strong>, WF-QUEUE (spike)</td><td>فاز بعد</td></tr>
+    </tbody>
+  </table>
+  <p class="good"><strong>۳۴ کارت انجام‌شده</strong> — پس از هر کارت جدید: anchor → <code>DONE_ANCHORS</code> در <code>gen_prompts.py</code> + <code>python docs/scripts/gen_prompts.py</code></p>
+</section>
+
+<section class="panel" id="coverage-gap">
+  <h2>بازبینی کد + چت کارفرما — شکاف‌های کشف‌شده (۱۴۰۵/۰۳)</h2>
+  <p class="muted">مرور کل monorepo، گزارش v3، و ۵۲+ کارت قبلی. موارد زیر به پرامپت‌ها <strong>اضافه شد</strong>.</p>
+
+  <h3>در کد هست — ولی کارت پرامپت نداشت (ریسک رگرسیون)</h3>
+  <table>
+    <thead><tr><th>قابلیت</th><th>مسیر</th><th>اقدام</th></tr></thead>
+    <tbody>
+      <tr><td>Reconciliation</td><td><code>reconciliationService.ts</code>, <code>ReconciliationPage.tsx</code></td><td><span class="status s-ok">✓</span> <a href="mvp-task-prompts-pro-fa.html#infra-regression-1">INFRA-REGRESSION-1</a> — <code>npm run test:infra-regression</code></td></tr>
+      <tr><td>Queue + Jobs</td><td><code>jobQueue.ts</code>, <code>JobsMonitor.tsx</code></td><td>همان</td></tr>
+      <tr><td>Audit / Idempotency / Event</td><td><code>audit.ts</code>, <code>idempotency.ts</code>, <code>eventBus.ts</code></td><td>همان</td></tr>
+      <tr><td>AdminFinance تجمیعی</td><td><code>AdminFinance.tsx</code></td><td>هم‌پوشان <a href="mvp-task-prompts-pro-fa.html#fin-dual-1">FIN-DUAL-1</a></td></tr>
+      <tr><td>باسکول read-only راننده</td><td><span class="status s-ok">✓</span></td><td><code>weighbridge_read_screen.dart</code></td><td>WF-WB-READ-1 — <code>GET …/weighbridge-status</code> + flutter test</td></tr>
+    </tbody>
+  </table>
+
+  <h3>کارت‌های جدید اضافه‌شده</h3>
+  <table>
+    <thead><tr><th>کارت</th><th>P</th><th>چرا</th></tr></thead>
+    <tbody>
+      <tr><td><strong>COMM-UI-LEGACY-1</strong></td><td>P1</td><td><span class="status s-ok">✓</span> حذف ۸۵/۱۳/۲ از UI — هم‌تراز COMM-TON-1</td></tr>
+      <tr><td><strong>E2E-UAT-HAUL-1</strong></td><td>P1</td><td><span class="status s-ok">✓</span> <code>uat-haul-smoke.spec.ts</code> + <code>test:uat-haul1</code></td></tr>
+      <tr><td><strong>TENANT-SCOPE-1</strong></td><td>P2</td><td><span class="status s-ok">✓</span> <code>requireMineContext</code> روی settlement/adminFinance/wallet/rateCards/coop — <code>test:tenant-scope1</code></td></tr>
+      <tr><td><strong>DISPATCH-LOCK-1</strong></td><td>P2</td><td><span class="status s-ok">✓</span> <code>ACTIVE_MISSION_STATUSES</code> + 409 — <code>test:disp-lock1</code> (۳×)</td></tr>
+      <tr><td><strong>COMM-COOP-MOBILE-1</strong></td><td>P2</td><td><span class="status s-ok">✓</span> <code>kyc_inbox_screen.dart</code> + <code>CoopHubScreen</code> — parity با <code>KycInbox.tsx</code> — <code>flutter test test/coop_kyc_inbox_test.dart</code></td></tr>
+      <tr><td><strong>INFRA-REGRESSION-1</strong></td><td>P2</td><td><span class="status s-ok">✓</span> <code>test:infra-regression</code> — idem/audit/event/queue/recon/soft</td></tr>
+      <tr><td><strong>DRIVER-AVAIL-1</strong></td><td>P3</td><td>وایرفریم «اعلام آمادگی» — اختیاری</td></tr>
+      <tr><td><strong>TENANT-RLS-1</strong></td><td>P3</td><td>RLS Postgres — فاز ۱.۵ (پس از TENANT-SCOPE)</td></tr>
+      <tr><td><strong>WS-DUAL-ROLE-1</strong></td><td>P2</td><td>سؤال ۱ کارفرما — Community ≠ Operational workspace</td></tr>
+      <tr><td><strong>SLA-ESCALATION-1</strong></td><td>P2</td><td>سؤال ۳ — due_at + stale list؛ escalate بعد از GOV</td></tr>
+      <tr><td><strong>WF-ROLE-INBOX-1</strong> ✓</td><td>P2</td><td>سؤال ۴ — <code>GET /api/inbox</code> + ApprovalsInbox — <code>test:inbox1</code></td></tr>
+      <tr><td><strong>CONTRACT-VERSION-UI-1 ✓</strong></td><td>P2</td><td>سؤال ۶ — UI الحاقیه/نسخه — <code>test:contract-version-ui1</code></td></tr>
+      <tr><td><strong>HH-BULK-IMPORT-1 ✓</strong></td><td>P2</td><td>سؤال ۵ — CSV import + KYC PENDING — <code>test:hh-bulk-import1</code></td></tr>
+      <tr><td><strong>HSA-MATRIX-1 ✓</strong></td><td>P2</td><td>سؤال ۱۰ — جدول <a href="#hsa-matrix">#hsa-matrix</a> + Collapse در <code>PanelHome.tsx</code></td></tr>
+      <tr><td><strong>HH-KYC-COMMITTEE-1</strong></td><td>P3</td><td>سؤال ۷ — کمیته configurable</td></tr>
+    </tbody>
+  </table>
+
+  <h3>هنوز در schema/کد نیست (کارفرما خواسته — کارت دارد)</h3>
+  <ul>
+    <li><code>service_contracts</code>, <code>period_statements</code>, <code>operation_types</code> — SVC-CONTRACT, CORE-OS, INVOICE-DRAFT</li>
+    <li><code>resolveFinancePolicy</code> + ۹۹/۱ — FIN-POLICY-1 (الان ruleEngine ~۹۸/۲)</li>
+    <li><code>fund_type</code> + <code>ledger_lane</code> روی transactions — ACC-FUND-1 ✓</li>
+    <li>جریان معدن→تعاونی — MINE-PAY-FLOW-1</li>
+    <li>RLS Postgres — <a href="mvp-task-prompts-pro-fa.html#tenant-rls-1">TENANT-RLS-1</a> (P3، اختیاری)</li>
+  </ul>
+
+  <h3>عمداً خارج فاز ۱ (کارت P3 / خارج PENDING)</h3>
+  <p>ساعتی: HOURLY-REJ, NEED-HOURLY, CONSULT-UI, HOURLY-APP · بانک اتومات: BANK-AUTO · تسویه هفتگی: SET-CYCLE · کافه‌بازار · WF-QUEUE spike</p>
+</section>
+
+<section class="panel" id="prompt-checklist">
+  <h2>چک‌لیست قبل از اجرای پرامپت (جلوگیری از اشتباه)</h2>
+  <div class="arch-warn">
+    <strong>قبل از شروع هر کارت P1 مالی:</strong> بخش <a href="#client-answers-detail">جزئیات زیرسؤال‌ها</a> را بخوانید. هر پرامپت در <a href="mvp-task-prompts-pro-fa.html">mvp-task-prompts-pro-fa.html</a> بلوک «آنتی‌پترن» دارد.
+  </div>
+  <table>
+    <thead><tr><th>ترتیب</th><th>کارت</th><th>وابستگی</th><th>اشتباه رایج</th></tr></thead>
+    <tbody>
+      <tr><td>۱</td><td>FIN-POLICY-1</td><td>COMM-TON-1 ✓</td><td>کسر community از کرایه</td></tr>
+      <tr><td>۲</td><td>ACC-FUND-1</td><td><span class="status s-ok">✓</span> FIN-POLICY</td><td>اختلاط درآمد پلتفرم با community — برطرف با تگ لجر</td></tr>
+      <tr><td>۳</td><td>FIN-DUAL-1 + COMM-UI-LEGACY-1</td><td>COMM-TON-1</td><td>نمایش ۸۵/۱۳/۲؛ اپ جامعه «۱۳٪»</td></tr>
+      <tr><td>۴</td><td><span class="status s-ok">✓</span> SVC-CONTRACT-1</td><td>CORE-OS-0 ترجیحاً</td><td>یک عدد global برای همه بار</td></tr>
+      <tr><td>۴b</td><td><span class="status s-ok">✓</span> E2E-UAT-HAUL-1</td><td>seed → dispatch → WB → close</td><td><code>test:e2e -- uat-haul</code></td></tr>
+      <tr><td>۵</td><td><span class="status s-ok">✓</span> CORE-OS-0</td><td><span class="status s-ok">✓</span> CORE-OS-1</td><td>شکستن FK missions</td></tr>
+      <tr><td>۵b</td><td><span class="status s-ok">✓</span> CORE-OS-1</td><td><span class="status s-ok">✓</span> CORE-OS-2</td><td>dispatch registry قبل از haul regression</td></tr>
+      <tr><td>۶</td><td>INVOICE-DRAFT-1</td><td>FIN-POLICY</td><td>ارسال مستقیم صورت وضعیت به معدن بدون Lock</td></tr>
+      <tr><td>۷</td><td><span class="status s-ok">✓</span> MINE-PAY-FLOW-1</td><td>INVOICE-DRAFT</td><td>IBAN مالک در export «پرداخت معدن»</td></tr>
+      <tr><td>۷b</td><td><span class="status s-ok">✓</span> PLATFORM-LEGAL-1</td><td>ACC-FUND-1</td><td>پلتفرم پرداخت‌کننده کرایه در UI</td></tr>
+      <tr><td>۸</td><td>GOV-WORKFLOW-1 ✅</td><td>INVOICE + settlement</td><td>dual approve + maker/checker lock</td></tr>
+      <tr><td>۹</td><td><span class="status s-ok">✓</span> WB-MANUAL-1</td><td>GOV-WORKFLOW-1</td><td><code>test:wb-manual1</code> (۳×) — manual gated + audit</td></tr>
+      <tr><td>۱۰</td><td><span class="status s-ok">✓</span> PILOT-TAFTAN-1</td><td>۶–۷</td><td>community از service_contract در DB (placeholder تا قرارداد)</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">پس از هر کارت: <code>DONE_ANCHORS</code> + <code>python docs/scripts/gen_prompts.py</code></p>
+</section>
+
+<section class="panel" id="todo">
+  <h2>تسک‌های باقی‌مانده — ۴۵ کارت پرامپت (+ ۷ کارت پاسخ معماری کارفرما در پرامپت‌ها)</h2>
+  <p class="muted">مرجع: <a href="#client-answers">پاسخ مکاتبه</a> · <a href="#client-answers-detail">جزئیات</a> · <a href="#prompt-checklist">چک‌لیست اجرا</a>. <strong>انجام‌شده:</strong> ۱۸ کارت در § <a href="#done">done</a>.</p>
+  <p class="info">پرامپت‌های <strong>حرفه‌ای و ریز</strong> (زمینه، فایل، API، DoD، تست، آنتی‌پترن) در <a href="mvp-task-prompts-pro-fa.html"><code>docs/mvp-task-prompts-pro-fa.html</code></a> — نسخهٔ کامل برای کپی در Cursor. زیر هر کارت خلاصه + لینک anchor همان کارت.</p>
+  <p class="muted">قاعده: <strong>یک چت = یک کارت</strong> — بلوک <code>pre</code> داخل details را کامل کپی کنید.</p>
+
+  <ul class="tasks">
+
+    <li class="task" id="t-fin-policy-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">FIN-POLICY-1</span> <span class="priority p1">P1</span> <span class="title">سیاست مالی: ۹۹/۱ + Community مستقل از کرایه</span></div>
+      <p><strong>انجام شد:</strong> <code>resolveFinancePolicy</code> + <code>test:fin-policy1</code></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#fin-policy-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-fin-dual-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">FIN-DUAL-1</span> <span class="priority p1">P1</span> <span class="title">نمایش دوخطی Operational | Community</span></div>
+      <p><strong>انجام شد:</strong> AdminFinance + <code>GET /admin/finance/missions</code> + <code>npm run test:fin-dual1</code></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#fin-dual-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-comm-ui-legacy-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">COMM-UI-LEGACY-1</span> <span class="priority p1">P1</span> <span class="title">حذف متن ۱۳٪ از UI (community_app + web)</span></div>
+      <p><strong>انجام شد:</strong> monthly_share + WalletSummary + ticket_status — بدون ۸۵/۱۳/۲ در UI.</p>
+      <p><strong>انجام شد:</strong> monthly_share + WalletSummary + ticket_status — بدون ۸۵/۱۳/۲ در UI.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#comm-ui-legacy-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-svc-contract-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">SVC-CONTRACT-1</span> <span class="priority p1">P1</span> <span class="title">Service Contract: واحد + Community ثابت + نسخه/الحاقیه</span></div>
+      <p><strong>انجام شد:</strong> <code>service_contracts</code> + <code>financePolicyResolver</code> + API — <code>npm run test:svc-contract1</code> + <code>test:comm-ton1</code> PASS.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#svc-contract-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-invoice-draft-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">INVOICE-DRAFT-1</span> <span class="priority p1">P1</span> <span class="title">صورت وضعیت: Draft → Review → Lock</span></div>
+      <p><strong>انجام شد:</strong> <code>period_statements</code> + dual approve + lock + IBAN تعاونی — <code>npm run test:invoice-draft1</code> PASS.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#invoice-draft-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-mine-pay-flow-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">MINE-PAY-FLOW-1</span> <span class="priority p1">P1</span> <span class="title">جریان پرداخت: معدن → تعاونی؛ مالک/خانوار داخلی</span></div>
+      <p><strong>انجام شد:</strong> تب UI + export payee_type + register mine payment + lock guard — <code>npm run test:mine-pay-flow1</code></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#mine-pay-flow-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-gov-workflow-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">GOV-WORKFLOW-1</span> <span class="priority p2">P2</span> <span class="title">تأیید چندلایه + maker/checker</span></div>
+      <p><strong>انجام شد:</strong> <code>settlement_batch_approvals</code> + <code>approval_tasks</code> stub + permissions split + weighbridge RBAC — <code>npm run test:gov-workflow1</code> PASS.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#gov-workflow-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-ws-dual-role-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">WS-DUAL-ROLE-1</span> <span class="priority p2">P2</span> <span class="title">عضویت Community جدا از Workspace عملیاتی</span></div>
+      <p><strong>انجام شد:</strong> <code>membership_kind</code> در GET /workspaces + WorkspaceSelect دو بخش + <code>requireOperationalWorkspace</code> — <code>npm run test:dual-role1</code> (۳×) + <code>test:tenant1</code>.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#ws-dual-role-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-sla-escalation-1">
+      <div><span class="badge done">✓</span> <span class="badge new">SLA-ESCALATION-1</span> <span class="priority p2">P2</span> <span class="title">SLA / Escalation / Timeout (پس از GOV)</span></div>
+      <p><strong>انجام شد:</strong> <code>approval_tasks</code> + <code>due_at</code> در submit + <code>GET /api/admin/approvals/stale</code> + badge «گذشته از مهلت» — <code>npm run test:sla-escalation1</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#sla-escalation-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-wf-role-inbox-1">
+      <div><span class="badge done">WF-ROLE-INBOX-1</span> <span class="priority p2">P2</span> <span class="title">صندوق کار مشترک بر اساس نقش (SPOF)</span></div>
+      <p><strong>انجام شد:</strong> <code>GET /api/inbox</code> + <code>ApprovalsInbox.tsx</code> — نقش مشترک بدون assignee — <code>npm run test:inbox1</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#wf-role-inbox-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-wb-manual-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">WB-MANUAL-1</span> <span class="priority p2">P2</span> <span class="title">باسکول Manual failover + audit</span></div>
+      <p><strong>انجام شد:</strong> <code>weighbridge:manual_override</code> + <code>requires_supervisor_approve</code> + audit <code>weighbridge.manual_entry</code> — <code>npm run test:wb-manual1</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#wb-manual-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-contract-version-ui-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">CONTRACT-VERSION-UI-1</span> <span class="priority p2">P2</span> <span class="title">UI نسخه‌گذاری قرارداد و Rate Card</span></div>
+      <p><strong>انجام شد:</strong> <code>POST /api/service-contracts/:id/new-version</code> + <code>GET .../service-contracts/versions</code> + جدول نسخه/badge + دکمه الحاقیه در <code>RateCards.tsx</code> — <code>npm run test:contract-version-ui1</code> PASS.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#contract-version-ui-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-hh-bulk-import-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">HH-BULK-IMPORT-1</span> <span class="priority p2">P2</span> <span class="title">ورود گروهی خانوار (پایلوت) + تأیید</span></div>
+      <p><strong>انجام شد:</strong> <code>POST /api/coop/households/import</code> (CSV/JSON، dry_run، checksum کد ملی، audit <code>households.bulk_import</code>) + تب «ورود گروهی» در <code>CoopRequests.tsx</code> — همه ردیف‌ها <code>PENDING</code> — <code>npm run test:hh-bulk-import1</code> PASS.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#hh-bulk-import-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-hsa-matrix-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">HSA-MATRIX-1</span> <span class="priority p2">P2</span> <span class="title">ماتریس HSA در گزارش + راهنمای پنل</span></div>
+      <p><strong>انجام شد:</strong> جدول <a href="#hsa-matrix">#hsa-matrix</a> (۷ مرحله + آنتی‌پترن) + Collapse «راهنمای نقش انسان در سیستم» در <code>PanelHome.tsx</code> برای OPERATION_ADMIN / COOP_ADMIN — بدون تغییر منطق مالی.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#hsa-matrix-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-comm-coop-mobile-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">COMM-COOP-MOBILE-1</span> <span class="priority p2">P2</span> <span class="title">community_app: KYC تعاونی parity با وب</span></div>
+      <p><strong>انجام شد:</strong> تب‌های PENDING/NEEDS_CORRECTION، approve/reject/request-correction چهار entity، صفحه <code>CoopHubScreen</code> (KYC + اعضا) برای COOP_* — <code>flutter test test/coop_kyc_inbox_test.dart</code></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#comm-coop-mobile-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-pilot-taftan-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">PILOT-TAFTAN-1</span> <span class="priority p2">P2</span> <span class="title">Seed پایلوت: معدن طلای تفتان + UAT</span></div>
+      <p><strong>انجام شد:</strong> <code>seed.ts</code> — mine TAFTAN + ACTIVE HAUL_TONNAGE contract + fleet KYC؛ <code>npm -w @app/backend run test:pilot-taftan1</code> (۳×، ۱۰ گام)؛ <a href="uat-handover-checklist-fa.md">UAT checklist §۳</a></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#pilot-taftan-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-infra-regression-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">INFRA-REGRESSION-1</span> <span class="priority p2">P2</span> <span class="title">npm یکپارچه: recon + queue + audit + idem</span></div>
+      <p><strong>انجام شد:</strong> <code>npm run test:infra-regression</code> (fail-fast: idem → audit → event → queue → recon → soft)؛ اختیاری مالی: <code>test:infra-regression:finance</code> — CI بعد از Vitest</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#infra-regression-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+
+    <li class="task" id="t-core-os-0">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">CORE-OS-0</span> <span class="priority p1">P1</span> <span class="title">کاتالوگ operation_types (فقط افزودنی — بدون شکستن FK)</span></div>
+      <p><strong>انجام شد:</strong> <code>operation_types</code> + seed + <code>GET /api/operation-types</code> — <code>npm run test:core-os0</code></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#core-os-0"><strong>→ پرامپت</strong></a></p>
+    </li>
+
+    <li class="task" id="t-core-os-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">CORE-OS-1</span> <span class="priority p1">P1</span> <span class="title">FK operation_type_id + backfill (وابسته CORE-OS-0)</span></div>
+      <p><strong>انجام شد:</strong> <code>operation_type_id</code> nullable FK + backfill + dual-write — <code>npm run test:core-os1</code></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#core-os-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+
+    
+    <li class="task" id="t-core-os-2">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge new">CORE-OS-2</span> <span class="priority p2">P2</span> <span class="title">Dispatch strategy registry (پس از CORE-OS-1)</span></div>
+      <p><strong>انجام شد:</strong> <code>DispatchStrategy</code> + registry — <code>HAUL_TONNAGE</code> / <code>HOURLY_EQUIPMENT</code> (stub 501) — <code>npm run test:core-os2</code> + <code>test:disp1</code></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#core-os-2"><strong>→ پرامپت</strong></a></p>
+    </li>
+
+    <li class="task" id="t-hourly-rej-1">
+      <div><span class="badge new">HOURLY-REJ-1</span> <span class="priority p3">P3</span> <span class="title">رد کارکرد ساعتی — خارج فاز ۱</span></div>
+      <p><a href="mvp-task-prompts-pro-fa.html#hourly-rej-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
+      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
+<code>POST /api/hourly/:id/reject</code> (CONSULTANT): rejection_reason اجباری؛ status=REJECTED؛ بدون split مالی. UI در PaymentControl یا صفحه HourlyInbox جدید.
+      </div></details>
+    </li>
+
+    <li class="task done" id="t-emp-perm-1">
+      <div><span class="badge done">EMP-PERM-1 ✅</span> <span class="priority p2">P2</span> <span class="title">EMPLOYER در Permission Matrix</span></div>
+      <p><code>employer.ts</code> → <code>requirePermission</code> / <code>requireAnyPermission</code>؛ <code>npm run test:emp-perm1</code> (۳×)</p>
+      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
+اضافه کردن EMPLOYER به <code>permissions.ts</code>: <code>needs:create</code>, <code>needs:read_own</code>, <code>needs:cancel</code>. جایگزینی requireRoles در <code>employer.ts</code>.
+      </div></details>
+    </li>
+
+    <li class="task done" id="t-dispatch-ui-1">
+      <div><span class="badge done">DISP-UI-1 ✅</span> <span class="priority p2">P2</span> <span class="title">دکمه Dispatch در EmployerInbox</span></div>
+      <p><strong>انجام شد:</strong> <code>EmployerInbox.tsx</code> + <code>usePermissions.ts</code> — <code>dispatch:create</code>؛ <code>POST /api/admin/needs/:id/dispatch</code> + Idempotency-Key؛ toast «مأموریت #id» + <code>/panel/missions/:id</code>؛ خطاهای dispatch فارسی؛ badge سبز DISPATCHED — <code>npm -w @app/web run test:e2e -- employer-inbox-dispatch</code> PASS.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#disp-ui-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
+    </li>
+
+    <li class="task" id="t-obj-rep-1">
+      <div><span class="badge done">✓</span> <span class="badge new">OBJ-REP-1</span> <span class="priority p2">P2</span> <span class="title">اعتراض: reporter از auth + رگرسیون (DoD کارفرما)</span></div>
+      <p><strong>انجام شد:</strong> <code>POST /api/coop/objections</code> — <code>reporter_user_id</code> فقط از session؛ body <code>.strict()</code>؛ validate در repository/store؛ <code>MembersTransparencyPage</code> بدون فیلد دستی گزارش‌دهنده — <code>npm run test:obj1</code> (۳×) + <code>test:obj-db1</code> PASS.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#obj-rep-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
+    </li>
+
+    <li class="task" id="t-natid-enf-1">
+      <div><span class="badge done">✓</span> <span class="badge new">NATID-ENF-1</span> <span class="priority p2">P2</span> <span class="title">کد ملی: enforce یکتا در API (ماتریس #۴۰)</span></div>
+      <p><strong>انجام شد:</strong> <code>assertNationalIdAvailable</code> در register، coop KYC request، admin cooperative، bulk import — 409 یکسان <code>national_id_unavailable</code> — <code>npm run test:natid-enf1</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#natid-enf-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
+    </li>
+
+    <li class="task" id="t-iban-audit-1">
+      <div><span class="badge done">✓</span> <span class="badge new">IBAN-AUDIT-1</span> <span class="priority p2">P2</span> <span class="title">تغییر شبا فقط با endpoint + Audit (#۴۱)</span></div>
+      <p><strong>انجام شد:</strong> <code>POST /api/coop/households/:id/bank-account</code> + <code>PATCH /api/households/me/iban</code>؛ audit <code>iban_changed</code> با before/after؛ resubmit بدون <code>bank_iban</code> — <code>npm run test:iban-audit1</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#iban-audit-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
+    </li>
+
+    <li class="task" id="t-hh-api-1">
+      <div><span class="badge done">✓</span> <span class="badge new">HH-API-1</span> <span class="priority p2">P2</span> <span class="title">API سهم خانوار + وضعیت pool</span></div>
+      <p><strong>انجام شد:</strong> <code>GET /api/household/shares</code> + <code>GET /api/household/pool-status</code>؛ <code>monthly_share_screen.dart</code> با <code>formatMoney</code> (تومان)؛ <code>npm run test:hh-api1</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#hh-api-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
+    </li>
+
+    <li class="task" id="t-fo-panel-1">
+      <div><span class="badge done">✓</span> <span class="badge new">FO-PANEL-1</span> <span class="priority p2">P2</span> <span class="title">پنل مالک ناوگان</span></div>
+      <p><strong>انجام شد:</strong> <code>GET /api/fleet-owner/summary|vehicles|missions</code> + <code>FleetOwnerDashboard.tsx</code> (KPI، ناوگان، مأموریت‌ها — تومان UI) + <code>panelNav</code> — <code>npm run test:fo-panel1</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#fo-panel-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
+    </li>
+
+    <li class="task done" id="t-tenant-scope-1">
+      <div><span class="badge done">TENANT-SCOPE-1 ✅</span> <span class="priority p2">P2</span> <span class="title">requireMineContext روی settlement/admin/wallet</span></div>
+      <p><strong>انجام شد:</strong> <code>requireMineContext</code> + <code>requireSessionMineWorkspace</code> روی settlement/adminFinance/wallet/rateCards/coop عملیاتی؛ فیلتر <code>mine_id</code> در repo؛ <code>npm run test:tenant-scope1</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#tenant-scope-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
+    </li>
+    <li class="task done" id="t-dispatch-lock-1">
+      <div><span class="badge done">DISPATCH-LOCK-1 ✅</span> <span class="priority p2">P2</span> <span class="title">تست: یک راننده = یک مأموریت فعال</span></div>
+      <p><strong>انجام شد:</strong> <code>hasActiveMissionForDriver</code> / <code>hasActiveMissionForVehicle</code> + guard در <code>haulDispatchStrategy</code>؛ HTTP 409 <code>active_mission_exists</code> — <code>npm run test:disp-lock1</code> + <code>test:disp1</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#dispatch-lock-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
+    </li>
+    <li class="task done" id="t-wb-int-1">
+      <div><span class="badge" style="background:#059669">✓</span> <span class="badge done">WB-INT-1 ✅</span> <span class="priority p2">P2</span> <span class="title">معماری اتصال باسکول (Agent + API)</span></div>
+      <p><strong>انجام شد:</strong> <code>POST /api/weighbridge/ingest</code> + <code>weighbridgeIngestService</code> + <code>WEIGHBRIDGE_KEYS</code> + <code>entry_source=AGENT</code> + idempotency — <code>npm run test:wb-int1</code> PASS.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#wb-int-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
+    </li>
+
+    <li class="task" id="t-hh-kyc-committee-1">
+      <div><span class="badge new">HH-KYC-COMMITTEE-1</span> <span class="priority p3">P3</span> <span class="title">تأیید خانوار: کمیته / چند امضا (قابل تنظیم)</span></div>
+      <p>پاسخ سؤال ۷ — MVP: یک نفر کافی؛ quorum&gt;1 فاز بعد.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#hh-kyc-committee-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+    <li class="task" id="t-bank-auto-1">
+      <div><span class="badge done">BANK-AUTO-1 ✓</span> <span class="priority p3">P3</span> <span class="title">پرداخت خودکار پس از LOCK (آداپتر بانک)</span></div>
+      <p><a href="mvp-task-prompts-pro-fa.html#bank-auto-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a> — <code>npm run test:bank-auto1</code> (۳× success + failure)</p>
+      <p class="muted">MockBankAdapter + queue job <code>execute-payouts</code>؛ per-line COMPLETED/FAILED؛ MANUAL_REVIEW برای خطای جزئی.</p>
+      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
+Queue job <code>settlement.execute_payouts</code> پس از lock: فراخوانی BankAdapter (interface); ثبت payment_payout؛ به‌روزرسانی SETTLED/FAILED؛ MANUAL_REVIEW برای خطا. شروع با MockAdapter + webhook نتیجه.
+      </div></details>
+    </li>
+
+    <li class="task" id="t-set-cycle-1">
+      <div><span class="badge done">SET-CYCLE-1 ✓</span> <span class="priority p3">P3</span> <span class="title">تسویه هفتگی مالک / ماهانه خانوار</span></div>
+      <p><a href="mvp-task-prompts-pro-fa.html#set-cycle-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a> — <code>npm run test:set-cycle1</code> (۳×)</p>
+      <p class="muted"><code>batch_type</code> OWNER_WEEKLY / HOUSEHOLD_MONTHLY؛ cron روزانه ۰۲:۰۰ + TZ Asia/Tehran؛ export جدا owner/household.</p>
+      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
+دو نوع batch: <code>OWNER_WEEKLY</code> و <code>HOUSEHOLD_MONTHLY</code> در settlement_batches. Rule <code>settlement.owner_period_days=7</code>. Cron در queue. جدا کردن exportها.
+      </div></details>
+    </li>
+
+    <li class="task" id="t-receipt-pdf-1">
+      <div><span class="badge done">RECEIPT-PDF-1 ✓</span> <span class="priority p3">P3</span> <span class="title">PDF رسید رسمی</span></div>
+      <p><a href="mvp-task-prompts-pro-fa.html#receipt-pdf-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a> — <code>npm run test:receipt-pdf1</code> (۳×)</p>
+      <p class="muted"><code>GET /api/settlement/lines/:id/receipt.pdf</code> — RTL + QR + ریال/تومان؛ <code>receipt_file_url</code> روی خط؛ auth: مالک wallet یا ADMIN.</p>
+      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
+<code>GET /api/settlement/lines/:id/receipt.pdf</code> — قالب RTL با logo، مبلغ ریال+تومان، payment_reference، QR. ذخیره receipt_file_url پس از generate.
+      </div></details>
+    </li>
+
+    <li class="task" id="t-currency-ui-1">
+      <div><span class="badge done">CURRENCY-UI-1 ✅</span> <span class="priority p3">P3</span> <span class="title">نمایش تومان در UI (ریال در DB)</span></div>
+      <p><strong>انجام شد:</strong> <code>formatMoney.ts</code> + <code>mineral_ui/format_money.dart</code>؛ مهاجرت Settlement/AdminFinance/Wallet/FinanceByLoad/PeriodStatement/FleetOwner + Flutter wallet/settlement/monthly_share — <code>npm -w @app/web run test -- formatMoney</code> PASS (۳×).</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#currency-ui-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
+    </li>
+
+    <li class="task" id="t-hourly-app-1">
+      <div><span class="badge new">HOURLY-APP-1</span> <span class="priority p3">P3</span> <span class="title">UI عملیات ساعتی در اپ</span></div>
+      <p><a href="mvp-task-prompts-pro-fa.html#hourly-app-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
+      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
+در driver_app یا community_app برای OPERATOR: صفحه start/end با عکس و GPS. Consultant: لیست pending در web یا app.
+      </div></details>
+    </li>
+
+    <li class="task" id="t-sms-prod-1">
+      <div><span class="badge done">SMS-PROD-1 ✅</span> <span class="priority p3">P3</span> <span class="title">SMS واقعی OTP و اعلان</span></div>
+      <p><code>smsProvider.ts</code> + SDK <code>kavenegar</code>؛ <code>sendOtp</code>؛ prod بدون log OTP؛ <code>docs/deploy-runbook-fa.md</code> — <code>npm run test:sms-prod1</code> (۳×)</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#sms-prod-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
+    </li>
+
+    <li class="task done" id="t-uat-signoff-1">
+      <div><span class="badge done">UAT-SIGNOFF-1 ✅</span> <span class="priority p3">P3</span> <span class="title">چک‌لیست تحویل + Runbook استقرار</span></div>
+      <p><strong>انجام شد:</strong> <a href="uat-handover-checklist-fa.md"><code>docs/uat-handover-checklist-fa.md</code></a> (§۰–§۸ copy-paste) + <a href="deploy-runbook-fa.md"><code>docs/deploy-runbook-fa.md</code></a> (Docker/systemd، backup، SMS mock/prod) — README لینک runbook</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#uat-signoff-1"><strong>→ پرامپت</strong></a></p>
+    </li>
+
+    <li class="task" id="t-consult-panel-1">
+      <div><span class="badge new">CONSULT-UI-1</span> <span class="priority p3">P3</span> <span class="title">پنل مشاور ساعتی — خارج فاز ۱</span></div>
+      <p><a href="mvp-task-prompts-pro-fa.html#consult-ui-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
+      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
+صفحه <code>ConsultantHourlyInbox.tsx</code>: لیست ENDED؛ فرم billable_hours + approve/reject. بدون wallet/settlement/dispatch.
+      </div></details>
+    </li>
+
+    <li class="task" id="t-need-hourly-1">
+      <div><span class="badge new">NEED-HOURLY-1</span> <span class="priority p3">P3</span> <span class="title">نیاز ساعتی — خارج فاز ۱</span></div>
+      <p><a href="mvp-task-prompts-pro-fa.html#need-hourly-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
+      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
+گسترش operation_needs: operation_type=HOURLY_EQUIPMENT، equipment_type، location، estimated_hours. فرم EmployerNeed با تب حمل/ساعتی. Dispatch برای نوع ساعتی.
+      </div></details>
+    </li>
+    <li class="task done" id="t-wf-ops-dash-1"><div><span class="badge new">WF-OPS-DASH-1</span> <span class="priority p2">P2</span> <span class="title">داشبورد وب (وایرفریم ۹)</span> <span class="status s-ok">✓</span></div>
+      <p><strong>انجام شد:</strong> <code>GET /api/admin/ops-dashboard</code> + <code>OpsDashboard.tsx</code> (<code>/panel/ops</code>) — <code>npm run test:ops-dash1</code> (۳×)</p></li>
+    <li class="task done" id="t-wf-dispatch-board-1"><div><span class="badge new">WF-DISPATCH-BOARD-1</span> <span class="priority p2">P2</span> <span class="title">Dispatch board (۹.۷)</span> <span class="status s-ok">✓</span></div>
+      <p><strong>انجام شد:</strong> <code>GET /api/admin/dispatch-board</code> + <code>POST /api/admin/dispatch</code> + <code>DispatchBoard.tsx</code> (<code>/panel/dispatch-board</code>) — تخصیص خودکار سیستمی + Idempotency-Key — <code>npm run test:dispatch-board1</code> (۳×) + <code>npm -w @app/web run test:e2e -- dispatch-board</code></p></li>
+    <li class="task done" id="t-wf-coop-kyc-wf-1"><div><span class="badge new">WF-COOP-KYC-WF-1</span> <span class="priority p2">P2</span> <span class="title">KYC جدولی (۱۰)</span> <span class="status s-ok">✓</span></div>
+      <p><strong>انجام شد:</strong> <code>GET /api/coop/kyc/inbox</code> (paginated/filter/sort) + <code>DataTable</code> + <code>KycInbox.tsx</code> (bulk approve ≤20) — <code>npm run test:kyc-inbox1</code> (۳×) + <code>npm -w @app/web run test:e2e -- kyc-inbox</code></p></li>
+    <li class="task done" id="t-wf-fin-load-1"><div><span class="badge new">WF-FIN-LOAD-1</span> <span class="priority p2">P2</span> <span class="title">مالی per Load (۱۱)</span> <span class="status s-ok">✓</span></div>
+      <p><strong>انجام شد:</strong> <code>GET /api/admin/finance/by-load</code> + <code>FinanceByLoadPage.tsx</code> (<code>/panel/admin/finance/by-load</code>) — CSV + HOLD badge — <code>npm run test:fin-load1</code> (۳×)</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#wf-fin-load-1"><strong>→ پرامپت</strong></a></p></li>
+    <li class="task" id="t-wf-queue-1"><div><span class="badge new">WF-QUEUE-1</span> <span class="priority p3">P3</span> <span class="title">صف زمان‌بندی (۹.۳)</span></div>
+      <p><a href="mvp-task-prompts-pro-fa.html#wf-queue-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p><details class="prompt"><summary>پرامپت</summary><div class="promptfa">خارج MVP.</div></details></li>
+    <li class="task" id="t-wf-intransit-1"><div><span class="badge new">WF-INTRANSIT-1</span> <span class="priority p3">P3</span> <span class="title">In Transit (۶)</span></div>
+      <p><a href="mvp-task-prompts-pro-fa.html#wf-intransit-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p><details class="prompt"><summary>پرامپت</summary><div class="promptfa"><code>in_transit_screen.dart</code>.</div></details></li>
+
+  </ul>
+</section>
+
+
+<section class="panel" id="done">
+  <h2>تسک‌های انجام‌شده — ۴۴ کارت پرامپت (پایین لیست HTML)</h2>
+  <p class="muted">فهرست تاریخی ~۴۵ آیتم کار زیر + <strong>۴۴ کارت پرامپت</strong> (COMM-TON-1 … WF-FIN-LOAD-1). باقی‌مانده: § <a href="#todo">todo</a> · § <a href="#coverage-gap">شکاف‌ها</a>.</p>
+  <ul>
+    <li>✅ DB-1, DB-2 — Postgres کامل</li>
+    <li>✅ PERM-1, AUTH-1, COOP-1, COOP-2</li>
+    <li>✅ EMP-1, DISP-1, MISSION-FSM-1, WB-1, HOURLY-1</li>
+    <li>✅ RATE-1, RULE-1, <strong>POOL-1</strong> (توزیع Pool ✓ — ورودی اکنون تن‌محور با COMM-TON-1), SET-1, REVERSE-1</li>
+    <li>✅ EVENT-1, QUEUE-1, IDEM-1, RECON-1, NOTIF-1</li>
+    <li>✅ AUDIT-1, OBJ-1 + OBJ-DB-1 + OBJ-REP-1 (اعتراض: reporter از auth + رگرسیون)، FIN-UI-1, SOFT-1</li>
+    <li>✅ OFFLINE-1, COMM-APP-1, KPI-1, TEST-1</li>
+  </ul>
+
+  <h3>دستهٔ سوم — انجام‌شده در بازبینی اخیر (۳۵ کارت)</h3>
+  <p class="muted">بررسی کد + اسکریپت تست — ۱۴۰۵/۰۳؛ PLATFORM-LEGAL-1: <code>test:platform-legal1</code> (۳×) + vitest</p>
+  <ul>
+    <li>✅ <strong>COMM-TON-1</strong> — Community <code>tons × rial_per_ton</code>؛ <code>financeLedgerRepository.splitOperational</code> — <code>npm run test:comm-ton1</code></li>
+    <li>✅ <strong>TENANT-1</strong> — workspaces + requireMineContext + WorkspaceSelectPage — <code>test:tenant1</code></li>
+    <li>✅ <strong>WB-UI-1</strong> — WeighbridgePage ثبت empty/loaded + approve</li>
+    <li>✅ <strong>RBAC-FIX-1</strong> — HOLD با <code>hold:create</code> — <code>test:rbac-fix1</code></li>
+    <li>✅ <strong>OBJ-DB-1</strong> — <code>membership_objections</code> Postgres — <code>test:obj-db1</code> (جایگزین OBJ-1 RAM)</li>
+    <li>✅ <strong>OBJ-REP-1</strong> — reporter فقط از session؛ ۴۰۱/۴۰۳؛ UI/لیست شفاف — <code>test:obj1</code> (۳×) + <code>test:obj-db1</code></li>
+    <li>✅ <strong>NAV-1</strong> — <code>panelNav.ts</code> + RequirePermission — <code>npm -w @app/web run test:nav1</code></li>
+    <li>✅ <strong>KYC-REG-1</strong> — <code>POST /households/register</code> + community_app — <code>test:kyc-reg1</code></li>
+    <li>✅ <strong>WF-AUTH-1</strong> — login + kyc_pending + suspended (driver_app)</li>
+    <li>✅ <strong>WF-DASH-1</strong> — driver_home_screen + GET dashboard — flutter test</li>
+    <li>✅ <strong>WF-STEPPER-1</strong> — mission_detail_screen + stepper ۷‌گانه</li>
+    <li>✅ <strong>WF-GEOFENCE-1</strong> — mine_entry + factory_entry + geofence_math</li>
+    <li>✅ <strong>WF-UNLOAD-1</strong> — unload_confirm_screen</li>
+    <li>✅ <strong>WF-WB-READ-1</strong> — <code>weighbridge_read_screen.dart</code> + <code>GET /api/driver/missions/:id/weighbridge-status</code> — <code>flutter test test/weighbridge_read_test.dart</code> + <code>npm run test:wb-read1</code> (۳×)</li>
+    <li>✅ <strong>KYC-NC-1</strong> — NEEDS_CORRECTION + resubmit (۴ entity) + KycInbox — <code>test:kyc-nc1</code></li>
+    <li>✅ <strong>FIN-POLICY-1</strong> — <code>resolveFinancePolicy</code> + split — <code>test:fin-policy1</code></li>
+    <li>✅ <strong>ACC-FUND-1</strong> — <code>fund_type</code> / <code>ledger_lane</code> روی <code>transactions</code> — <code>test:acc-fund1</code></li>
+    <li>✅ <strong>FIN-DUAL-1</strong> — AdminFinance دو اقتصاد + جدول missions — <code>test:fin-dual1</code></li>
+    <li>✅ <strong>COMM-UI-LEGACY-1</strong> — حذف ۸۵/۱۳/۲ از UI؛ monthly_share تن‌محور + WalletSummary دوخطی</li>
+    <li>✅ <strong>SVC-CONTRACT-1</strong> — <code>service_contracts</code> + <code>resolveCommunityFixedRialPerUnit</code> — <code>test:svc-contract1</code> + regression <code>test:comm-ton1</code></li>
+    <li>✅ <strong>CORE-OS-0</strong> — <code>operation_types</code> کاتالوگ + <code>GET /api/operation-types</code> — <code>test:core-os0</code></li>
+    <li>✅ <strong>INVOICE-DRAFT-1</strong> — <code>period_statements</code> + dual approve + lock — <code>test:invoice-draft1</code></li>
+    <li>✅ <strong>MINE-PAY-FLOW-1</strong> — mine→coop export + internal payout tabs + lock guard — <code>test:mine-pay-flow1</code></li>
+    <li>✅ <strong>PLATFORM-LEGAL-1</strong> — AdminFinance سه بخش + <code>display_labels</code> API + Terms PanelHome + ACC-FUND comments — <code>npm run test:platform-legal1</code></li>
+    <li>✅ <strong>GOV-WORKFLOW-1</strong> — dual settlement approve + maker/checker lock + <code>approval_tasks</code> stub — <code>npm run test:gov-workflow1</code></li>
+    <li>✅ <strong>WS-DUAL-ROLE-1</strong> — <code>membership_kind</code> COMMUNITY|OPERATIONAL + WorkspaceSelect گروه‌بندی + scope عملیاتی — <code>npm run test:dual-role1</code> (۳×)</li>
+    <li>✅ <strong>SLA-ESCALATION-1</strong> — <code>approval_tasks</code> + SLA <code>due_at</code> + stale API + UI overdue — <code>npm run test:sla-escalation1</code> (۳×)</li>
+    <li>✅ <strong>WF-ROLE-INBOX-1</strong> — <code>GET /api/inbox</code> + صندوق تأییدها (COOP_ADMIN / OPERATION_ADMIN) — <code>npm run test:inbox1</code> (۳×)</li>
+    <li>✅ <strong>WB-MANUAL-1</strong> — <code>weighbridge:manual_override</code> + <code>PENDING_HOLD</code> + audit <code>weighbridge.manual_entry</code> + supervisor approve — <code>npm run test:wb-manual1</code> (۳×)</li>
+    <li>✅ <strong>WB-INT-1</strong> — <code>POST /api/weighbridge/ingest</code> + <code>X-Weighbridge-Key</code> + <code>weighbridgeIngestService</code> + event <code>weighbridge.agent_ingest</code> — <code>npm run test:wb-int1</code></li>
+    <li>✅ <strong>CONTRACT-VERSION-UI-1</strong> — <code>POST /api/service-contracts/:id/new-version</code> + لیست نسخه/badge در <code>RateCards.tsx</code> — <code>npm run test:contract-version-ui1</code> (۳×)</li>
+    <li>✅ <strong>HH-BULK-IMPORT-1</strong> — <code>POST /api/coop/households/import</code> + تب «ورود گروهی» در <code>CoopRequests.tsx</code> — <code>npm run test:hh-bulk-import1</code> (۳×)</li>
+    <li>✅ <strong>HSA-MATRIX-1</strong> — جدول <a href="#hsa-matrix">#hsa-matrix</a> + راهنمای Collapse در <code>PanelHome.tsx</code> (OPERATION_ADMIN / COOP_ADMIN)</li>
+    <li>✅ <strong>CORE-OS-2</strong> — <code>DispatchStrategy</code> + registry — <code>npm run test:core-os2</code> + <code>test:disp1</code></li>
+    <li>✅ <strong>E2E-UAT-HAUL-1</strong> — <code>apps/web/e2e/uat-haul-smoke.spec.ts</code> + <code>npm -w @app/web run test:e2e -- uat-haul</code> + <code>npm run test:uat-haul1</code> (۳× API mirror) — <a href="uat-handover-checklist-fa.md">چک‌لیست §۴</a></li>
+    <li>✅ <strong>NATID-ENF-1</strong> — <code>assertNationalIdAvailable</code>؛ 409 تکراری یکسان <code>national_id_unavailable</code>؛ upsert همان entity همان کد ملی → ۲۰۱ — <code>npm run test:natid-enf1</code> (۳×)</li>
+    <li>✅ <strong>IBAN-AUDIT-1</strong> — <code>POST /api/coop/households/:id/bank-account</code> + <code>PATCH /api/households/me/iban</code>؛ audit <code>iban_changed</code>؛ resubmit بدون <code>bank_iban</code> — <code>npm run test:iban-audit1</code> (۳×)</li>
+    <li>✅ <strong>EMP-PERM-1</strong> — <code>EMPLOYER_PERMISSIONS</code> (<code>needs:create|read_own|cancel</code>)؛ <code>employer.ts</code> با <code>requirePermission</code>؛ فیلتر مالکیت GET/cancel — <code>npm run test:emp-perm1</code> (۳×)</li>
+    <li>✅ <strong>DISP-UI-1</strong> — <code>EmployerInbox.tsx</code> + <code>usePermissions</code> (<code>dispatch:create</code>)؛ <code>POST /admin/needs/:id/dispatch</code>؛ toast + <code>/panel/missions/:id</code> — <code>npm -w @app/web run test:e2e -- employer-inbox-dispatch</code></li>
+    <li>✅ <strong>HH-API-1</strong> — <code>GET /api/household/shares</code> + <code>GET /api/household/pool-status</code>؛ <code>monthly_share_screen.dart</code> + <code>formatMoney</code> (تومان) — <code>npm run test:hh-api1</code> (۳×)</li>
+    <li>✅ <strong>FO-PANEL-1</strong> — <code>GET /api/fleet-owner/summary|vehicles|missions</code> + <code>FleetOwnerDashboard.tsx</code> + <code>panelNav</code> — <code>npm run test:fo-panel1</code> (۳×)</li>
+    <li>✅ <strong>TENANT-SCOPE-1</strong> — <code>requireMineContext</code> روی settlement/adminFinance/wallet/rateCards/coop؛ فیلتر <code>auth.mineId</code> در query — <code>npm run test:tenant-scope1</code> (۳×)</li>
+    <li>✅ <strong>DISPATCH-LOCK-1</strong> — <code>ACTIVE_MISSION_STATUSES</code> + <code>hasActiveMission*</code> + 409 <code>active_mission_exists</code> — <code>npm run test:disp-lock1</code> (۳×) + <code>test:disp1</code></li>
+    <li>✅ <strong>WF-OPS-DASH-1</strong> — <code>GET /api/admin/ops-dashboard</code> + <code>OpsDashboard.tsx</code> (<code>/panel/ops</code>, Recharts ۷روزه) — <code>npm run test:ops-dash1</code> (۳×)</li>
+    <li>✅ <strong>WF-DISPATCH-BOARD-1</strong> — <code>GET /api/admin/dispatch-board</code> + Kanban ۵ستونه <code>DispatchBoard.tsx</code>؛ <code>POST /api/admin/dispatch</code> + <code>/admin/needs/:id/dispatch</code> (mine-scoped) — <code>npm run test:dispatch-board1</code> (۳×) + e2e <code>dispatch-board</code></li>
+    <li>✅ <strong>WF-COOP-KYC-WF-1</strong> — <code>GET /api/coop/kyc/inbox</code> (filter/sort/pagination) + <code>DataTable</code> + bulk approve ≤20 در <code>KycInbox.tsx</code> — <code>npm run test:kyc-inbox1</code> (۳×) + e2e <code>kyc-inbox</code></li>
+    <li>✅ <strong>WF-FIN-LOAD-1</strong> — <code>GET /api/admin/finance/by-load</code> + <code>FinanceByLoadPage.tsx</code> (per-mission operational + community تن‌محور، CSV، HOLD) — <code>npm run test:fin-load1</code> (۳×)</li>
+    <li>✅ <strong>COMM-COOP-MOBILE-1</strong> — <code>kyc_inbox_screen.dart</code> (tabs PENDING/NEEDS_CORRECTION، pagination، bottom sheet) + <code>CoopHubScreen</code> (صندوق KYC + اعضا)؛ generic <code>approveKycEntity</code> / <code>requestKycCorrection</code> — <code>flutter test test/coop_kyc_inbox_test.dart</code></li>
+    <li>✅ <strong>BANK-AUTO-1</strong> — <code>MockBankAdapter</code> + queue <code>settlement:execute-payouts</code> پس از lock؛ per-line payout + <code>MANUAL_REVIEW</code> — <code>npm run test:bank-auto1</code> (۳× + failure path)</li>
+    <li>✅ <strong>SET-CYCLE-1</strong> — <code>batch_type</code> OWNER_WEEKLY / HOUSEHOLD_MONTHLY؛ cron <code>settlement:daily-cycle-cron</code> (۰۲:۰۰، TZ Asia/Tehran)؛ export جدا — <code>npm run test:set-cycle1</code> (۳×)</li>
+    <li>✅ <strong>RECEIPT-PDF-1</strong> — <code>GET /api/settlement/lines/:id/receipt.pdf</code>؛ PDF RTL + QR + ریال/تومان؛ <code>settlement_lines.receipt_file_url</code>؛ auth مالک wallet یا ADMIN — <code>npm run test:receipt-pdf1</code> (۳×)</li>
+    <li>✅ <strong>CURRENCY-UI-1</strong> — <code>formatMoney</code> web + <code>mineral_ui</code>؛ صفحات wallet/settlement/finance به تومان (API ریال) — <code>npm -w @app/web run test -- formatMoney</code> (۳×)</li>
+    <li>✅ <strong>REDISPATCH-1</strong> — <code>POST /api/admin/missions/:id/redispatch</code> (OPERATION_ADMIN + requireMineContext)؛ migration <code>0042_mission_cancelled</code>؛ audit <code>mission.redispatch</code> + event <code>mission.redispatched</code>؛ DISPATCH-LOCK بعد از cancel — <code>npm run test:redispatch1</code> (۳×)</li>
+    <li>✅ <strong>SMS-PROD-1</strong> — <code>smsProvider.ts</code> (mock|kavenegar|faraz) + SDK <code>kavenegar</code>؛ <code>notificationService.sendOtp</code>؛ prod بدون log OTP؛ <code>GET /__dev/otp</code> → 404 در production؛ <code>docs/deploy-runbook-fa.md</code> § staging SMS — <code>npm run test:sms-prod1</code> (۳×)</li>
+    <li>✅ <strong>UAT-SIGNOFF-1</strong> — <a href="uat-handover-checklist-fa.md">چک‌لیست UAT</a> + <a href="deploy-runbook-fa.md">Runbook استقرار</a>؛ infra/comm-ton/invoice/e2e/pilot-taftan؛ امضای کارفرما + tech lead — § <a href="uat-handover-checklist-fa.md">handover</a></li>
+  </ul>
+</section>
+
+<section class="panel" id="prompts-pro">
+  <h2>۱۶. الگوی پرامپت حرفه‌ای (برای Cursor)</h2>
+  <p>هر کارت در <a href="mvp-task-prompts-pro-fa.html"><code>mvp-task-prompts-pro-fa.html</code></a> این ساختار را دارد:</p>
+  <ol>
+    <li><strong>زمینه</strong> — چرا این تسک و وضعیت فعلی کد</li>
+    <li><strong>محدودیت‌ها / آنتی‌پترن</strong> — چه کارهایی ممنوع (مثلاً وزن دستی راننده)</li>
+    <li><strong>فایل‌های کلیدی</strong> — مسیر دقیق در monorepo</li>
+    <li><strong>پرامپت کپی</strong> — بلوک <code>pre</code> برای paste در چت جدید</li>
+    <li><strong>Definition of Done</strong> — چک‌لیست پذیرش</li>
+    <li><strong>تست</strong> — npm / Playwright / flutter test</li>
+  </ol>
+  <p class="muted">قاعده: یک چت = یک کارت. کل بلوک pre را کپی کنید؛ نصفه نزنید.</p>
+</section>
+
+<section class="panel" id="dod">
+  <h2>Definition of Done — UAT پایلوت طلای تفتان (کارفرما)</h2>
+  <p>حداقل پذیرش MVP طبق مکاتبه — <strong>بدون ساعتی</strong>:</p>
+  <ol>
+    <li>تعریف راننده و ناوگان (KYC APPROVED)</li>
+    <li>تعریف <strong>Service Contract + Rate Card</strong> (حمل، unit=TON)</li>
+    <li>ثبت نیاز کارفرما + Dispatch</li>
+    <li>مأموریت کامل + باسکول (net weight) + VERIFIED</li>
+    <li>محاسبه Settlement عملیاتی (۹۹/۱) + Community (Usage × ثابت)</li>
+    <li><strong>Draft صورت وضعیت</strong> → Review → Lock</li>
+    <li>تولید Settlement Sheet + Excel IBAN</li>
+    <li>یک <strong>سیکل کامل monthly-close</strong></li>
+    <li>mark-paid دستی + Audit</li>
+    <li>اپ راننده: FSM + geofence + استپر — §۱۵</li>
+  </ol>
+  <p class="note">باقی از کارفرما: نام تعاونی، مسئول عملیات/تحویل، تاریخ هدف، <strong>عدد Community ثابت</strong> قرارداد.</p>
+</section>
+
+<section class="panel" id="client-delivery">
+  <h2>۱۹. تحویل پروژه، بازدید میدانی، و پیشنهادهای لازم برای کارفرما</h2>
+
+  <h3>۱۹.۰ پاسخ کارفرما — Freeze + مکاتبه ۵ سؤال</h3>
+  <p class="muted">جزئیات: <a href="#client-answers">§ پاسخ مکاتبه</a> · <a href="gozaresh-tahvil-karfarma-mvp-fa.html#answers">برگه تحویل</a></p>
+  <table>
+    <thead><tr><th>موضوع</th><th>وضعیت</th><th>جمع‌بندی</th></tr></thead>
+    <tbody>
+      <tr><td>Community</td><td><span class="status s-ok">قفل مدل</span></td><td>Service Contract؛ <code>Usage × Fixed Rial</code>؛ کشف ۱۵٪ فقط خارج سیستم</td></tr>
+      <tr><td>Operational ۹۹/۱</td><td><span class="status s-ok">قفل</span></td><td>Rate Card قراردادی؛ MVP per ton</td></tr>
+      <tr><td>توزیع Pool</td><td><span class="status s-ok">قفل</span></td><td>Equal ÷ Approved Household Snapshot</td></tr>
+      <tr><td>فاز ۱ scope</td><td><span class="status s-ok">قفل</span></td><td>فقط حمل — ساعتی/بانک اتومات/کافه‌بازار فاز بعد</td></tr>
+      <tr><td>HSA</td><td><span class="status s-ok">قفل فرآیند</span></td><td>Draft صورت وضعیت → تأیید → Lock → پرداخت معدن به تعاونی</td></tr>
+      <tr><td>پرداخت معدن</td><td><span class="status s-ok">قفل</span></td><td>فقط حساب تعاونی — نه تسویه خرد</td></tr>
+      <tr><td>Excel + mark-paid</td><td><span class="status s-ok">قفل MVP</span></td><td>قابل قبول برای پایلوت</td></tr>
+      <tr><td>پایلوت</td><td><span class="status s-part">نیمه</span></td><td><strong>معدن طلای تفتان</strong> ✓ — تعاونی/مسئولین/تاریخ بعداً</td></tr>
+      <tr><td>عدد Community ثابت</td><td><span class="status s-part">باز</span></td><td>۱۳۰/۱۵۰k فقط مثال — عدد قرارداد نیامده</td></tr>
+      <tr><td>نقش پلتفرم</td><td><span class="status s-ok">قفل</span></td><td>Infrastructure — PLATFORM-LEGAL-1</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="deploy-infra">۱۹.۰.۱ تحویل زیرساخت از کارفرما + پیشنهاد سرور</h3>
+  <p>کارفرما تعهد کرده: دامنه <code>.ir</code> + DNS (panel / api)، پنل SMS (کاوه‌نگار/فراز)، معدن پایلوت، اطلاعات باسکول، لیست کاربران اولیه؛ زیرساخت <strong>Liara</strong> یا <strong>VPS ایران‌سرور</strong>.</p>
+  <div class="info">
+    <strong>پیشنهاد مشخصات برای Deploy MVP (استقرار اول — tenant پایلوت؛ پلتفرم چندمعدنی):</strong>
+    <ul>
+      <li><strong>Staging:</strong> ۲ vCPU، ۴ GB RAM، ۴۰ GB SSD — Ubuntu 22.04 — Docker: backend + nginx برای web + Postgres 16 (یا Postgres managed جدا).</li>
+      <li><strong>Production پایلوت:</strong> ۴ vCPU، ۸ GB RAM، ۸۰ GB SSD — همان stack؛ backup روزانه DB؛ HTTPS روی panel/api.</li>
+      <li><strong>Liara:</strong> پلن استاندارد اپ Node + <strong>دیتابیس Postgres اختصاصی</strong> (ترجیحاً جدا از اپ) — ساده‌تر برای اولین استقرار ایران.</li>
+      <li><strong>Redis:</strong> برای MVP فعلی اجباری نیست (صف in-memory) — فاز بعد در صورت scale.</li>
+      <li>پورت‌ها: 443 HTTPS؛ Postgres فقط داخلی/VPC — در معرض اینترنت باز نباشد.</li>
+    </ul>
+  </div>
+
+  <h3>۱۹.۱ بازدید</h3>
+  <div class="info">
+    برای <strong>تحویل به‌موقع MVP</strong> و کاهش زمین‌خوردگی برنامه، حضور فیزیکی در معدن در این فاز اجباری نیست؛ بازدید می‌تواند <strong>پس از تحویل اولیه و شروع UAT واقعی</strong> انجام شود تا هم زمان تیم توسعه حفظ شود هم بازخورد میدان با اولویت مشخص گرفته شود.
+  </div>
+
+  <h3>۱۹.۲ پیشنهادهای کوتاه به کارفرما (قبل/حین تحویل)</h3>
+  <ul>
+    <li><strong>✅ قفل شد:</strong> مدل Community قراردادی، ۹۹/۱، HSA، معدن→تعاونی، Excel MVP، پایلوت طلای تفتان.</li>
+    <li><strong>هنوز لازم:</strong> عدد <code>fixed_community_amount_rial</code> + تاریخ اعتبار قرارداد؛ نام تعاونی؛ مسئول عملیات/تحویل؛ تاریخ UAT.</li>
+    <li><strong>تحویل زیرساخت:</strong> DNS، SMS API، اطلاعات باسکول، لیست کاربران — طبق جدول <a href="gozaresh-tahvil-karfarma-mvp-fa.html#client-deliverables">برگه تحویل § client-deliverables</a>.</li>
+    <li><strong>UAT:</strong> <a href="uat-handover-checklist-fa.md">چک‌لیست</a> + <a href="mvp-task-prompts-pro-fa.html#uat-signoff-1">UAT-SIGNOFF-1</a>.</li>
+    <li><strong>Backup DB:</strong> یک بار restore تست قبل از production پایلوت.</li>
+  </ul>
+
+  <h3>۱۹.۳ انتقادات فنی (بدون تکرار § تعارضات)</h3>
+  <ul>
+    <li>جدول مقایسهٔ اپ در §۱۵.۲ اکنون با WFهای کلیدی (AUTH/DASH/STEPPER/GEOFENCE/UNLOAD) هم‌تراز است؛ WFهای وب مالی و داشبورد عملیاتی هنوز در صف اند.</li>
+    <li><strong>OBJ-REP-1:</strong> ✓ انجام شد — <code>test:obj1</code> (۳×) + <code>test:obj-db1</code>؛ body strict؛ UI بدون گزارش‌دهنده دستی.</li>
+    <li>کارفرما Freeze را با مکاتبه تأیید کرد؛ ۳ مورد عملیاتی (عدد تن، پایلوت، واریز Community) در <a href="gozaresh-tahvil-karfarma-mvp-fa.html#questions">برگه تحویل</a> باز است.</li>
+  </ul>
+
+<section class="panel" id="files">
+  <h2>نقشه فایل‌های کلیدی</h2>
+  <table>
+    <thead><tr><th>مسیر</th><th>نقش</th></tr></thead>
+    <tbody>
+      <tr><td><code>apps/backend/prisma/schema.prisma</code></td><td>مدل داده</td></tr>
+      <tr><td><code>apps/backend/src/services/dispatchService.ts</code></td><td>تخصیص مأموریت</td></tr>
+      <tr><td><code>apps/backend/src/repositories/financeLedgerRepository.ts</code></td><td>Operational split + Community تن‌محور (COMM-TON-1)</td></tr>
+      <tr><td><code>apps/backend/src/repositories/communityPoolsRepository.ts</code></td><td>pool ÷ snapshot</td></tr>
+      <tr><td><code>apps/backend/src/routes/weighbridge.ts</code></td><td>باسکول + hold</td></tr>
+      <tr><td><code>apps/web/src/App.tsx</code></td><td>روتر پنل</td></tr>
+      <tr><td><code>apps/mobile/driver_app/</code></td><td>اپ راننده + offline</td></tr>
+      <tr><td><code>apps/mobile/community_app/</code></td><td>خانوار/تعاونی</td></tr>
+      <tr><td><code>docs/mvp-flow-chat-master-report-fa-v3.html</code></td><td>این گزارش</td></tr>
+      <tr><td><code>docs/gozaresh-tahvil-karfarma-mvp-fa.html</code></td><td>برگه تحویل کارفرما — پاسخ Freeze + تحویل زیرساخت</td></tr>
+      <tr><td><code>docs/uat-handover-checklist-fa.md</code></td><td>چک‌لیست UAT و تحویل (مرجع UAT-SIGNOFF-1 ✅)</td></tr>
+      <tr><td><code>docs/deploy-runbook-fa.md</code></td><td>Runbook استقرار DevOps (Docker، env، backup، SMS)</td></tr>
+      <tr><td><code>docs/wireframes-review/wireframe Screenshots/*.png</code></td><td>۲۰ اسکرین وایرفریم UI (مرجع §۱۵)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<p class="muted" style="margin-top:32px;font-size:12px" id="changelog-tail"><strong>HH-API-1 ✓</strong> (۱۴۰۵/۰۳/۰۹): <code>GET /api/household/shares</code> + <code>pool-status</code>؛ Flutter <code>monthly_share_screen</code> — <code>test:hh-api1</code> PASS (۳×). · <strong>IBAN-AUDIT-1 ✓</strong> (۱۴۰۵/۰۳/۰۸): endpoint اختصاصی شبا + <code>audit_logs.action=iban_changed</code> — <code>apps/backend/src/lib/ibanAudit.ts</code> · <code>test:iban-audit1</code> PASS.</p>
+
+<footer style="text-align:center;color:#6B7280;font-size:12px;margin-top:24px">
+  logestic — گزارش مستر v3 — § <a href="#coverage-gap" style="color:#6B7280">coverage-gap</a> ·
+  <a href="uat-handover-checklist-fa.md" style="color:#6B7280">چک‌لیست UAT</a> ·
+  <a href="deploy-runbook-fa.md" style="color:#6B7280">Runbook استقرار</a>
+</footer>
+
+</div>
+</body>
+</html>
