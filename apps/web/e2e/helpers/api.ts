@@ -26,18 +26,42 @@ export async function selectWorkspace(
   mineId: number,
   opts?: { cooperativeId?: number; membership_kind?: "OPERATIONAL" | "COMMUNITY" },
 ) {
+  const membershipKind =
+    opts?.membership_kind ?? (opts?.cooperativeId != null ? "COMMUNITY" : "OPERATIONAL");
   const r = await request.post(`${apiBase}/api/workspaces/select`, {
     headers: { Authorization: `Bearer ${token}` },
     data: {
       mine_id: mineId,
       cooperative_id: opts?.cooperativeId,
-      membership_kind: opts?.membership_kind ?? "OPERATIONAL",
+      membership_kind: membershipKind,
     },
   });
   const json = (await r.json()) as { success?: boolean };
   if (!r.ok() || !json.success) {
     throw new Error(`workspace select failed for mine ${mineId}: ${JSON.stringify(json)}`);
   }
+}
+
+/** Seed demo fleet/KYC then close the demo mission so dispatch tests can assign drivers. */
+export async function seedDemoFleet(
+  request: APIRequestContext,
+  adminToken: string,
+  mineId: number,
+  opts?: { quantityTons?: number },
+) {
+  const seed = await request.post(`${apiBase}/api/__dev/seed/demo`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    data: {
+      mine_id: mineId,
+      quantity_tons: opts?.quantityTons ?? 1,
+      material_type: "ORE",
+    },
+  });
+  const seedJson = (await seed.json()) as { success?: boolean };
+  if (!seed.ok() || !seedJson.success) {
+    throw new Error(`dev seed failed: ${JSON.stringify(seedJson)}`);
+  }
+  await cleanupSettlementPeriodApi(request, adminToken, mineId);
 }
 
 /** Resolve driver session for dispatched mission (dev seed + disp test fleet). */

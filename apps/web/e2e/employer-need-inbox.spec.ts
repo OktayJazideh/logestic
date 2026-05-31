@@ -17,9 +17,9 @@ test("Employer Need ثبت → Inbox", async ({ page, request }) => {
   await page.getByTestId("employer-tons").fill(tons);
   await page.getByTestId("employer-submit").click();
 
-  const success = page.getByText(/نیاز #\d+ با موفقیت ثبت شد/);
+  const success = page.getByText(/نیاز (?:حمل )?#\d+ با موفقیت ثبت شد/);
   await expect(success).toBeVisible({ timeout: 15_000 });
-  const match = (await success.textContent())?.match(/نیاز #(\d+)/);
+  const match = (await success.textContent())?.match(/نیاز (?:حمل )?#(\d+)/);
   expect(match).toBeTruthy();
   const needId = match![1];
 

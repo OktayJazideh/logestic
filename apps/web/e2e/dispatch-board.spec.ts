@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { apiBase, loginApi, selectWorkspace } from "./helpers/api";
+import { apiBase, loginApi, seedDemoFleet, selectWorkspace } from "./helpers/api";
 
 const MINE_A = 1;
 
@@ -10,12 +10,7 @@ test("OPERATION_ADMIN: dispatch board — PENDING need → auto-dispatch → lea
   const adminToken = await loginApi(request, "09000000000");
   const employerToken = await loginApi(request, "09000000007");
 
-  const seed = await request.post(`${apiBase}/api/__dev/seed/demo`, {
-    headers: { Authorization: `Bearer ${adminToken}` },
-    data: { mine_id: MINE_A, quantity_tons: 1, material_type: "ORE" },
-  });
-  const seedJson = (await seed.json()) as { success?: boolean };
-  expect(seed.ok(), JSON.stringify(seedJson)).toBeTruthy();
+  await seedDemoFleet(request, adminToken, MINE_A);
 
   await selectWorkspace(request, employerToken, MINE_A);
   const needRes = await request.post(`${apiBase}/api/employer/needs`, {

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { apiBase, cleanupSettlementPeriodApi, loginApi, loginDriverForAssignment, pollJobApi, selectWorkspace } from "./helpers/api";
+import { apiBase, cleanupSettlementPeriodApi, loginApi, loginDriverForAssignment, pollJobApi, seedDemoFleet, selectWorkspace } from "./helpers/api";
 
 const MINE_A = 1;
 const MINE_B = 2;
@@ -15,15 +15,8 @@ test.describe("uat-haul", () => {
 
     await cleanupSettlementPeriodApi(request, adminToken, MINE_A);
 
-    // 1) ADMIN seed demo — fleet + KYC for dispatch
-    const seed = await request.post(`${apiBase}/api/__dev/seed/demo`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-      data: { mine_id: MINE_A, quantity_tons: 1, material_type: "ORE" },
-    });
-    const seedJson = (await seed.json()) as { success?: boolean; data?: { seeded?: boolean } };
-    expect(seed.ok(), JSON.stringify(seedJson)).toBeTruthy();
-    expect(seedJson.success).toBe(true);
-    expect(seedJson.data?.seeded).toBe(true);
+    // 1) ADMIN seed demo — fleet + KYC for dispatch (closes demo mission for dispatch)
+    await seedDemoFleet(request, adminToken, MINE_A);
 
     // 2) EMPLOYER need 10t
     await selectWorkspace(request, employerToken, MINE_A);
