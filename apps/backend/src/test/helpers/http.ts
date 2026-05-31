@@ -49,15 +49,28 @@ export async function loginAs(mobile: string): Promise<string> {
   return verify.json.data.access_token as string;
 }
 
-export async function selectMine(token: string, mineId: number) {
+export type SelectMineOptions = {
+  cooperativeId?: number;
+  membershipKind?: "COMMUNITY" | "OPERATIONAL";
+};
+
+export async function selectMine(token: string, mineId: number, opts?: SelectMineOptions) {
+  const body: Record<string, number | string> = { mine_id: mineId };
+  if (opts?.cooperativeId != null) body.cooperative_id = opts.cooperativeId;
+  if (opts?.membershipKind != null) body.membership_kind = opts.membershipKind;
   const r = await http("/api/workspaces/select", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ mine_id: mineId }),
+    body: JSON.stringify(body),
   });
   if (r.status !== 200 || !r.json.success) {
     throw new Error(`workspace select failed: ${JSON.stringify(r.json)}`);
   }
+}
+
+/** COOP_ADMIN / COOP_OPERATOR need COMMUNITY workspace + cooperative_id. */
+export async function selectCommunityMine(token: string, mineId: number, cooperativeId: number) {
+  return selectMine(token, mineId, { cooperativeId, membershipKind: "COMMUNITY" });
 }
 
 export async function pollJobHttp(jobId: string, token: string) {

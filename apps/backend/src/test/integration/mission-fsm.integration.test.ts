@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "../../db/prisma";
-import { http, isServerUp, loginAs, selectMine } from "../helpers/http";
+import { http, isServerUp, loginAs, selectCommunityMine, selectMine } from "../helpers/http";
 
 describe("mission FSM integration", () => {
   let serverUp = false;
@@ -73,7 +73,7 @@ describe("mission FSM integration", () => {
     });
     expect(accept.status).toBe(200);
 
-    await selectMine(coopOpToken, 1);
+    await selectCommunityMine(coopOpToken, 1, 1);
 
     const arrived = await http(`/api/driver/missions/${missionId}/steps`, {
       method: "POST",
