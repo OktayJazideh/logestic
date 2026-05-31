@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mineral_api/mineral_api.dart';
 
-import '../../core/session_store.dart';
+import '../../core/driver_api_client.dart';
+import '../../core/driver_auth_gate.dart';
+import '../../core/otp_validation.dart';
+import '../router.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, required this.sessionStore});
@@ -20,7 +24,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _bootstrap() async {
     final session = await widget.sessionStore.readSession();
-    final mineId = await widget.sessionStore.readMineId();
     if (!mounted) return;
 
     if (session == null) {
@@ -29,7 +32,6 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     if (session.role != 'DRIVER') {
-      // Driver app only.
       await widget.sessionStore.clearSession();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -39,12 +41,29 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    if (mineId == null) {
-      Navigator.pushReplacementNamed(context, '/mine-select', arguments: session.accessToken);
-      return;
+    final api = DriverApiClient(baseUrl: AppRouter.baseUrl);
+    try {
+      await navigateAfterDriverAuth(
+        context: context,
+        api: api,
+        token: session.accessToken,
+        sessionStore: widget.sessionStore,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      if (e is ApiException && e.isUnauthorized) {
+        await widget.sessionStore.clearSession();
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(persianApiError(e))),
+      );
+      Navigator.pushReplacementNamed(context, '/login');
+    } finally {
+      api.close();
     }
-
-    Navigator.pushReplacementNamed(context, '/missions', arguments: session.accessToken);
   }
 
   @override
@@ -52,11 +71,11 @@ class _SplashScreenState extends State<SplashScreen> {
     return const Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        backgroundColor: MineralTheme.bg,
         body: Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(color: MineralTheme.primary),
         ),
       ),
     );
   }
 }
-

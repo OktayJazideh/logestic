@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../core/api_client.dart';
+import 'package:mineral_api/mineral_api.dart';
+
+import '../../core/driver_api_client.dart';
 import '../../core/mission_flow.dart';
-import '../../core/session_store.dart';
 import '../../models/api_models.dart';
-import '../widgets/mission_stepper.dart';
-import '../widgets/weighbridge_flow_strip.dart';
 
 class MissionsScreen extends StatefulWidget {
   const MissionsScreen({
@@ -15,7 +14,7 @@ class MissionsScreen extends StatefulWidget {
     required this.sessionStore,
   });
 
-  final ApiClient api;
+  final DriverApiClient api;
   final String token;
   final SessionStore sessionStore;
 
@@ -27,8 +26,6 @@ class _MissionsScreenState extends State<MissionsScreen> {
   bool _loading = false;
   String? _error;
   List<DriverMission> _missions = [];
-  /// Weighbridge ticket per mission (only fetched for COMPLETED missions).
-  final Map<int, WeighbridgeTicket?> _ticketByMissionId = {};
 
   @override
   void initState() {
@@ -43,75 +40,38 @@ class _MissionsScreenState extends State<MissionsScreen> {
     });
     try {
       final missions = await widget.api.getDriverMissions(token: widget.token);
-      final completed = missions.where((m) => m.status == 'COMPLETED').toList();
-      final tickets = <int, WeighbridgeTicket?>{};
-      await Future.wait(
-        completed.map((m) async {
-          try {
-            tickets[m.id] = await widget.api.getMissionTicket(
-              token: widget.token,
-              missionId: m.id,
-            );
-          } catch (_) {
-            tickets[m.id] = null;
-          }
-        }),
-      );
-      setState(() {
-        _missions = missions;
-        _ticketByMissionId
-          ..clear()
-          ..addAll(tickets);
-      });
+      setState(() => _missions = missions);
     } catch (e) {
       if (e is ApiException && e.isUnauthorized) {
-        await _logout();
+        await widget.sessionStore.clearSession();
+        if (!mounted) return;
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
         return;
       }
       setState(() => _error = e.toString());
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
-  String _nextStep(String status) {
-    final i = MissionFlow.driverStepOrder.indexOf(status);
-    if (i < 0 || i >= MissionFlow.driverStepOrder.length - 1) return status;
-    return MissionFlow.driverStepOrder[i + 1];
-  }
-
-  Future<void> _goNext(DriverMission m) async {
-    setState(() => _loading = true);
-    try {
-      final next = _nextStep(m.status);
-      await widget.api.updateMissionStep(
-        token: widget.token,
-        missionId: m.id,
-        step: next,
-      );
-      await _refresh();
-    } catch (e) {
-      if (e is ApiException && e.isUnauthorized) {
-        await _logout();
-        return;
-      }
-      setState(() => _error = e.toString());
-    } finally {
-      setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _logout() async {
-    await widget.sessionStore.clearSession();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  void _openDetail(DriverMission m) {
+    Navigator.pushNamed(
+      context,
+      '/mission-detail',
+      arguments: {
+        'token': widget.token,
+        'missionId': m.id,
+      },
+    );
   }
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'COMPLETED':
+      case 'DELIVERED':
+      case 'VERIFIED':
+      case 'SETTLED':
         return const Color(0xFF1B5E20);
-      case 'UNLOADING':
+      case 'IN_TRANSIT':
         return const Color(0xFFB45309);
       default:
         return const Color(0xFF374151);
@@ -128,7 +88,11 @@ class _MissionsScreenState extends State<MissionsScreen> {
           actions: [
             IconButton(
               tooltip: 'خروج',
-              onPressed: _logout,
+              onPressed: () async {
+                await widget.sessionStore.clearSession();
+                if (!mounted) return;
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+              },
               icon: const Icon(Icons.logout),
             ),
           ],
@@ -141,7 +105,10 @@ class _MissionsScreenState extends State<MissionsScreen> {
               if (_loading) const LinearProgressIndicator(),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ],
               const SizedBox(height: 12),
               Expanded(
@@ -164,101 +131,63 @@ class _MissionsScreenState extends State<MissionsScreen> {
                           separatorBuilder: (_, __) => const SizedBox(height: 12),
                           itemBuilder: (context, i) {
                             final m = _missions[i];
-                            final canGoNext = m.status != 'COMPLETED';
                             final statusColor = _statusColor(m.status);
-                            final ticket = _ticketByMissionId[m.id];
-                            final showWbChain = m.status == 'COMPLETED';
+                            final uiStep = MissionFlow.uiStepIndexFromStatus(m.status);
 
                             return Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            'ماموریت #${m.id}',
-                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                              fontWeight: FontWeight.w700,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(12),
+                                onTap: () => _openDetail(m),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'مأموریت #${m.id}',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium
+                                                  ?.copyWith(fontWeight: FontWeight.w700),
                                             ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              MissionFlow.uiStepLabelsFa[uiStep],
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.black.withOpacity(0.6),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: statusColor.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(999),
+                                          border: Border.all(
+                                            color: statusColor.withOpacity(0.3),
                                           ),
                                         ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                          decoration: BoxDecoration(
-                                            color: statusColor.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(999),
-                                            border: Border.all(color: statusColor.withOpacity(0.3)),
-                                          ),
-                                          child: Text(
-                                            MissionFlow.labelFa(m.status),
-                                            style: TextStyle(
-                                              color: statusColor,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF9FAFB),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: const Color(0xFFE5E7EB)),
-                                      ),
-                                      child: Wrap(
-                                        spacing: 18,
-                                        runSpacing: 8,
-                                        children: [
-                                          Text('Load: ${m.loadId}'),
-                                          Text('Mine: ${m.mineId}'),
-                                          Text('Vehicle: ${m.vehicleId}'),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    MissionStepper(
-                                      currentStatus: m.status,
-                                      onNext: () => _goNext(m),
-                                      canGoNext: canGoNext,
-                                    ),
-                                    if (m.status != 'COMPLETED')
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 8),
                                         child: Text(
-                                          'پس از «اتمام عملیات راننده»، تیکت باسکول صادر و زنجیره وزن‌گیری آغاز می‌شود.',
+                                          MissionFlow.labelFa(m.status),
                                           style: TextStyle(
+                                            color: statusColor,
                                             fontSize: 12,
-                                            color: Colors.black.withOpacity(0.55),
-                                            height: 1.35,
+                                            fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                       ),
-                                    if (showWbChain) ...[
-                                      const SizedBox(height: 12),
-                                      WeighbridgeFlowStrip(
-                                        ticketStatus: ticket?.status,
-                                        ticketPending: ticket == null,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      OutlinedButton.icon(
-                                        onPressed: () {
-                                          Navigator.pushNamed(
-                                            context,
-                                            '/ticket',
-                                            arguments: {'token': widget.token, 'missionId': m.id},
-                                          );
-                                        },
-                                        icon: const Icon(Icons.receipt_long_outlined),
-                                        label: const Text('جزئیات وضعیت باسکول'),
-                                      ),
+                                      const Icon(Icons.chevron_left),
                                     ],
-                                  ],
+                                  ),
                                 ),
                               ),
                             );
@@ -266,12 +195,6 @@ class _MissionsScreenState extends State<MissionsScreen> {
                         ),
                 ),
               ),
-              if (!_loading && _missions.isNotEmpty)
-                TextButton.icon(
-                  onPressed: _refresh,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('بروزرسانی'),
-                ),
             ],
           ),
         ),
@@ -279,4 +202,3 @@ class _MissionsScreenState extends State<MissionsScreen> {
     );
   }
 }
-

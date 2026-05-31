@@ -11,8 +11,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  mineral_api:
+    path: ../packages/mineral_api
+  mineral_ui:
+    path: ../packages/mineral_ui
   http: ^1.2.2
   shared_preferences: ^2.2.3
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  connectivity_plus: ^6.0.5
+  geolocator: ^13.0.2
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  image_picker: ^1.1.2
+  url_launcher: ^6.3.1
   flutter_localizations:
     sdk: flutter
 
@@ -23,4 +35,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Vazirmatn
+      fonts:
+        - asset: ../packages/mineral_ui/assets/fonts/Vazirmatn-Regular.ttf
+          weight: 400
 

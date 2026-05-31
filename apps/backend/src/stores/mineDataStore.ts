@@ -1,32 +1,20 @@
-export type Mine = {
-  id: number;
-  mine_code: string;
-  name: string;
-  location_coordinates?: string;
-};
+import * as minesRepo from "../repositories/minesRepository";
 
-export type Village = {
-  id: number;
-  mine_id: number;
-  name: string;
-  district?: string;
-};
+export type Mine = minesRepo.MineRow;
+export type Village = minesRepo.VillageRow;
 
-/**
- * DEV/MVP in-memory master data for mines + villages.
- * In the real app this will be backed by PostgreSQL.
- */
 export class MineDataStore {
-  private mines: Mine[] = [
-    { id: 1, mine_code: "MINE-A", name: "معدن آلفا", location_coordinates: "27.0,55.0" },
-    { id: 2, mine_code: "MINE-B", name: "معدن بتا", location_coordinates: "28.0,56.0" },
-  ];
+  private mines: Mine[] = [];
+  private villages: Village[] = [];
 
-  private villages: Village[] = [
-    { id: 1, mine_id: 1, name: "روستای یک", district: "ناحیه ۱" },
-    { id: 2, mine_id: 1, name: "روستای دو", district: "ناحیه ۱" },
-    { id: 3, mine_id: 2, name: "روستای سه", district: "ناحیه ۲" },
-  ];
+  async hydrate() {
+    this.mines = await minesRepo.listMines();
+    const allVillages: Village[] = [];
+    for (const m of this.mines) {
+      allVillages.push(...(await minesRepo.listVillagesByMine(m.id)));
+    }
+    this.villages = allVillages;
+  }
 
   listMines() {
     return this.mines.slice();
@@ -39,5 +27,20 @@ export class MineDataStore {
   listVillagesByMine(mineId: number) {
     return this.villages.filter((v) => v.mine_id === mineId);
   }
-}
 
+  async upsertMine(data: Omit<Mine, "id"> & { id?: number }) {
+    const mine = await minesRepo.upsertMine(data);
+    const idx = this.mines.findIndex((m) => m.id === mine.id);
+    if (idx >= 0) this.mines[idx] = mine;
+    else this.mines.push(mine);
+    return mine;
+  }
+
+  async upsertVillage(data: Omit<Village, "id"> & { id?: number }) {
+    const village = await minesRepo.upsertVillage(data);
+    const idx = this.villages.findIndex((v) => v.id === village.id);
+    if (idx >= 0) this.villages[idx] = village;
+    else this.villages.push(village);
+    return village;
+  }
+}

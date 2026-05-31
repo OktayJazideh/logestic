@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/api_client.dart';
-import '../../core/session_store.dart';
-import '../../models/api_models.dart';
+import 'package:mineral_api/mineral_api.dart';
+
+import '../../core/driver_api_client.dart';
 
 class MineSelectScreen extends StatefulWidget {
   const MineSelectScreen({
@@ -12,7 +12,7 @@ class MineSelectScreen extends StatefulWidget {
     required this.sessionStore,
   });
 
-  final ApiClient api;
+  final DriverApiClient api;
   final String token;
   final SessionStore sessionStore;
 
@@ -24,18 +24,25 @@ class _MineSelectScreenState extends State<MineSelectScreen> {
   bool _loading = false;
   String? _error;
 
-  Future<List<Mine>> _loadMines() => widget.api.getMines(token: widget.token);
+  Future<List<Workspace>> _loadWorkspaces() async {
+    final all = await widget.api.getWorkspaces(token: widget.token);
+    return all.where((w) => w.isOperational).toList();
+  }
 
-  Future<void> _selectMine(int mineId) async {
+  Future<void> _selectMine(Workspace ws) async {
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      await widget.api.selectMine(token: widget.token, mineId: mineId);
-      await widget.sessionStore.saveMineId(mineId);
+      await widget.api.selectWorkspace(
+        token: widget.token,
+        mineId: ws.mineId,
+        membershipKind: 'OPERATIONAL',
+      );
+      await widget.sessionStore.saveMineId(ws.mineId);
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/missions', arguments: widget.token);
+      Navigator.pushReplacementNamed(context, '/home', arguments: widget.token);
     } catch (e) {
       if (e is ApiException && e.isUnauthorized) {
         await widget.sessionStore.clearSession();
@@ -54,14 +61,25 @@ class _MineSelectScreenState extends State<MineSelectScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: const Text('انتخاب معدن')),
+        appBar: AppBar(title: const Text('کار در معدن')),
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const Text(
+                'کار در معدن',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'فقط فضاهای عملیاتی (راننده، مالک ناوگان، …) — عضویت تعاونی در اپ جامعه است.',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 12),
               Expanded(
-                child: FutureBuilder<List<Mine>>(
-                  future: _loadMines(),
+                child: FutureBuilder<List<Workspace>>(
+                  future: _loadWorkspaces(),
                   builder: (context, snap) {
                     if (snap.connectionState != ConnectionState.done) {
                       return const Center(child: CircularProgressIndicator());
@@ -69,18 +87,21 @@ class _MineSelectScreenState extends State<MineSelectScreen> {
                     if (snap.hasError) {
                       return Center(child: Text(snap.error.toString()));
                     }
-                    final mines = snap.data ?? [];
+                    final items = snap.data ?? [];
+                    if (items.isEmpty) {
+                      return const Center(child: Text('فضای عملیاتی فعالی برای شما ثبت نشده است.'));
+                    }
                     return ListView.separated(
-                      itemCount: mines.length,
+                      itemCount: items.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, i) {
-                        final m = mines[i];
+                        final m = items[i];
                         return Card(
                           child: ListTile(
-                            title: Text(m.name),
-                            subtitle: Text(m.mineCode),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: _loading ? null : () => _selectMine(m.id),
+                            title: Text(m.displayTitle),
+                            subtitle: Text(m.roles.join(' · ')),
+                            trailing: const Icon(Icons.chevron_left),
+                            onTap: _loading ? null : () => _selectMine(m),
                           ),
                         );
                       },
@@ -100,4 +121,3 @@ class _MineSelectScreenState extends State<MineSelectScreen> {
     );
   }
 }
-

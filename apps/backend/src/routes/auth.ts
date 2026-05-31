@@ -4,24 +4,19 @@ import { authMiddleware, type AuthContext } from "../middleware/authMiddleware";
 import { ApiError } from "../http/errors";
 import { failure, success } from "../http/apiResponse";
 import { appContext } from "../appContext";
+import { resolveAuthContext } from "../lib/authContext";
+import { env } from "../config/env";
 
 const router = Router();
 
-const getAuthContext = (token: string): AuthContext | null => {
-  const u = appContext.authService.getUserFromSession(token);
-  if (!u) return null;
-  const session = appContext.sessionStore.getSession(token);
-  return { token, user: u, mineId: session?.mineId };
-};
-
-const requireAuth = authMiddleware(getAuthContext);
+const requireAuth = authMiddleware(resolveAuthContext);
 
 const MobileSchema = z
   .string()
   .trim()
   .regex(/^\d{9,15}$/, { message: "mobile_number must be numeric and 9-15 digits" });
 
-router.post("/request-otp", (req, res, next) => {
+router.post("/request-otp", async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
   const body = z
     .object({
@@ -42,7 +37,7 @@ router.post("/request-otp", (req, res, next) => {
   }
 
   const { mobile_number } = body.data;
-  const result = appContext.authService.requestOtp(mobile_number);
+  const result = await appContext.authService.requestOtp(mobile_number);
   if (!result.allowed) {
     return next(
       new ApiError({
@@ -65,7 +60,7 @@ router.post("/request-otp", (req, res, next) => {
   );
 });
 
-router.post("/verify-otp", (req, res, next) => {
+router.post("/verify-otp", async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
   const body = z
     .object({
@@ -87,7 +82,7 @@ router.post("/verify-otp", (req, res, next) => {
   }
 
   const { mobile_number, otp_code } = body.data;
-  const result = appContext.authService.verifyOtp(mobile_number, otp_code);
+  const result = await appContext.authService.verifyOtp(mobile_number, otp_code);
   if (!result.ok) {
     return next(
       new ApiError({
@@ -134,6 +129,7 @@ router.get("/me", requireAuth, (req, res) => {
         mobile_number: auth.user.mobile_number,
         role: auth.user.role,
         is_active: auth.user.is_active,
+        mine_id: auth.mineId ?? null,
       },
       requestId,
     ),
@@ -169,20 +165,28 @@ router.get("/myPermissions", requireAuth, (req, res) => {
   );
 });
 
-// DEV endpoint to view in-memory audit logs.
-// Disable or remove before production.
-router.get("/__dev/audit", (_req, res) => {
-  return res.json(
-    success({
-      items: appContext.auditStore.getAll(),
-    }),
-  );
+// DEV endpoint to view recent audit logs from Postgres.
+// Disabled in production.
+router.get("/__dev/audit", async (req, res, next) => {
+  const requestId = (req as any).requestId as string | undefined;
+  if (env.NODE_ENV === "production") {
+    return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
+  }
+  try {
+    const items = await appContext.auditStore.getAll();
+    return res.json(success({ items }));
+  } catch (e) {
+    next(e);
+  }
 });
 
 // DEV helper: return current OTP for a mobile number (for local debugging).
-// WARNING: Remove in production.
-router.get("/__dev/otp", (req, res, next) => {
+// Disabled in production — never expose OTP in API response body in prod.
+router.get("/__dev/otp", async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
+  if (env.NODE_ENV === "production") {
+    return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
+  }
   const mobile = z.string().trim().regex(/^\d{9,15}$/).safeParse(req.query.mobile_number).success
     ? String(req.query.mobile_number)
     : null;
@@ -196,7 +200,7 @@ router.get("/__dev/otp", (req, res, next) => {
       }),
     );
   }
-  const otp = appContext.otpStore.debugGetOtp(mobile);
+  const otp = await appContext.otpStore.debugGetOtp(mobile);
   if (!otp) {
     return res.status(404).json(failure("otp_not_found", "OTP not found", undefined, requestId));
   }

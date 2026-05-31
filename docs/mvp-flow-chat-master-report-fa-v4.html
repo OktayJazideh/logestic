@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<title>گزارش مستر MVP — نسخهٔ ۴ (فقط باقی‌مانده + راهنمای اجرا)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#FAFAF7; --panel:#FFFFFF; --text:#1F2937; --muted:#6B7280;
+    --border:#E5E7EB; --soft:#F3F4F6;
+    --primary:#1B5E20; --ok:#16A34A; --part:#D97706; --no:#DC2626; --info:#0369A1;
+    --code-bg:#0B1020; --code-text:#E5E7EB;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Tahoma,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.85}
+  a{color:var(--primary)}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 18px 80px}
+  header.hero{background:linear-gradient(180deg,#0F3D17 0%,#1B5E20 100%);color:#fff;border-radius:14px;padding:22px;margin-bottom:18px}
+  header.hero h1{margin:0 0 6px;font-size:22px}
+  header.hero p{margin:4px 0;color:#D1FAE5;font-size:13.5px}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;background:#FFFFFF20;border:1px solid #FFFFFF30;margin:4px 0 0 4px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
+  .panel h2{margin:0 0 10px;font-size:18px;color:#0F3D17;border-bottom:2px solid var(--soft);padding-bottom:8px}
+  .panel h3{margin:14px 0 6px;font-size:15px}
+  .muted{color:var(--muted);font-size:13px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  .status{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;border:1px solid}
+  .s-ok{background:#ECFDF5;color:#065F46;border-color:#A7F3D0}
+  .s-part{background:#FFFBEB;color:#92400E;border-color:#FCD34D}
+  .s-no{background:#FEF2F2;color:#991B1B;border-color:#FCA5A5}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{border:1px solid var(--border);padding:8px 10px;vertical-align:top;text-align:right}
+  th{background:#F3F6F1;color:#0F3D17}
+  .toc ol{margin:0;padding-inline-start:22px}
+  .note,.good,.bad,.info{padding:10px 12px;border-radius:8px;font-size:13.5px;margin:8px 0}
+  .good{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46}
+  .bad{background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B}
+  .info{background:#E0F2FE;border:1px solid #7DD3FC;color:#075985}
+  ul.tasks{list-style:none;padding:0;margin:0}
+  li.task{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:#fff}
+  li.task .title{font-weight:700;color:#0F3D17;font-size:16px}
+  .priority{font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px}
+  .p0{background:#7F1D1D;color:#fff}
+  .p1{background:#FEE2E2;color:#991B1B}
+  .p3{background:#E0E7FF;color:#3730A3}
+  .arch-warn{background:#FEF2F2;border:2px solid #DC2626;border-radius:10px;padding:14px;margin:12px 0;color:#991B1B}
+  pre.prompt{background:var(--code-bg);color:var(--code-text);padding:14px;border-radius:8px;direction:ltr;font-size:12px;white-space:pre-wrap;text-align:left;line-height:1.65}
+  code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12.5px}
+  .progress-bar{height:10px;background:#E5E7EB;border-radius:5px;overflow:hidden;margin:8px 0}
+  .progress-bar span{display:block;height:100%;background:linear-gradient(90deg,#16A34A,#2E7D32);width:88%}
+  .client-box{background:#FFFBEB;border:2px dashed #D97706;border-radius:12px;padding:18px;margin:12px 0}
+  .badge{display:inline-block;background:#0F3D17;color:#fff;border-radius:6px;padding:1px 7px;font-size:11.5px;margin-left:6px}
+  .badge.done{background:#16A34A}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>گزارش مستر MVP — نسخهٔ ۴</h1>
+  <p>فقط <strong>کارهای باقی‌مانده</strong> + Definition of Done UAT + پرامپت‌های Cursor + متن آماده برای کارفرما. نسخهٔ ۳ آرشیو جامع است.</p>
+  <div>
+    <span class="pill">تاریخ: ۱۴۰۵/۰۳/۰۱ — بازبینی Freeze + کد</span>
+    <span class="pill">۵ P0/P1 باقی · باسکول دستی ✓</span>
+    <span class="pill"><a href="demo-users-and-deploy-fa.md" style="color:#D1FAE5">کاربران + Deploy + APK</a></span>
+  </div>
+</header>
+
+<nav class="panel toc" id="toc">
+  <h2>فهرست</h2>
+  <ol>
+    <li><a href="#summary">خلاصه یک‌صفحه‌ای</a></li>
+    <li><a href="#platform-role">نقش پلتفرم (Infrastructure)</a></li>
+    <li><a href="#matrix">ماتریس ۵۰ قابلیت (خلاصه)</a></li>
+    <li><a href="#dod">Definition of Done — UAT تفتان</a></li>
+    <li><a href="#demo-users">کاربران دمو (هر نقش)</a></li>
+    <li><a href="#deploy">استقرار Linux + APK</a></li>
+    <li><a href="#remaining">کارهای باقی‌مانده (اصلی)</a></li>
+    <li><a href="#testing">دستور تست جامع</a></li>
+    <li><a href="#client-message">متن آماده برای کارفرما</a></li>
+    <li><a href="#done-archive">انجام‌شده (آرشیو)</a></li>
+  </ol>
+</nav>
+
+<section class="panel" id="summary">
+  <h2>۱. خلاصه یک‌صفحه‌ای</h2>
+  <div class="progress-bar"><span></span></div>
+  <p class="muted">تخمین پوشش: Backend ~90% · Web ~75% · Driver ~85% · Community ~65% · Deploy واقعی ~15%</p>
+  <div class="good">
+    <strong>Freeze فاز ۱ (قفل):</strong> فقط حمل · Community = تن × مبلغ ثابت قراردادی · Operational = 99/1 · Pool مساوی snapshot · HSA Draft→Lock انسانی · پرداخت معدن فقط به حساب رسمی تعاونی · اعتراض ناشناس ممنوع · پلتفرم = زیرساخت (مثل اسنپ) نه مجری معدن.
+  </div>
+  <p><strong>Blocker اصلی UAT میدانی:</strong> deploy روی سرور + داده پایلوت کارفرما. باسکول = <strong>ورود دستی اپرator</strong> (Agent سخت‌افزار فاز بعد). کد P0 بسته: FIN-SEED-99-1 (99/1) + HOLD-SETTLEMENT-1.</p>
+  <div class="info">
+    <strong>تصمیم قفل باسکول:</strong> خرید/نصب Agent سخت‌افزار برای UAT اول لازم نیست. COOP_OPERATOR وزن را در پنل وب وارد می‌کند. scaffold در <code>apps/weighbridge-agent/</code> برای بعد.
+  </div>
+</section>
+
+<section class="panel" id="platform-role">
+  <h2>۲. نقش پلتفرم — سه جریان مالی</h2>
+  <table>
+    <thead><tr><th>جریان</th><th>محاسبه</th><th>مقصد</th><th>وضعیت کد</th></tr></thead>
+    <tbody>
+      <tr><td>Operational</td><td>کرایه × 99% مالک + 1% پلتفرم</td><td>wallet مالک + platform</td><td><span class="status s-ok">✓</span></td></tr>
+      <tr><td>Community</td><td>تن تأییدشده × fixed_rial_per_ton (قرارداد)</td><td>community_pool → snapshot مساوی</td><td><span class="status s-ok">✓</span></td></tr>
+      <tr><td>Settlement HSA</td><td>Draft صورت‌وضعیت → تأیید دوطرفه → Lock → Excel → پرداخت دستی</td><td>IBAN تعاونی</td><td><span class="status s-ok">✓</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" id="matrix">
+  <h2>۳. ماتریس ۵۰ قابلیت (خلاصه)</h2>
+  <p class="muted">جزئیات هر ردیف در <a href="mvp-flow-chat-master-report-fa-v3.html#matrix">v3 § matrix</a>. علامت‌ها: ✓ کامل · △ جزئی · ✗ خارج scope فاز ۱</p>
+  <table>
+    <thead><tr><th>حوزه</th><th>✓</th><th>△</th><th>✗</th><th>نمونه باقی</th></tr></thead>
+    <tbody>
+      <tr><td>هویت / KYC / RBAC</td><td>8</td><td>1</td><td>0</td><td>برند سهمان UI</td></tr>
+      <tr><td>حمل / FSM / باسکول</td><td>10</td><td>0</td><td>0</td><td>Agent سخت‌افزار (P2 — scaffold)</td></tr>
+      <tr><td>مالی / Community / HSA</td><td>10</td><td>0</td><td>0</td><td>عدد قرارداد واقعی (کارفرما)</td></tr>
+      <tr><td>Governance / Multi-tenant</td><td>6</td><td>1</td><td>1</td><td>RLS Postgres (فاز ۱.۵)</td></tr>
+      <tr><td>UI وب / موبایل</td><td>12</td><td>3</td><td>0</td><td>dispatch auto تصمیم</td></tr>
+      <tr><td>Deploy / Ops</td><td>2</td><td>1</td><td>2</td><td>sahman.ir production</td></tr>
+      <tr><td>فاز بعد</td><td>—</td><td>—</td><td>5</td><td>hourly dispatch، SLA cron، driver avail</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" id="dod">
+  <h2>۴. Definition of Done — UAT تفتان (۱۰ گام)</h2>
+  <ol>
+    <li>OTP ورود + انتخاب workspace عملیاتی/Community</li>
+    <li>ثبت نیاز حمل کارفرما + dispatch دستی</li>
+    <li>FSM راننده تا DELIVERED + geofence</li>
+    <li>ثبت وزن باسکول — <strong>دستی COOP_OPERATOR</strong> در پنل (+ anomaly 5% → HOLD)</li>
+    <li>تأیید OPERATION_ADMIN → VERIFIED + split 99/1</li>
+    <li>Community contribution در pool (تن × نرخ قرارداد)</li>
+    <li>صورت‌وضعیت Draft → Lock → settlement sheet</li>
+    <li>مأموریت HELD در settlement نیست ✓</li>
+    <li>Community app: ثبت خانوار + KYC</li>
+    <li>Receipt PDF + audit log قابل ردیابی</li>
+  </ol>
+  <p>چک‌لیست کامل: <a href="uat-handover-checklist-fa.md">uat-handover-checklist-fa.md</a></p>
+</section>
+
+<section class="panel" id="demo-users">
+  <h2>۴.۵ کاربران دمو — یک نفر برای هر نقش</h2>
+  <p>پس از <code>db:seed</code> · OTP dev: <code>GET /api/auth/__dev/otp?mobile_number=...</code></p>
+  <table>
+    <thead><tr><th>نقش</th><th>موبایل</th><th>اپ/پنل</th></tr></thead>
+    <tbody>
+      <tr><td>ADMIN</td><td><code>09000000000</code></td><td>وب</td></tr>
+      <tr><td>EMPLOYER</td><td><code>09000000007</code></td><td>وب — نیاز حمل</td></tr>
+      <tr><td>OPERATION_ADMIN</td><td><code>09000000002</code></td><td>وب — dispatch، approve</td></tr>
+      <tr><td>OPERATION_LOCKER</td><td><code>09000000103</code></td><td>وب — lock settlement</td></tr>
+      <tr><td>COOP_ADMIN</td><td><code>09000000001</code></td><td>وب + community app</td></tr>
+      <tr><td>COOP_OPERATOR</td><td><code>09000000111</code></td><td>وب Weighbridge — <strong>وزن دستی</strong></td></tr>
+      <tr><td>DRIVER</td><td><code>09000000003</code></td><td>driver app</td></tr>
+      <tr><td>FLEET_OWNER</td><td><code>09000000004</code></td><td>وب</td></tr>
+      <tr><td>HOUSEHOLD (approved)</td><td><code>09000001001</code></td><td>community app</td></tr>
+      <tr><td>CONSULTANT</td><td><code>09000000006</code></td><td>وب (ساعتی)</td></tr>
+      <tr><td>OPERATOR</td><td><code>09000000008</code></td><td>وب (ساعتی)</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">راهنمای کامل + workspace + Linux deploy + APK: <a href="demo-users-and-deploy-fa.md">demo-users-and-deploy-fa.md</a></p>
+</section>
+
+<section class="panel" id="deploy">
+  <h2>۴.۶ استقرار Linux + APK (خلاصه)</h2>
+  <ol>
+    <li>Node 20 + Postgres + nginx + certbot</li>
+    <li><code>git clone</code> → <code>npm install</code> → <code>db:migrate</code> → <code>db:seed</code> (staging)</li>
+    <li><code>npm -w @app/backend run build</code> + systemd</li>
+    <li><code>VITE_API_BASE=https://api.your.domain/api</code> → <code>npm -w @app/web run build</code></li>
+    <li>Smoke: <code>test:pilot-taftan1</code></li>
+    <li>APK: <code>flutter build apk --dart-define=API_BASE_URL=https://api.your.domain</code></li>
+  </ol>
+  <p>جزئیات: <a href="deploy-runbook-fa.md">deploy-runbook-fa.md</a> · <a href="demo-users-and-deploy-fa.md">demo-users-and-deploy-fa.md §۴–۵</a></p>
+</section>
+
+<section class="panel" id="remaining">
+  <h2>۵. کارهای باقی‌مانده</h2>
+  <p class="info">هر کارت: کپی پرامپت در چت Cursor جدید. پرامپت‌های بلند: <a href="mvp-task-prompts-pro-fa.html">mvp-task-prompts-pro-fa.html</a></p>
+
+  <ul class="tasks">
+
+    <li class="task" id="fin-seed-99-1">
+      <div class="title"><span class="badge done">✓</span> FIN-SEED-99-1 — Seed پایلوت 99/1 <span class="priority p0">P0</span></div>
+      <p><strong>وضعیت:</strong> انجام شد — <code>TAFTAN_PLATFORM_FEE_VALUE=0.01</code> در seed + assert pilot-taftan 99/1</p>
+      <p><strong>فایل‌ها:</strong> <code>apps/backend/scripts/seedConstants.ts</code>, <code>seed.ts</code>, <code>test-pilot-taftan1.ts</code></p>
+      <p><strong>تست:</strong> <code>npm -w @app/backend run test:pilot-taftan1</code></p>
+    </li>
+
+    <li class="task" id="hold-settlement-1">
+      <div class="title"><span class="badge done">✓</span> HOLD-SETTLEMENT-1 — فیلتر HELD از settlement <span class="priority p0">P0</span></div>
+      <p><strong>وضعیت:</strong> انجام شد — <code>settlementEligibility.ts</code> + فیلتر در monthlyClose/ownerWeeklyClose</p>
+      <p><strong>فایل‌ها:</strong> <code>apps/backend/src/lib/settlementEligibility.ts</code>, <code>settlementRepository.ts</code></p>
+      <p><strong>تست:</strong> <code>npm -w @app/backend run test:hold-settlement1</code></p>
+    </li>
+
+    <li class="task" id="wb-local-agent-1">
+      <div class="title">WB-LOCAL-AGENT-1 — Local Agent باسکول <span class="priority p1">P2</span></div>
+      <p><strong>وضعیت:</strong> ⏸️ فاز بعد — scaffold در <code>apps/weighbridge-agent/</code> · ingest API ✓</p>
+      <p><strong>فاز ۱ (قفل):</strong> COOP_OPERATOR وزن را در <strong>پنل وب</strong> دستی وارد می‌کند — همین برای UAT کافی است.</p>
+      <p><strong>فعال‌سازی بعداً:</strong> وقتی spec باسکول + تمایل معدن بود → Serial/TCP + deploy Agent کنار باسکول.</p>
+    </li>
+
+    <li class="task" id="deploy-sahman-1">
+      <div class="title">DEPLOY-SAHMAN-1 — استقرار production <span class="priority p0">P0</span></div>
+      <p><strong>وضعیت:</strong> ⏳ منتظر اجرای runbook</p>
+      <p><strong>چرا مهم:</strong> UAT میدانی بدون HTTPS و SMS واقعی (یا staging documented) ممکن نیست.</p>
+      <p><strong>فایل‌ها:</strong> <code>docs/deploy-runbook-fa.md</code></p>
+      <pre class="prompt">این تسک DEPLOY-SAHMAN-1 را انجام بده. docs/deploy-runbook-fa.md را روی Liara/VPS اجرا کن.
+DNS: sahman.ir, panel, api. env production. Smoke: uat-handover-checklist §۳.</pre>
+    </li>
+
+    <li class="task" id="client-data-pilot-1">
+      <div class="title">CLIENT-DATA-PILOT-1 — داده پایلوت (gate کارفرما) <span class="priority p0">P0</span></div>
+      <p><strong>وضعیت:</strong> ⏳ gate — placeholder 400k ریال/تن</p>
+      <p><strong>تحویل:</strong> عدد Community، IBAN تعاونی، روستاها، spec باسکول، لیست کاربران — § client-message</p>
+    </li>
+
+    <li class="task" id="natid-checksum-reg-1">
+      <div class="title"><span class="badge done">✓</span> NATID-CHECKSUM-REG-1 — checksum ثبت خانوار <span class="priority p1">P1</span></div>
+      <p><strong>وضعیت:</strong> انجام شد — <code>POST /households/register</code></p>
+    </li>
+
+    <li class="task" id="brand-sahman-1">
+      <div class="title">BRAND-SAHMAN-1 — برند «سهمان» <span class="priority p1">P1</span></div>
+      <p><strong>وضعیت:</strong> ⏳ منتظر تأیید نام و دامنه</p>
+    </li>
+
+    <li class="task" id="dispatch-auto-pilot-1">
+      <div class="title">DISPATCH-AUTO-PILOT-1 — manual vs auto <span class="priority p1">P1</span></div>
+      <p><strong>وضعیت:</strong> ⏳ پیش‌فرض manual — تصمیم کارفرما</p>
+    </li>
+
+    <li class="task" id="tenant-rls-1">
+      <div class="title">TENANT-RLS-1 — RLS Postgres <span class="priority p3">P3</span></div>
+      <p><strong>وضعیت:</strong> فاز ۱.۵ — خارج blocker پایلوت</p>
+    </li>
+
+    <li class="task" id="driver-avail-1">
+      <div class="title">DRIVER-AVAIL-1 — اعلام آمادگی راننده <span class="priority p3">P3</span></div>
+      <p><strong>وضعیت:</strong> خارج Freeze فاز ۱</p>
+    </li>
+  </ul>
+</section>
+
+<section class="panel" id="testing">
+  <h2>۶. دستور تست جامع</h2>
+  <pre class="prompt">cd D:\Workspace\logestic
+docker compose up -d postgres
+npm install
+npm -w @app/backend run db:migrate
+npm -w @app/backend run db:seed
+npm run test:infra-regression
+npm run test:comm-ton1
+npm run test:fin-policy1
+npm run test:invoice-draft1
+npm -w @app/backend run test:pilot-taftan1
+npm -w @app/backend run test:hold-settlement1
+npm -w @app/web run test:e2e -- uat-haul
+npm -w @app/backend run test:comm-app1</pre>
+  <p class="good">پس از FIN-SEED-99-1: pilot-taftan باید 99/1 assert کند ✓</p>
+  <p class="good">پس از HOLD-SETTLEMENT-1: test:hold-settlement1 در infra-regression:finance ✓</p>
+</section>
+
+<section class="panel client-box" id="client-message">
+  <h2>۷. متن آماده برای کارفرما (کپی واتساپ/ایمیل)</h2>
+
+  <h3>چیزهایی که قفل شد</h3>
+  <ul>
+    <li>مدل مالی Dual Economy: کرایه 99/1 جدا از Community (تن × مبلغ ثابت قرارداد)</li>
+    <li>حمل-only فاز ۱ — ساعتی پیچیده فاز بعد</li>
+    <li>HSA: Draft اتومات + تأیید/قفل انسانی قبل از پرداخت معدن</li>
+  </ul>
+
+  <h3>چیزهایی که از شما لازم داریم (۱۱ مورد)</h3>
+  <ol>
+    <li>عدد نهایی <strong>مبلغ Community به ازای هر تن</strong> (الان placeholder 400,000 ریال)</li>
+    <li>نام رسمی تعاونی + <strong>IBAN حساب رسمی</strong></li>
+    <li>مسئول عملیات/تحویل + <strong>تاریخ هدف UAT</strong></li>
+    <li>لیست روستاهای مصوب (Excel یا نقشه)</li>
+    <li>مشخصات باسکول (فقط اگر بعداً Agent خواستید — فعلاً دستی OK)</li>
+    <li>لیست کاربران پایلوت (موبایل + نقش)</li>
+    <li>تأیید برند «سهمان» و دامنه‌ها (title، SMS، legal)</li>
+    <li>Dispatch پایلوت: دستی کافی است یا از روز اول auto؟</li>
+    <li>تسویه هفتگی مالک: در UAT اول فعال شود؟</li>
+    <li>Community Fund: ثبت «رسید بانک» در UI لازم است؟</li>
+    <li>دسترسی سرور/DNS برای deploy (یا تأیید Staging ما)</li>
+  </ol>
+
+  <h3>پیشنهاد ما</h3>
+  <ul>
+    <li>اول Staging با SMS mock — بعد production با SMS واقعی</li>
+    <li>backup هفتگی Postgres از روز اول</li>
+    <li>UAT مالی کامل بعد از دریافت عدد قرارداد Community</li>
+  </ul>
+
+  <h3>پاسخ به نگرانی شفافیت تعاونی</h3>
+  <p>سیستم audit log، صورت‌وضعیت قفل‌شده، و تقسیم مساوی snapshot دارد. رأی‌گیری/حکمرانی سنگین عمداً فاز بعد است تا پایلوت سریع و قابل اندازه‌گیری بماند.</p>
+
+  <p class="muted">برگه تحویل: <a href="gozaresh-tahvil-karfarma-mvp-fa.html">gozaresh-tahvil-karfarma-mvp-fa.html</a></p>
+</section>
+
+<section class="panel" id="done-archive">
+  <h2>۸. انجام‌شده (آرشیو)</h2>
+  <p>~۴۵+ کارت ✓ — جزئیات کامل: <a href="mvp-flow-chat-master-report-fa-v3.html#done">گزارش v3 § done</a> و <a href="mvp-task-prompts-pro-fa.html#tasks-done">پرامپت‌ها § انجام‌شده</a>.</p>
+  <p class="muted">نمونه: COMM-TON-1, SVC-CONTRACT-1, INVOICE-DRAFT-1, PILOT-TAFTAN-1, SET-CYCLE-1, RECEIPT-PDF-1, WS-DUAL-ROLE-1, WB-INT-1, GOV-WORKFLOW-1, E2E-UAT-HAUL-1, …</p>
+</section>
+
+<footer class="muted" style="text-align:center;padding:24px 0">
+  logestic MVP Master Report v4 · <a href="demo-users-and-deploy-fa.md">کاربران + Deploy + APK</a> ·
+  <a href="uat-handover-checklist-fa.md">UAT checklist</a> ·
+  <a href="deploy-runbook-fa.md">Deploy runbook</a>
+</footer>
+
+</div>
+</body>
+</html>

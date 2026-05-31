@@ -1,4 +1,12 @@
 import type { Household, FleetOwner } from "./entitiesStore";
+import * as rateCardsRepo from "../repositories/rateCardsRepository";
+import type { RateCardMvp, RateCardOperationType } from "../repositories/rateCardsRepository";
+import * as walletsRepo from "../repositories/walletsRepository";
+import * as communityPoolsRepo from "../repositories/communityPoolsRepository";
+import * as ledgerRepo from "../repositories/financeLedgerRepository";
+import { prisma } from "../db/prisma";
+import { ruleEngine } from "../services/ruleEngine";
+import { resolveTonnageFare } from "../services/serviceContractFareService";
 
 export type WalletType = "OWNER" | "HOUSEHOLD" | "PLATFORM";
 
@@ -6,315 +14,226 @@ export type Wallet = {
   id: number;
   wallet_type: WalletType;
   owner_user_id?: number;
-  owner_id?: number; // fleet_owner.id
+  owner_id?: number;
   household_user_id?: number;
-  household_id?: number; // household.id
+  household_id?: number;
   active: boolean;
 };
 
-export type Transaction = {
-  id: number;
-  wallet_id: number;
-  mission_id?: number;
-  amount: number;
-  type: "CREDIT" | "DEBIT";
-  description?: string;
-  created_at: Date;
-};
+export type Transaction = walletsRepo.TransactionRow;
 
-export type HouseholdShare = {
-  id: number;
-  household_id: number;
-  mission_id?: number;
-  hourly_log_id?: number;
-  amount: number;
-  created_at: Date;
-};
+export type RateCard = RateCardMvp;
 
-export type RateCard = {
-  operation_type: "HAULING_TONNAGE";
-  material_type: string;
-  unit_type: "TON";
-  rate: number; // per ton
-  effectiveFrom: string; // ISO date
-  status: "ACTIVE";
-};
+export type CommunityPoolStatus = "OPEN" | "SNAPSHOT_LOCKED" | "DISTRIBUTED";
+
+export type CommunityPoolPeriod = communityPoolsRepo.CommunityPoolRow;
 
 export class FinanceStore {
-  private wallets: Wallet[] = [];
-  private transactions: Transaction[] = [];
-  private shares: HouseholdShare[] = [];
+  private rateCards: RateCard[] = [];
 
-  private idSeq = 1;
-
-  // MVP fixed rate card seed (can be replaced with DB seed later)
-  private rateCards: RateCard[] = [
-    {
-      operation_type: "HAULING_TONNAGE",
-      material_type: "ORE",
-      unit_type: "TON",
-      rate: 12000,
-      effectiveFrom: "2026-01-01",
-      status: "ACTIVE",
-    },
-  ];
-
-  getRateCard(operation_type: "HAULING_TONNAGE", material_type: string) {
-    return this.rateCards.find((r) => r.operation_type === operation_type && r.material_type === material_type && r.status === "ACTIVE") ?? null;
-  }
-
-  computeFareTonnage(quantity_tons: number, material_type: string) {
-    const card = this.getRateCard("HAULING_TONNAGE", material_type);
-    if (!card) throw new Error(`Missing rate card for ${material_type}`);
-    return quantity_tons * card.rate;
-  }
-
-  private getOrCreateWalletForOwner(fleetOwner: FleetOwner) {
-    let w = this.wallets.find((x) => x.wallet_type === "OWNER" && x.owner_id === fleetOwner.id);
-    if (w) return w;
-    w = {
-      id: this.idSeq++,
-      wallet_type: "OWNER",
-      owner_id: fleetOwner.id,
-      owner_user_id: fleetOwner.user_id,
-      active: fleetOwner.status === "APPROVED",
-    };
-    this.wallets.push(w);
-    return w;
-  }
-
-  private getOrCreateWalletForHousehold(h: Household) {
-    let w = this.wallets.find((x) => x.wallet_type === "HOUSEHOLD" && x.household_id === h.id);
-    if (w) return w;
-    w = {
-      id: this.idSeq++,
-      wallet_type: "HOUSEHOLD",
-      household_id: h.id,
-      household_user_id: h.user_id,
-      active: h.status === "APPROVED",
-    };
-    this.wallets.push(w);
-    return w;
-  }
-
-  private getPlatformWallet() {
-    let w = this.wallets.find((x) => x.wallet_type === "PLATFORM");
-    if (w) return w;
-    w = { id: this.idSeq++, wallet_type: "PLATFORM", active: true };
-    this.wallets.push(w);
-    return w;
-  }
-
-  creditMissionShares(params: {
-    mission_id: number;
-    owner: FleetOwner;
-    household: Household;
-    material_type: string;
-    quantity_tons: number;
-  }) {
-    const totalFare = this.computeFareTonnage(params.quantity_tons, params.material_type);
-    const ownerAmount = totalFare * 0.85;
-    const householdAmount = totalFare * 0.13;
-    const platformAmount = totalFare * 0.02;
-
-    const ownerWallet = this.getOrCreateWalletForOwner(params.owner);
-    const householdWallet = this.getOrCreateWalletForHousehold(params.household);
-    const platformWallet = this.getPlatformWallet();
-
-    // Create 3 CREDIT transactions
-    if (ownerWallet.active) {
-      this.transactions.push({
-        id: this.idSeq++,
-        wallet_id: ownerWallet.id,
-        mission_id: params.mission_id,
-        amount: ownerAmount,
-        type: "CREDIT",
-        description: "MISSION_CREDIT_OWNER",
-        created_at: new Date(),
-      });
-    }
-
-    if (householdWallet.active) {
-      this.transactions.push({
-        id: this.idSeq++,
-        wallet_id: householdWallet.id,
-        mission_id: params.mission_id,
-        amount: householdAmount,
-        type: "CREDIT",
-        description: "MISSION_CREDIT_HOUSEHOLD",
-        created_at: new Date(),
-      });
-
-      this.shares.push({
-        id: this.idSeq++,
-        household_id: params.household.id,
-        mission_id: params.mission_id,
-        amount: householdAmount,
-        created_at: new Date(),
-      });
-    }
-
-    this.transactions.push({
-      id: this.idSeq++,
-      wallet_id: platformWallet.id,
-      mission_id: params.mission_id,
-      amount: platformAmount,
-      type: "CREDIT",
-      description: "MISSION_CREDIT_PLATFORM",
-      created_at: new Date(),
-    });
-
-    return { totalFare, ownerAmount, householdAmount, platformAmount };
-  }
-
-  creditHourlyShares(params: {
-    mission_id?: number;
-    hourly_log_id?: number;
-    owner: FleetOwner;
-    household: Household;
-    hours: number;
-    hourly_rate: number;
-  }) {
-    const totalFare = params.hours * params.hourly_rate;
-    const ownerAmount = totalFare * 0.85;
-    const householdAmount = totalFare * 0.13;
-    const platformAmount = totalFare * 0.02;
-
-    const ownerWallet = this.getOrCreateWalletForOwner(params.owner);
-    const householdWallet = this.getOrCreateWalletForHousehold(params.household);
-    const platformWallet = this.getPlatformWallet();
-
-    const mid = params.mission_id;
-
-    if (ownerWallet.active) {
-      this.transactions.push({
-        id: this.idSeq++,
-        wallet_id: ownerWallet.id,
-        mission_id: mid,
-        amount: ownerAmount,
-        type: "CREDIT",
-        description: "HOURLY_CREDIT_OWNER",
-        created_at: new Date(),
-      });
-    }
-
-    if (householdWallet.active) {
-      this.transactions.push({
-        id: this.idSeq++,
-        wallet_id: householdWallet.id,
-        mission_id: mid,
-        amount: householdAmount,
-        type: "CREDIT",
-        description: "HOURLY_CREDIT_HOUSEHOLD",
-        created_at: new Date(),
-      });
-
-      this.shares.push({
-        id: this.idSeq++,
-        household_id: params.household.id,
-        hourly_log_id: params.hourly_log_id,
-        amount: householdAmount,
-        created_at: new Date(),
-      });
-    }
-
-    this.transactions.push({
-      id: this.idSeq++,
-      wallet_id: platformWallet.id,
-      mission_id: mid,
-      amount: platformAmount,
-      type: "CREDIT",
-      description: "HOURLY_CREDIT_PLATFORM",
-      created_at: new Date(),
-    });
-
-    return { totalFare, ownerAmount, householdAmount, platformAmount };
-  }
-
-  /**
-   * Correction after weighbridge/mission fare change (delta on total fare).
-   */
-  applyTonnageFareDelta(params: {
-    mission_id: number;
-    owner: FleetOwner;
-    household: Household;
-    delta_total_fare: number;
-  }) {
-    const d = params.delta_total_fare;
-    if (d === 0) return { deltaOwner: 0, deltaHousehold: 0, deltaPlatform: 0 };
-
-    const ownerAmount = d * 0.85;
-    const householdAmount = d * 0.13;
-    const platformAmount = d * 0.02;
-
-    const ownerWallet = this.getOrCreateWalletForOwner(params.owner);
-    const householdWallet = this.getOrCreateWalletForHousehold(params.household);
-    const platformWallet = this.getPlatformWallet();
-
-    const typeFor = (amt: number): "CREDIT" | "DEBIT" => (amt >= 0 ? "CREDIT" : "DEBIT");
-    const abs = (amt: number) => Math.abs(amt);
-
-    if (ownerWallet.active && ownerAmount !== 0) {
-      this.transactions.push({
-        id: this.idSeq++,
-        wallet_id: ownerWallet.id,
-        mission_id: params.mission_id,
-        amount: abs(ownerAmount),
-        type: typeFor(ownerAmount),
-        description: "MISSION_FARE_ADJUSTMENT_OWNER",
-        created_at: new Date(),
-      });
-    }
-    if (householdWallet.active && householdAmount !== 0) {
-      this.transactions.push({
-        id: this.idSeq++,
-        wallet_id: householdWallet.id,
-        mission_id: params.mission_id,
-        amount: abs(householdAmount),
-        type: typeFor(householdAmount),
-        description: "MISSION_FARE_ADJUSTMENT_HOUSEHOLD",
-        created_at: new Date(),
-      });
-    }
-    if (platformAmount !== 0) {
-      this.transactions.push({
-        id: this.idSeq++,
-        wallet_id: platformWallet.id,
-        mission_id: params.mission_id,
-        amount: abs(platformAmount),
-        type: typeFor(platformAmount),
-        description: "MISSION_FARE_ADJUSTMENT_PLATFORM",
-        created_at: new Date(),
-      });
-    }
-
-    return { deltaOwner: ownerAmount, deltaHousehold: householdAmount, deltaPlatform: platformAmount };
+  async hydrateRateCards() {
+    this.rateCards = await rateCardsRepo.listActiveRateCards();
   }
 
   listRateCards() {
     return this.rateCards.slice();
   }
 
-  getTransactionsForWallet(walletId: number) {
-    return this.transactions.filter((t) => t.wallet_id === walletId).sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+  async resolveActiveRate(
+    mine_id: number,
+    operation_type: RateCardOperationType,
+    material_type: string,
+    at = new Date(),
+  ) {
+    return rateCardsRepo.getActiveRateCard(mine_id, operation_type, material_type, at);
   }
 
-  findWalletForOwner(ownerId: number) {
-    return this.wallets.find((w) => w.wallet_type === "OWNER" && w.owner_id === ownerId) ?? null;
+  async getHourlyRate(mine_id: number, at = new Date()) {
+    const card = await rateCardsRepo.getActiveHourlyRateCard(mine_id, at);
+    if (!card) return null;
+    return { rate: card.rate, material_type: card.material_type, rate_card_id: card.id };
   }
 
-  findWalletForHousehold(householdId: number) {
-    return this.wallets.find((w) => w.wallet_type === "HOUSEHOLD" && w.household_id === householdId) ?? null;
+  async computeFareTonnage(
+    quantity_tons: number,
+    material_type: string,
+    mine_id = 1,
+    cooperative_id?: number,
+    at = new Date(),
+  ) {
+    const fare = await resolveTonnageFare({
+      mine_id,
+      cooperative_id,
+      material_type,
+      quantity_tons,
+      at,
+    });
+    return {
+      totalFare: fare.totalFare,
+      rate: fare.rate,
+      rate_card_id: fare.rate_card_id,
+    };
   }
 
-  // For UI
-  getWalletBalance(walletId: number) {
-    const txs = this.transactions.filter((t) => t.wallet_id === walletId);
-    let balance = 0;
-    for (const t of txs) {
-      balance += t.type === "CREDIT" ? t.amount : -t.amount;
+  private periodKey(at = new Date(), mine_id?: number, cooperative_id?: number) {
+    return ruleEngine.getPeriodKey(at, { mineId: mine_id, cooperativeId: cooperative_id });
+  }
+
+  async creditMissionShares(
+    params: {
+      mission_id: number;
+      mine_id: number;
+      owner: FleetOwner;
+      household: Household;
+      material_type: string;
+      quantity_tons: number;
+      verified_net_tons_kg: number;
+      at?: Date;
+    },
+    tx?: import("@prisma/client").Prisma.TransactionClient,
+  ) {
+    const fare = await this.computeFareTonnage(
+      params.quantity_tons,
+      params.material_type,
+      params.mine_id,
+      params.household.cooperative_id,
+      params.at,
+    );
+    const period_key = await this.periodKey(params.at, params.mine_id, params.household.cooperative_id);
+    const splitParams = {
+      mission_id: params.mission_id,
+      mine_id: params.mine_id,
+      period_key,
+      totalFare: fare.totalFare,
+      verified_net_tons_kg: params.verified_net_tons_kg,
+      owner_id: params.owner.id,
+      household_id: params.household.id,
+      owner_active: params.owner.status === "APPROVED",
+      household_active: params.household.status === "APPROVED",
+      at: params.at,
+      cooperative_id: params.household.cooperative_id,
+    };
+    const ledger = tx
+      ? await ledgerRepo.applyMissionSplitInTx(tx, splitParams)
+      : await ledgerRepo.runMissionSplitTransaction(splitParams);
+    return { ...ledger, rate: fare.rate, rate_card_id: fare.rate_card_id, totalFare: fare.totalFare };
+  }
+
+  async creditHourlyShares(
+    params: {
+      mission_id?: number;
+      mine_id: number;
+      hourly_log_id: number;
+      owner: FleetOwner;
+      household: Household;
+      hours: number;
+      hourly_rate?: number;
+      at?: Date;
+    },
+    tx?: import("@prisma/client").Prisma.TransactionClient,
+  ) {
+    let hourlyRate = params.hourly_rate;
+    let rateCardId: number | undefined;
+    if (hourlyRate == null) {
+      const card = await rateCardsRepo.getActiveHourlyRateCard(params.mine_id, params.at ?? new Date());
+      if (!card) throw new Error("no_valid_rate_card");
+      hourlyRate = card.rate;
+      rateCardId = card.id;
     }
-    return balance;
+    const totalFare = params.hours * hourlyRate;
+    const period_key = await this.periodKey(params.at, params.mine_id, params.household.cooperative_id);
+    const splitParams = {
+      mission_id: params.mission_id,
+      mine_id: params.mine_id,
+      hourly_work_log_id: params.hourly_log_id,
+      period_key,
+      totalFare,
+      owner_id: params.owner.id,
+      owner_active: params.owner.status === "APPROVED",
+      at: params.at,
+      cooperative_id: params.household.cooperative_id,
+    };
+    const ledger = tx
+      ? await ledgerRepo.applyHourlySplitInTx(tx, splitParams)
+      : await prisma.$transaction((inner) => ledgerRepo.applyHourlySplitInTx(inner, splitParams));
+    return { ...ledger, rate: hourlyRate, rate_card_id: rateCardId, totalFare };
+  }
+
+  async applyTonnageFareDelta(params: {
+    mission_id: number;
+    mine_id: number;
+    owner: FleetOwner;
+    household: Household;
+    delta_total_fare: number;
+    delta_verified_net_kg?: number;
+  }) {
+    const period_key = await this.periodKey(undefined, params.mine_id, params.household.cooperative_id);
+    return prisma.$transaction((tx) =>
+      ledgerRepo.applyFareDeltaInTx(tx, {
+        mission_id: params.mission_id,
+        mine_id: params.mine_id,
+        period_key,
+        delta_total_fare: params.delta_total_fare,
+        delta_verified_net_kg: params.delta_verified_net_kg,
+        owner_id: params.owner.id,
+        household_id: params.household.id,
+        owner_active: params.owner.status === "APPROVED",
+        household_active: params.household.status === "APPROVED",
+        cooperative_id: params.household.cooperative_id,
+      }),
+    );
+  }
+
+  listCommunityPools() {
+    return communityPoolsRepo.listCommunityPools();
+  }
+
+  lockCommunityPoolSnapshot(params: { period_key: string; mine_id: number; household_ids: number[] }) {
+    return communityPoolsRepo.lockPoolSnapshot(params.period_key, params.mine_id, params.household_ids);
+  }
+
+  distributeCommunityPool(poolId: number, at?: Date) {
+    return communityPoolsRepo.distributePool(poolId, at);
+  }
+
+  /** SET-1 monthly-close: snapshot APPROVED households at month-end, then distribute pool. */
+  async monthlyClosePool(params: { mine_id: number; year: number; month: number }) {
+    const monthEnd = new Date(Date.UTC(params.year, params.month, 0, 23, 59, 59, 999));
+    const period_key = await this.periodKey(monthEnd, params.mine_id);
+    const pool = await communityPoolsRepo.findPoolByMinePeriod(params.mine_id, period_key);
+    if (!pool) return { ok: false as const, reason: "pool_not_found" };
+    return communityPoolsRepo.distributePool(pool.id, monthEnd);
+  }
+
+  getTransactionsForWallet(walletId: number, params?: { mine_id?: number }) {
+    return walletsRepo.getTransactionsForWallet(walletId, params);
+  }
+
+  async findWalletForOwner(ownerId: number, ownerUserId?: number, active = true): Promise<Wallet | null> {
+    const w = await walletsRepo.findWalletForOwner(ownerId);
+    if (!w) return null;
+    return {
+      id: w.id,
+      wallet_type: w.wallet_type as WalletType,
+      owner_id: w.owner_id,
+      owner_user_id: ownerUserId,
+      active,
+    };
+  }
+
+  async findWalletForHousehold(householdId: number, householdUserId?: number, active = true): Promise<Wallet | null> {
+    const w = await walletsRepo.findWalletForHousehold(householdId);
+    if (!w) return null;
+    return {
+      id: w.id,
+      wallet_type: w.wallet_type as WalletType,
+      household_id: w.household_id,
+      household_user_id: householdUserId,
+      active,
+    };
+  }
+
+  getWalletBalance(walletId: number, params?: { mine_id?: number }) {
+    return walletsRepo.getWalletBalance(walletId, params);
   }
 }
-

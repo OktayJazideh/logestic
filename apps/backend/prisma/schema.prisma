@@ -9,15 +9,27 @@ datasource db {
 
 enum UserRole {
   ADMIN
-  COOP
-  EMPLOYER
+  OPERATION_ADMIN
+  COOP_ADMIN
+  COOP_OPERATOR
+  OPERATOR
+  CONSULTANT
   DRIVER
   FLEET_OWNER
   HOUSEHOLD
-  CONSULTANT
+  COOP
+  EMPLOYER
 }
 
 enum HouseholdStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+  NEEDS_CORRECTION
+}
+
+enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
@@ -33,23 +45,32 @@ enum LoadStatus {
 }
 
 enum MissionStatus {
+  CREATED
   ASSIGNED
-  LOADING
-  ON_THE_WAY
-  UNLOADING
-  COMPLETED
-  APPROVED
-  REJECTED
-  CANCELED
+  ACCEPTED
+  ARRIVED
+  LOADED
+  IN_TRANSIT
+  DELIVERED
+  VERIFIED
+  SETTLED
+  CANCELLED
 }
 
 enum WeighbridgeTicketStatus {
   PENDING_EMPTY
   EMPTY_REGISTERED
   LOADED_REGISTERED
+  PENDING_HOLD
   APPROVED
   REJECTED
   ADJUSTED
+}
+
+enum WeighbridgeManualReason {
+  SCALE_DOWN
+  NETWORK
+  OTHER
 }
 
 enum MissionPaymentState {
@@ -62,6 +83,8 @@ enum MissionPaymentState {
 }
 
 enum HourlyWorkLogStatus {
+  STARTED
+  ENDED
   PENDING
   APPROVED
   REJECTED
@@ -69,9 +92,28 @@ enum HourlyWorkLogStatus {
 
 enum SettlementBatchStatus {
   DRAFT
+  CALCULATED
+  READY_FOR_SETTLEMENT
+  IN_BANK_QUEUE
+  SETTLED
+  FAILED
+  MANUAL_REVIEW
+  CANCELLED
   LOCKED
   PAID
-  CANCELLED
+}
+
+/// SET-CYCLE-1: dual settlement cycles — owner weekly vs household monthly vs legacy combined close.
+enum SettlementBatchType {
+  OWNER_WEEKLY
+  HOUSEHOLD_MONTHLY
+  COMBINED_LEGACY
+}
+
+enum CommunityPoolStatus {
+  OPEN
+  SNAPSHOT_LOCKED
+  DISTRIBUTED
 }
 
 enum PaymentPayoutStatus {
@@ -81,10 +123,45 @@ enum PaymentPayoutStatus {
   FAILED
 }
 
+enum ReconciliationIssueStatus {
+  OPEN
+  RESOLVED
+}
+
 enum WeighbridgeAdjustmentStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum CooperativeStatus {
+  PENDING_KYC
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum PeriodStatementStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  LOCKED
+}
+
+enum ObjectionStatus {
+  PENDING
+  RESOLVED
+}
+
+enum WorkspaceMembershipStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum OperationNeedStatus {
+  PENDING
+  DISPATCHED
+  CANCELLED
 }
 
 enum WalletType {
@@ -96,52 +173,225 @@ enum WalletType {
 enum TransactionType {
   CREDIT
   DEBIT
+  POOL_DISTRIBUTION
+}
+
+enum FundType {
+  OPERATIONAL
+  PLATFORM_REVENUE
+  COMMUNITY_RESTRICTED
+}
+
+enum ServiceContractUnit {
+  TON
+  LITER
+  HOUR
+  COUNT
+}
+
+enum ServiceContractStatus {
+  DRAFT
+  ACTIVE
+  SUPERSEDED
+}
+
+enum LedgerLane {
+  OPERATIONAL_LEDGER
+  PLATFORM_LEDGER
+  COMMUNITY_LEDGER
 }
 
 model users {
-  id            BigInt @id @default(autoincrement())
-  mobile_number String @unique
-  password_hash String
-  role          UserRole
-  is_active     Boolean @default(true)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id              BigInt @id @default(autoincrement())
+  mobile_number   String @unique
+  password_hash   String
+  role            UserRole
+  cooperative_id  BigInt?
+  is_active       Boolean @default(true)
+  is_weighbridge_operator Boolean @default(false)
+  deleted_at      DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
-  households  households?
-  drivers     drivers?
-  fleet_owners fleet_owners?
+  cooperative     cooperatives? @relation(fields: [cooperative_id], references: [id])
+  sessions        sessions[]
+  households      households?
+  drivers         drivers?
+  fleet_owners    fleet_owners?
   consultant_hourly_logs hourly_work_logs[] @relation("HourlyLogConsultant")
+  rejected_hourly_logs hourly_work_logs[] @relation("HourlyLogRejector")
+  operation_needs operation_needs[]
+  rate_cards_created rate_cards[] @relation("RateCardCreator")
+  finance_rules_created finance_rules[] @relation("FinanceRuleCreator")
+  service_contracts_created service_contracts[] @relation("ServiceContractCreator")
+  notifications   notifications[]
+  notification_preferences notification_preferences?
+  workspace_memberships user_workspace_memberships[]
+  objections_reported membership_objections[] @relation("ObjectionReporter")
+  objections_resolved membership_objections[] @relation("ObjectionResolver")
+  household_approvals household_approvals[]
+
+  @@index([cooperative_id])
+  @@index([deleted_at])
+}
+
+model user_workspace_memberships {
+  id                  BigInt                    @id @default(autoincrement())
+  user_id             BigInt
+  mine_id             BigInt
+  cooperative_id      BigInt?
+  role_in_workspace   UserRole
+  status              WorkspaceMembershipStatus @default(ACTIVE)
+  created_at          DateTime                  @default(now())
+  updated_at          DateTime                  @updatedAt
+
+  user         users          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  mine         mines          @relation(fields: [mine_id], references: [id], onDelete: Cascade)
+  cooperative  cooperatives?  @relation(fields: [cooperative_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, status])
+  @@index([mine_id])
+}
+
+model sessions {
+  token      String   @id
+  user_id    BigInt
+  mine_id    BigInt?
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([expires_at])
+}
+
+model otps {
+  mobile_number     String    @id
+  otp_code          String
+  expires_at        DateTime
+  attempts_left     Int       @default(3)
+  verified_at       DateTime?
+  rate_window_start DateTime?
+  rate_count        Int       @default(0)
+  updated_at        DateTime  @updatedAt
+}
+
+model cooperatives {
+  id                   BigInt            @id @default(autoincrement())
+  mine_id              BigInt
+  name                 String
+  national_id          String?           @unique
+  registration_number  String?
+  charter_file_url     String?
+  ceo_name             String?
+  board_members        Json?
+  activity_scope       String?
+  geo_area             String?
+  iban                 String?
+  settings_json        Json?
+  status               CooperativeStatus @default(PENDING_KYC)
+  deleted_at           DateTime?
+  created_at           DateTime          @default(now())
+  updated_at           DateTime          @updatedAt
+
+  mine        mines @relation(fields: [mine_id], references: [id])
+  users       users[]
+  households  households[]
+  drivers     drivers[]
+  fleet_owners fleet_owners[]
+  vehicles    vehicles[]
+  rate_cards  rate_cards[]
+  finance_rules finance_rules[]
+  service_contracts service_contracts[]
+  workspace_memberships user_workspace_memberships[]
+  membership_objections membership_objections[]
+  period_statements period_statements[]
+
+  @@index([mine_id])
+  @@index([deleted_at])
 }
 
 model mines {
-  id                     BigInt @id @default(autoincrement())
-  mine_code              String @unique
-  name                    String
-  location_coordinates    String?
-  created_at             DateTime @default(now())
-  updated_at             DateTime @updatedAt
+  id                              BigInt   @id @default(autoincrement())
+  mine_code                       String   @unique
+  name                            String
+  location_coordinates            String?
+  // Nullable → finance_rules; new mines use DEFAULT_PLATFORM_FEE_VALUE (0.01) in app
+  platform_fee_value              Decimal? @db.Decimal(8, 6)
+  allow_legacy_community_percent  Boolean  @default(false)
+  created_at                      DateTime @default(now())
+  updated_at                      DateTime @updatedAt
 
   villages villages[]
+  cooperatives cooperatives[]
   loads loads[]
   rate_cards rate_cards[]
   hourly_work_logs hourly_work_logs[]
   settlement_batches settlement_batches[]
+  community_pools community_pools[]
+  operation_needs operation_needs[]
+  finance_rules finance_rules[]
+  service_contracts service_contracts[]
+  kpi_snapshots kpi_snapshots[]
+  workspace_memberships user_workspace_memberships[]
+  period_statements period_statements[]
+}
+
+model service_contracts {
+  id                                   BigInt                @id @default(autoincrement())
+  mine_id                              BigInt
+  cooperative_id                       BigInt
+  operation_type_code                  String
+  unit                                 ServiceContractUnit
+  base_rate_rial                       Decimal               @db.Decimal(15, 2)
+  fixed_community_amount_rial_per_unit Decimal               @db.Decimal(15, 2)
+  rate_card_id                         BigInt?
+  valid_from                           DateTime
+  valid_to                             DateTime?
+  contract_version                     Int                   @default(1)
+  amendment_ref                        String?
+  status                               ServiceContractStatus @default(DRAFT)
+  signed_at_mine                       DateTime?
+  signed_at_coop                       DateTime?
+  created_by                           BigInt?
+  created_at                           DateTime              @default(now())
+  updated_at                           DateTime              @updatedAt
+
+  mine        mines         @relation(fields: [mine_id], references: [id])
+  cooperative cooperatives  @relation(fields: [cooperative_id], references: [id])
+  rate_card   rate_cards?   @relation(fields: [rate_card_id], references: [id])
+  creator     users?        @relation("ServiceContractCreator", fields: [created_by], references: [id])
+
+  @@index([mine_id, operation_type_code, status])
+  @@index([cooperative_id])
+  @@index([rate_card_id])
 }
 
 model rate_cards {
-  id             BigInt    @id @default(autoincrement())
-  mine_id        BigInt
-  material_type  String
-  rate_per_ton   Decimal   @db.Decimal(15, 4)
-  valid_from     DateTime
-  valid_to       DateTime?
-  created_at     DateTime  @default(now())
+  id               BigInt    @id @default(autoincrement())
+  mine_id          BigInt
+  cooperative_id   BigInt?
+  operation_type   String
+  material_type    String
+  unit_type        String
+  rate             Decimal   @db.Decimal(15, 4)
+  effective_from   DateTime
+  effective_to     DateTime?
+  status           String    @default("DRAFT")
+  created_by       BigInt?
+  deleted_at       DateTime?
+  created_at       DateTime  @default(now())
 
-  mine     mines      @relation(fields: [mine_id], references: [id])
-  missions missions[]
+  mine         mines          @relation(fields: [mine_id], references: [id])
+  cooperative  cooperatives?  @relation(fields: [cooperative_id], references: [id])
+  creator      users?         @relation("RateCardCreator", fields: [created_by], references: [id])
+  missions     missions[]
+  service_contracts service_contracts[]
 
   @@index([mine_id])
-  @@index([mine_id, material_type])
+  @@index([mine_id, operation_type, material_type, status])
+  @@index([deleted_at])
 }
 
 model villages {
@@ -154,71 +404,140 @@ model villages {
 
   mine        mines         @relation(fields: [mine_id], references: [id])
   households  households[]
+  operation_needs operation_needs[]
 
   @@index([mine_id])
 }
 
 model households {
-  id          BigInt @id @default(autoincrement())
-  user_id     BigInt @unique
-  village_id  BigInt
-  head_name   String
-  national_id String @unique
-  bank_iban   String?
-  quota_limit Int?
-  status      HouseholdStatus @default(PENDING)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id               BigInt @id @default(autoincrement())
+  user_id          BigInt @unique
+  village_id       BigInt
+  cooperative_id   BigInt?
+  head_name        String
+  national_id      String @unique
+  bank_iban        String?
+  quota_limit      Int?
+  status           HouseholdStatus @default(PENDING)
+  deleted_at       DateTime?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
 
-  user    users @relation(fields: [user_id], references: [id])
-  village villages @relation(fields: [village_id], references: [id])
-  loads   loads[]
-  wallets wallets[]
+  user             users @relation(fields: [user_id], references: [id])
+  village          villages @relation(fields: [village_id], references: [id])
+  cooperative      cooperatives? @relation(fields: [cooperative_id], references: [id])
+  loads            loads[]
+  wallets          wallets[]
   hourly_work_logs hourly_work_logs[]
+  membership_objections membership_objections[]
+  approvals             household_approvals[]
+
+  @@index([cooperative_id])
+  @@index([deleted_at])
+}
+
+model household_approvals {
+  id               BigInt   @id @default(autoincrement())
+  household_id     BigInt
+  approver_user_id BigInt
+  role             String   @db.VarChar(32)
+  approved_at      DateTime @default(now())
+
+  household households @relation(fields: [household_id], references: [id], onDelete: Cascade)
+  approver  users      @relation(fields: [approver_user_id], references: [id])
+
+  @@unique([household_id, approver_user_id])
+  @@index([household_id])
+}
+
+model membership_objections {
+  id                  BigInt          @id @default(autoincrement())
+  cooperative_id      BigInt
+  target_household_id BigInt
+  reporter_user_id    BigInt
+  reason              String
+  status              ObjectionStatus @default(PENDING)
+  resolved_by         BigInt?
+  resolution_reason   String?
+  created_at          DateTime        @default(now())
+
+  cooperative      cooperatives @relation(fields: [cooperative_id], references: [id])
+  target_household households   @relation(fields: [target_household_id], references: [id])
+  reporter         users        @relation("ObjectionReporter", fields: [reporter_user_id], references: [id])
+  resolver         users?       @relation("ObjectionResolver", fields: [resolved_by], references: [id])
+
+  @@index([cooperative_id, status])
+  @@index([target_household_id])
 }
 
 model fleet_owners {
-  id          BigInt @id @default(autoincrement())
-  user_id     BigInt @unique
-  full_name   String
-  national_id String @unique
-  bank_iban   String?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id                 BigInt         @id @default(autoincrement())
+  user_id            BigInt         @unique
+  cooperative_id     BigInt?
+  full_name          String
+  national_id        String         @unique
+  bank_iban          String?
+  status             ApprovalStatus @default(PENDING)
+  ownership_doc_url  String?
+  insurance_doc_url  String?
+  deleted_at         DateTime?
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @updatedAt
 
-  user users @relation(fields: [user_id], references: [id])
-  vehicles vehicles[]
-  missions missions[]
+  user         users          @relation(fields: [user_id], references: [id])
+  cooperative  cooperatives?  @relation(fields: [cooperative_id], references: [id])
+  vehicles     vehicles[]
+  missions     missions[]
   hourly_work_logs hourly_work_logs[]
-  wallets wallets[]
+  wallets      wallets[]
+
+  @@index([cooperative_id])
+  @@index([deleted_at])
 }
 
 model drivers {
-  id             BigInt @id @default(autoincrement())
-  user_id        BigInt @unique
-  full_name      String
-  license_number String?
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  id                BigInt         @id @default(autoincrement())
+  user_id           BigInt         @unique
+  cooperative_id    BigInt?
+  full_name         String
+  license_number    String?
+  license_file_url  String?
+  identity_file_url String?
+  status            ApprovalStatus @default(PENDING)
+  deleted_at        DateTime?
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
 
-  user users @relation(fields: [user_id], references: [id])
-  missions missions[]
+  user         users         @relation(fields: [user_id], references: [id])
+  cooperative  cooperatives? @relation(fields: [cooperative_id], references: [id])
+  missions     missions[]
+
+  @@index([cooperative_id])
+  @@index([deleted_at])
 }
 
 model vehicles {
-  id            BigInt @id @default(autoincrement())
-  owner_id      BigInt
-  license_plate String @unique
-  vehicle_type  String
-  capacity_tons Decimal @db.Decimal(5, 2)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id                BigInt         @id @default(autoincrement())
+  owner_id          BigInt
+  cooperative_id    BigInt?
+  license_plate     String         @unique
+  vehicle_type      String
+  capacity_tons     Decimal        @db.Decimal(5, 2)
+  status            ApprovalStatus @default(PENDING)
+  ownership_doc_url String?
+  insurance_doc_url String?
+  deleted_at        DateTime?
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
 
-  owner fleet_owners @relation(fields: [owner_id], references: [id])
+  owner        fleet_owners   @relation(fields: [owner_id], references: [id])
+  cooperative  cooperatives?  @relation(fields: [cooperative_id], references: [id])
   hourly_work_logs hourly_work_logs[]
-  missions missions[]
+  missions     missions[]
 
   @@index([owner_id])
+  @@index([cooperative_id])
+  @@index([deleted_at])
 }
 
 model loads {
@@ -227,6 +546,7 @@ model loads {
   mine_id           BigInt
   household_id      BigInt
   material_type    String
+  quantity_tons     Decimal? @db.Decimal(10, 2)
   status            LoadStatus @default(PENDING)
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
@@ -245,12 +565,16 @@ model missions {
   owner_id  BigInt
   driver_id BigInt
   vehicle_id BigInt
-  status    MissionStatus @default(ASSIGNED)
+  status    MissionStatus @default(CREATED)
+  verified_at DateTime?
   started_at DateTime?
   completed_at DateTime?
   rate_card_id BigInt?
   rate_per_ton_snapshot Decimal? @db.Decimal(15, 4)
   material_type_snapshot String?
+  verified_net_tons_kg Decimal? @db.Decimal(12, 3)
+  community_contribution_rial Decimal? @db.Decimal(15, 2)
+  community_rate_rial_per_ton Decimal? @db.Decimal(15, 2)
   payment_state MissionPaymentState @default(PENDING)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -262,9 +586,12 @@ model missions {
   rate_card rate_cards? @relation(fields: [rate_card_id], references: [id])
 
   weighbridge_tickets weighbridge_tickets?
+  weighbridge_agent_ingests weighbridge_agent_ingests[]
   transactions transactions[]
   settlement_lines settlement_lines[]
   weighbridge_adjustment_requests weighbridge_adjustment_requests[]
+  hourly_work_logs hourly_work_logs[]
+  period_statement_line period_statement_lines?
 
   @@index([load_id])
   @@index([rate_card_id])
@@ -278,6 +605,10 @@ model weighbridge_tickets {
   loaded_weight Decimal @db.Decimal(10, 2)
   net_weight   Decimal @db.Decimal(10, 2)
   status       WeighbridgeTicketStatus @default(PENDING_EMPTY)
+  entry_source String?
+  entry_note   String?
+  reason_code  WeighbridgeManualReason?
+  requires_supervisor_approve Boolean @default(false)
   created_by_user_id BigInt?
   approved_by_user_id BigInt?
   created_at   DateTime @default(now())
@@ -285,6 +616,26 @@ model weighbridge_tickets {
 
   mission missions @relation(fields: [mission_id], references: [id])
   weighbridge_adjustment_requests weighbridge_adjustment_requests[]
+  weighbridge_agent_ingests weighbridge_agent_ingests[]
+}
+
+model weighbridge_agent_ingests {
+  id             BigInt   @id @default(autoincrement())
+  weighbridge_id Int
+  mission_id     BigInt
+  reading_type   String
+  weight_kg      Decimal  @db.Decimal(10, 2)
+  captured_at    DateTime
+  plate          String?
+  signature      String?
+  ticket_id      BigInt
+  created_at     DateTime @default(now())
+
+  ticket  weighbridge_tickets @relation(fields: [ticket_id], references: [id])
+  mission missions            @relation(fields: [mission_id], references: [id])
+
+  @@unique([weighbridge_id, captured_at, reading_type])
+  @@index([mission_id])
 }
 
 model wallets {
@@ -306,44 +657,68 @@ model transactions {
   id          BigInt @id @default(autoincrement())
   wallet_id   BigInt
   mission_id  BigInt?
+  community_pool_id BigInt?
   amount      Decimal @db.Decimal(15, 2)
   type        TransactionType
+  fund_type   FundType?
+  ledger_lane LedgerLane?
   description String?
   created_at  DateTime @default(now())
 
   wallet wallets @relation(fields: [wallet_id], references: [id])
   mission missions? @relation(fields: [mission_id], references: [id])
+  community_pool community_pools? @relation(fields: [community_pool_id], references: [id])
 
   @@index([wallet_id])
+  @@index([wallet_id, fund_type])
   @@index([mission_id])
+  @@index([community_pool_id])
 }
 
 model hourly_work_logs {
-  id                   BigInt   @id @default(autoincrement())
-  mine_id              BigInt
-  fleet_owner_id       BigInt
-  vehicle_id           BigInt?
-  household_id         BigInt?
-  hours                Decimal  @db.Decimal(10, 2)
-  hourly_rate_snapshot Decimal  @db.Decimal(15, 4)
-  status               HourlyWorkLogStatus @default(PENDING)
-  consultant_user_id   BigInt?
-  approved_at          DateTime?
-  created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
+  id                     BigInt              @id @default(autoincrement())
+  mission_id             BigInt?
+  mine_id                BigInt
+  fleet_owner_id         BigInt
+  vehicle_id             BigInt?
+  household_id           BigInt?
+  started_at             DateTime?
+  ended_at               DateTime?
+  raw_hours              Decimal?            @db.Decimal(10, 6)
+  billable_hours         Decimal?            @db.Decimal(10, 6)
+  start_photo_url        String?
+  end_photo_url          String?
+  start_geo              Json?
+  end_geo                Json?
+  note                   String?
+  hourly_rate_snapshot   Decimal?            @db.Decimal(15, 4)
+  status                 HourlyWorkLogStatus @default(STARTED)
+  consultant_user_id     BigInt?
+  consultant_verified_at DateTime?
+  verification_reason    String?
+  rejection_reason       String?
+  rejected_at            DateTime?
+  rejected_by_user_id    BigInt?
+  created_at             DateTime            @default(now())
+  updated_at             DateTime            @updatedAt
 
-  mine  mines        @relation(fields: [mine_id], references: [id])
-  owner fleet_owners @relation(fields: [fleet_owner_id], references: [id])
-  vehicle vehicles?  @relation(fields: [vehicle_id], references: [id])
-  household households? @relation(fields: [household_id], references: [id])
-  consultant users? @relation("HourlyLogConsultant", fields: [consultant_user_id], references: [id])
+  mission    missions?    @relation(fields: [mission_id], references: [id])
+  mine       mines          @relation(fields: [mine_id], references: [id])
+  owner      fleet_owners   @relation(fields: [fleet_owner_id], references: [id])
+  vehicle    vehicles?      @relation(fields: [vehicle_id], references: [id])
+  household  households?    @relation(fields: [household_id], references: [id])
+  consultant users?        @relation("HourlyLogConsultant", fields: [consultant_user_id], references: [id])
+  rejected_by users?       @relation("HourlyLogRejector", fields: [rejected_by_user_id], references: [id])
 
   settlement_lines settlement_lines[]
 
   @@index([mine_id])
+  @@index([mission_id])
   @@index([fleet_owner_id])
   @@index([household_id])
   @@index([consultant_user_id])
+  @@index([rejected_by_user_id])
+  @@index([status])
 }
 
 model settlement_batches {
@@ -351,20 +726,82 @@ model settlement_batches {
   mine_id            BigInt?
   period_start       DateTime
   period_end         DateTime
+  batch_type         SettlementBatchType  @default(COMBINED_LEGACY)
   status             SettlementBatchStatus @default(DRAFT)
   created_by_user_id BigInt?
   locked_at          DateTime?
+  sent_to_bank_at    DateTime?
   paid_at            DateTime?
   cancelled_at       DateTime?
   payment_reference  String?
+  receipt_file_url   String?
+  failure_reason     String?
+  metadata           Json?
   created_at         DateTime             @default(now())
   updated_at         DateTime             @updatedAt
 
   mine             mines?             @relation(fields: [mine_id], references: [id])
+  period_statements period_statements[]
   lines            settlement_lines[]
-  payment_payout   payment_payouts?
+  payment_payouts  payment_payouts[]
+  approvals        settlement_batch_approvals[]
 
   @@index([mine_id])
+  @@index([mine_id, period_start])
+  @@index([mine_id, period_start, batch_type])
+}
+
+/// GOV-WORKFLOW-1: maker/checker approvals before lock.
+model settlement_batch_approvals {
+  id                  BigInt   @id @default(autoincrement())
+  settlement_batch_id BigInt
+  approver_role       String   @db.VarChar(32)
+  user_id             BigInt
+  approved_at         DateTime @default(now())
+
+  settlement_batch settlement_batches @relation(fields: [settlement_batch_id], references: [id], onDelete: Cascade)
+
+  @@unique([settlement_batch_id, approver_role])
+  @@index([settlement_batch_id])
+}
+
+enum ApprovalTaskStatus {
+  PENDING
+  DONE
+  ESCALATED
+}
+
+/// GOV-WORKFLOW-1 / SLA-ESCALATION-1 stub — assign_to_role queue (not user) in next phase.
+model approval_tasks {
+  id            BigInt             @id @default(autoincrement())
+  entity_type   String
+  entity_id     String
+  required_role String             @db.VarChar(32)
+  due_at        DateTime?
+  completed_at  DateTime?
+  escalated_to  String?            @db.VarChar(32)
+  status        ApprovalTaskStatus @default(PENDING)
+  created_at    DateTime           @default(now())
+
+  @@index([entity_type, entity_id])
+  @@index([status, due_at])
+}
+
+model community_pools {
+  id                  BigInt              @id @default(autoincrement())
+  mine_id             BigInt?
+  period_key          String
+  total_amount        Decimal             @db.Decimal(15, 2)
+  status              CommunityPoolStatus @default(OPEN)
+  households_snapshot Json?
+  distributed_at      DateTime?
+  created_at          DateTime            @default(now())
+
+  mine mines? @relation(fields: [mine_id], references: [id])
+  transactions transactions[]
+
+  @@unique([mine_id, period_key])
+  @@index([status])
 }
 
 model settlement_lines {
@@ -375,11 +812,13 @@ model settlement_lines {
   mission_id         BigInt?
   hourly_work_log_id BigInt?
   note               String?
+  receipt_file_url   String?
 
   batch           settlement_batches @relation(fields: [batch_id], references: [id], onDelete: Cascade)
   wallet          wallets           @relation(fields: [wallet_id], references: [id])
   mission         missions?         @relation(fields: [mission_id], references: [id])
   hourly_work_log hourly_work_logs? @relation(fields: [hourly_work_log_id], references: [id])
+  payment_payout  payment_payouts?
 
   @@index([batch_id])
   @@index([hourly_work_log_id])
@@ -387,7 +826,8 @@ model settlement_lines {
 
 model payment_payouts {
   id                  BigInt              @id @default(autoincrement())
-  settlement_batch_id BigInt              @unique
+  settlement_batch_id BigInt
+  settlement_line_id  BigInt              @unique
   status              PaymentPayoutStatus @default(PENDING)
   initiated_at        DateTime?
   completed_at        DateTime?
@@ -397,8 +837,10 @@ model payment_payouts {
   updated_at          DateTime            @updatedAt
 
   settlement_batch settlement_batches @relation(fields: [settlement_batch_id], references: [id], onDelete: Cascade)
+  settlement_line  settlement_lines   @relation(fields: [settlement_line_id], references: [id], onDelete: Cascade)
 
   @@index([status])
+  @@index([settlement_batch_id])
 }
 
 model weighbridge_adjustment_requests {
@@ -420,6 +862,59 @@ model weighbridge_adjustment_requests {
   @@index([mission_id])
 }
 
+model operation_needs {
+  id                BigInt              @id @default(autoincrement())
+  mine_id           BigInt
+  employer_user_id  BigInt
+  village_id        BigInt
+  material_type     String
+  quantity_tons     Decimal?            @db.Decimal(10, 2)
+  equipment_type    String?
+  location_text     String?
+  estimated_hours   Decimal?            @db.Decimal(10, 2)
+  operation_type    String              @default("TONNAGE")
+  operation_type_id String?
+  note              String?
+  status            OperationNeedStatus @default(PENDING)
+  deleted_at        DateTime?
+  created_at        DateTime            @default(now())
+
+  mine                   mines             @relation(fields: [mine_id], references: [id])
+  employer               users             @relation(fields: [employer_user_id], references: [id])
+  village                villages          @relation(fields: [village_id], references: [id])
+  operation_type_catalog operation_types?  @relation(fields: [operation_type_id], references: [id], onDelete: Restrict)
+
+  @@index([mine_id])
+  @@index([employer_user_id])
+  @@index([status])
+  @@index([deleted_at])
+  @@index([operation_type_id])
+}
+
+model finance_rules {
+  id               BigInt    @id @default(autoincrement())
+  key              String
+  value            Json
+  scope_type       String
+  mine_id          BigInt?
+  cooperative_id   BigInt?
+  effective_from   DateTime
+  effective_to     DateTime?
+  version          Int
+  status           String    @default("ACTIVE")
+  created_by       BigInt?
+  deleted_at       DateTime?
+  created_at       DateTime  @default(now())
+
+  mine         mines?         @relation(fields: [mine_id], references: [id])
+  cooperative  cooperatives?  @relation(fields: [cooperative_id], references: [id])
+  creator      users?         @relation("FinanceRuleCreator", fields: [created_by], references: [id])
+
+  @@index([key, status])
+  @@index([key, scope_type, mine_id, cooperative_id, status])
+  @@index([deleted_at])
+}
+
 model audit_logs {
   id             BigInt @id @default(autoincrement())
   entity_type    String
@@ -434,3 +929,185 @@ model audit_logs {
   @@index([entity_type, entity_id])
 }
 
+model events {
+  id              BigInt   @id @default(autoincrement())
+  event_name      String
+  payload         Json
+  correlation_id  String?
+  occurred_at     DateTime @default(now())
+  published_by    BigInt?
+
+  @@index([event_name, occurred_at(sort: Desc)])
+  @@index([correlation_id])
+}
+
+model idempotency_keys {
+  id             BigInt   @id @default(autoincrement())
+  key            String   @db.VarChar(64)
+  route          String   @db.VarChar(512)
+  request_hash   String   @db.VarChar(64)
+  response_body  Json?
+  status_code    Int?
+  created_at     DateTime @default(now())
+
+  @@unique([key, route])
+  @@index([created_at])
+}
+
+model reconciliation_issues {
+  id                   BigInt                    @id @default(autoincrement())
+  run_id               String                    @db.VarChar(64)
+  code                 String                    @db.VarChar(64)
+  entity_type          String                    @db.VarChar(64)
+  entity_id            String                    @db.VarChar(64)
+  message              String
+  details              Json?
+  status               ReconciliationIssueStatus @default(OPEN)
+  resolved_at          DateTime?
+  resolved_by_user_id  BigInt?
+  resolve_reason       String?
+  created_at           DateTime                  @default(now())
+
+  @@index([status, created_at(sort: Desc)])
+  @@index([run_id])
+  @@index([code, entity_type, entity_id])
+}
+
+model failed_jobs {
+  id              BigInt    @id @default(autoincrement())
+  queue_name      String    @db.VarChar(64)
+  job_name        String    @db.VarChar(128)
+  payload         Json
+  error_message   String
+  stack_trace     String?
+  attempts        Int
+  max_attempts    Int       @default(4)
+  correlation_id  String?   @db.VarChar(128)
+  failed_at       DateTime  @default(now())
+  retried_at      DateTime?
+  status          String    @default("failed") @db.VarChar(32)
+
+  @@index([queue_name, status, failed_at(sort: Desc)])
+}
+
+model notifications {
+  id              BigInt    @id @default(autoincrement())
+  user_id         BigInt
+  channel         String    @db.VarChar(16)
+  event_name      String?   @db.VarChar(64)
+  title           String?   @db.VarChar(256)
+  body            String
+  payload         Json?
+  delivery_status String    @default("pending") @db.VarChar(32)
+  read_at         DateTime?
+  created_at      DateTime  @default(now())
+
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, read_at, created_at(sort: Desc)])
+  @@index([user_id, channel, created_at(sort: Desc)])
+}
+
+model notification_preferences {
+  user_id  BigInt  @id
+  in_app   Boolean @default(true)
+  sms      Boolean @default(true)
+  push     Boolean @default(true)
+
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model kpi_snapshots {
+  id            BigInt   @id @default(autoincrement())
+  snapshot_date DateTime @db.Date
+  mine_id       BigInt
+  key           String   @db.VarChar(64)
+  value         Decimal  @db.Decimal(18, 6)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  mine mines @relation(fields: [mine_id], references: [id])
+
+  @@unique([snapshot_date, mine_id, key])
+  @@index([snapshot_date])
+  @@index([mine_id])
+}
+
+/// INVOICE-DRAFT-1: Human-supervised period statement before mine payment to cooperative.
+model period_statements {
+  id                       BigInt                @id @default(autoincrement())
+  mine_id                  BigInt
+  cooperative_id           BigInt
+  period_key               String                @db.VarChar(7)
+  status                   PeriodStatementStatus @default(DRAFT)
+  service_count            Int                   @default(0)
+  total_tons               Decimal?              @db.Decimal(12, 3)
+  operational_rial         Decimal               @default(0) @db.Decimal(15, 2)
+  community_rial           Decimal               @default(0) @db.Decimal(15, 2)
+  deductions_rial          Decimal               @default(0) @db.Decimal(15, 2)
+  payable_rial             Decimal               @default(0) @db.Decimal(15, 2)
+  cooperative_payable_iban String?
+  mine_payment_reference   String?
+  mine_paid_at             DateTime?
+  rejection_reason         String?
+  locked_at                DateTime?
+  locked_by_user_id        BigInt?
+  settlement_batch_id      BigInt?
+  metadata                 Json?
+  created_by_user_id       BigInt?
+  created_at               DateTime              @default(now())
+  updated_at               DateTime              @updatedAt
+
+  mine         mines         @relation(fields: [mine_id], references: [id])
+  cooperative  cooperatives  @relation(fields: [cooperative_id], references: [id])
+  settlement_batch settlement_batches? @relation(fields: [settlement_batch_id], references: [id])
+  lines        period_statement_lines[]
+  approvals    period_statement_approvals[]
+
+  @@unique([mine_id, cooperative_id, period_key])
+  @@index([mine_id, period_key])
+  @@index([status])
+}
+
+model period_statement_lines {
+  id                  BigInt   @id @default(autoincrement())
+  period_statement_id BigInt
+  mission_id          BigInt   @unique
+  operational_rial    Decimal  @db.Decimal(15, 2)
+  community_rial      Decimal  @db.Decimal(15, 2)
+  verified_net_tons   Decimal? @db.Decimal(12, 3)
+  load_tracking_code  String?
+
+  period_statement period_statements @relation(fields: [period_statement_id], references: [id], onDelete: Cascade)
+  mission          missions          @relation(fields: [mission_id], references: [id])
+
+  @@index([period_statement_id])
+}
+
+model period_statement_approvals {
+  id                  BigInt   @id @default(autoincrement())
+  period_statement_id BigInt
+  approver_role       String   @db.VarChar(32)
+  user_id             BigInt
+  approved_at         DateTime @default(now())
+
+  period_statement period_statements @relation(fields: [period_statement_id], references: [id], onDelete: Cascade)
+
+  @@unique([period_statement_id, approver_role])
+}
+
+/// CORE-OS-0: Industrial Service OS operation catalog (additive; no FKs yet).
+model operation_types {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  category          String
+  name_fa           String
+  name_en           String?
+  verification_kind String
+  pricing_kind      String
+  settlement_kind   String
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+
+  operation_needs operation_needs[]
+}

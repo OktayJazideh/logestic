@@ -72,6 +72,10 @@
 <body>
 <div class="wrap">
 
+<div class="arch-warn" style="margin-bottom:18px">
+  <strong>⚠️ منسوخ — مراجعه به <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a></strong> (فقط باقی‌مانده + DoD + متن کارفرما). این نسخه آرشیو جامع ~۴۵ کارت انجام‌شده است.
+</div>
+
 <header class="hero">
   <h1>گزارش مستر MVP — نسخهٔ ۳</h1>
   <p>بازبینی خط‌به‌خط پیام‌ها و اسناد معماری کارفرما + مقایسه با کل کدبیس <code>logestic</code> (backend، web، driver_app، community_app). نسخهٔ ۲ منسوخ است؛ این سند مرجع فعلی است.</p>
@@ -80,7 +84,7 @@
     <span class="pill">منبع: کد + Freeze + پاسخ ۵ سؤال مکاتبه (۱۴۰۵/۰۲) + Industrial OS</span>
     <span class="pill">فایل: docs/mvp-flow-chat-master-report-fa-v3.html</span>
     <span class="pill">وایرفریم: docs/wireframes-review/ (۲۰ اسکرین)</span>
-    <span class="pill"><a href="mvp-task-prompts-pro-fa.html" style="color:#D1FAE5">پرامپت‌ها: ۶۷ کارت (۴۳ انجام‌شده · ۲۴ باقی)</a> — <a href="#client-arch-qa">پاسخ معماری کارفرما</a> · <a href="#coverage-gap">بازبینی شکاف</a></span>
+    <span class="pill"><a href="mvp-task-prompts-pro-fa.html" style="color:#D1FAE5">پرامپت‌ها: ۶۷ کارت (۴۴ انجام‌شده · ۲۳ باقی)</a> — <a href="#client-arch-qa">پاسخ معماری کارفرما</a> · <a href="#coverage-gap">بازبینی شکاف</a></span>
   </div>
 </header>
 
@@ -144,7 +148,7 @@
         <li><strong>Governance:</strong> GOV-WORKFLOW-1 ✅ (maker/checker)، WB-MANUAL-1 ✅، WB-INT-1 ✅ (Agent ingest API)</li>
         <li><strong>پایلوت:</strong> PILOT-TAFTAN-1 ✅ — seed TAFTAN + `test:pilot-taftan1` (۳×)؛ `fixed_community_amount` در DB (placeholder 400k/تن تا دریافت قرارداد کارفرما)</li>
         <li>پرداخت بانکی خودکار (BANK-AUTO-1) — <strong>✓ MockAdapter + queue</strong> — <code>npm run test:bank-auto1</code></li>
-        <li>ساعتی / NEED-HOURLY — <strong>خارج فاز ۱</strong></li>
+        <li>ساعتی — <strong>✓ NEED-HOURLY-1</strong> + <strong>✓ HOURLY-APP-1</strong> (اپ OPERATOR start/end + GPS؛ inbox مشاور ENDED)</li>
         <li>وایرفریم وب: OPS-DASH ✓، FIN-LOAD؛ WB-READ ✓ در اپ راننده</li>
       </ul>
     </div>
@@ -381,10 +385,10 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
     <li><strong>عضویت Community vs کار عملیاتی:</strong> <strong>جدا</strong> — یک نفر، یک لاگین؛ «عضو تعاونی» و «کار در معدن» دو کلاه متفاوت. <a href="#t-ws-dual-role-1">WS-DUAL-ROLE-1</a></li>
     <li><strong>چند معدن — اکانت:</strong> <strong>یک اکانت مرکزی</strong> + انتخاب معدن/workspace (TENANT-1 ✓).</li>
     <li><strong>تأخیر چندروزه تأیید — SLA:</strong> MVP: گزارش معطل‌ها؛ از الان <code>due_at</code> در DB؛ Escalation خودکار فاز بعد. <a href="#t-sla-escalation-1">SLA-ESCALATION-1</a> پس از <a href="#t-gov-workflow-1">GOV-WORKFLOW-1</a></li>
-    <li><strong>جلوگیری از وابستگی به یک نفر:</strong> MVP: <strong>صندوق مشترک نقش</strong> (هر COOP_ADMIN/OPERATION_ADMIN مجاز) + audit؛ نه صف اختصاصی per-user. <strong>WF-ROLE-INBOX-1 ✓</strong> — <a href="#t-wf-queue-1">WF-QUEUE-1</a> فقط spike راننده (P3).</li>
+    <li><strong>جلوگیری از وابستگی به یک نفر:</strong> MVP: <strong>صندوق مشترک نقش</strong> (هر COOP_ADMIN/OPERATION_ADMIN مجاز) + audit؛ نه صف اختصاصی per-user. <strong>WF-ROLE-INBOX-1 ✓</strong> — <strong>WF-QUEUE-1 ✓</strong> spike راننده (P3): <code>ENABLE_DISPATCH_QUEUE=false</code> + stub 501.</li>
     <li><strong>عضویت خانوار:</strong> <strong>ثبت + تأیید</strong>؛ import گروهی پایلوت — <strong>انجام شد ✓</strong> <code>POST /api/coop/households/import</code> + تب «ورود گروهی» در <code>CoopRequests.tsx</code> — <code>npm run test:hh-bulk-import1</code></li>
     <li><strong>نسخه قرارداد/تعرفه:</strong> <strong>انجام شد ✓</strong> — <code>POST /api/service-contracts/:id/new-version</code> + لیست نسخه در <code>RateCards.tsx</code> — <code>npm run test:contract-version-ui1</code></li>
-    <li><strong>تأیید Community:</strong> پایلوت: <strong>یک تأییدکننده تعاونی</strong>؛ صورت‌وضعیت مالی: <strong>دو نقش</strong> (✓ INVOICE-DRAFT). کمیته خانوار: <a href="#t-hh-kyc-committee-1">HH-KYC-COMMITTEE-1</a> (P3)</li>
+    <li><strong>تأیید Community:</strong> پایلوت: <strong>یک تأییدکننده تعاونی</strong> (quorum=1 پیش‌فرض)؛ صورت‌وضعیت مالی: <strong>دو نقش</strong> (✓ INVOICE-DRAFT). کمیته خانوار configurable: <a href="#t-hh-kyc-committee-1">HH-KYC-COMMITTEE-1</a> ✓ — <code>npm run test:hh-kyc-committee1</code></li>
     <li><strong>API بانک:</strong> <a href="#t-bank-auto-1">BANK-AUTO-1</a> ✓ — MockAdapter + <code>settlement:execute-payouts</code> پس از lock؛ Excel + mark-paid همچنان برای MVP دستی.</li>
     <li><strong>Audit:</strong> <strong>از اول جدی</strong> (audit_logs + events ✓) — نه MVP سبک.</li>
     <li><strong>خودکار vs دستی:</strong> سیستم حساب و پیش‌نویس؛ انسان قفل/پرداخت/KYC/Dispatch. <a href="#hsa-matrix">§ hsa-matrix</a> ✅ · <a href="#t-hsa-matrix-1">HSA-MATRIX-1</a> ✅</li>
@@ -703,7 +707,7 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
       <tr><td>استپر ۷ گام UI</td><td><span class="status s-ok">✓</span></td><td><code>mission_detail_screen.dart</code>، <code>mission_stepper.dart</code></td><td>نگاشت FSM ۹→۷ UI</td></tr>
       <tr><td>Geofence ورود معدن / کارخانه</td><td><span class="status s-ok">✓</span></td><td><code>mine_entry_screen.dart</code>, <code>factory_entry_screen.dart</code></td><td>WF-GEOFENCE-1</td></tr>
       <tr><td>باسکول در اپ (خودکار/دستی)</td><td><span class="status s-part">△</span></td><td><code>weighbridge_flow_strip.dart</code></td><td>فقط read-only؛ <strong>دستی ممنوع طبق اسپک</strong></td></tr>
-      <tr><td>صفحه In Transit فقط‌خواندنی</td><td><span class="status s-part">△</span></td><td><code>mission_detail_screen.dart</code></td><td>جریان واحد جزئیات؛ برخی CTA در نقش‌ها فعال است</td></tr>
+      <tr><td>صفحه In Transit (نقشه + ETA)</td><td><span class="status s-ok">✓</span></td><td><code>in_transit_screen.dart</code></td><td>WF-INTRANSIT-1 — CTA → factory_entry (geofence)</td></tr>
       <tr><td>تأیید تخلیه + checkbox</td><td><span class="status s-ok">✓</span></td><td><code>unload_confirm_screen.dart</code></td><td>WF-UNLOAD-1</td></tr>
       <tr><td>آفلاین + Sync</td><td><span class="status s-ok">✓</span></td><td><code>mission_sync_service.dart</code></td><td>در وایرفریم نیامده؛ نگه دارید</td></tr>
     </tbody>
@@ -730,7 +734,7 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
     <tbody>
       <tr><td>داشبورد عملیاتی + KPI + هشدار</td><td><span class="status s-ok">✓</span></td><td><code>OpsDashboard.tsx</code> — WF-OPS-DASH-1؛ KPI تحلیلی در <code>AdminKpi.tsx</code></td></tr>
       <tr><td>تخصیص سه‌ستونه</td><td><span class="status s-part">△</span></td><td>Dispatch API؛ UI ندارد</td></tr>
-      <tr><td>صف زمان‌بندی ۳۰ دقیقه</td><td><span class="status s-no">✗</span></td><td>—</td></tr>
+      <tr><td>صف زمان‌بندی ۳۰ دقیقه</td><td><span class="status s-part">△</span></td><td><code>GET /api/admin/dispatch-queue</code> → 501 spike — WF-QUEUE-1</td></tr>
       <tr><td>داشبورد KYC تعاونی (جدول + فیلتر)</td><td><span class="status s-part">△</span></td><td><code>KycInbox.tsx</code> ساده‌تر</td></tr>
       <tr><td>نمای مالی per Load</td><td><span class="status s-part">△</span></td><td><code>AdminFinance.tsx</code> تجمیعی</td></tr>
     </tbody>
@@ -775,6 +779,18 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
       </ol>
     </div>
   </div>
+
+  <h3>۱۵.۷ WF-QUEUE-1 — spike صف زمان‌بندی (خارج MVP فاز ۱)</h3>
+  <p class="muted">وایرفریم <code>9.3.png</code> — اسلات ۳۰ دقیقه و اولویت راننده. <strong>پیاده‌سازی کامل زمان‌بندی در فاز بعد</strong>؛ فاز ۱ فقط مستندات + feature flag + stub API. آنتی‌پترن: cron راننده، UI رزرو اسلات.</p>
+  <div class="info">
+    <strong>وضعیت MVP:</strong> <code>ENABLE_DISPATCH_QUEUE=false</code> (پیش‌فرض در <code>apps/backend/src/config/env.ts</code>) — <code>GET /api/admin/dispatch-queue</code> → <code>501</code> با <code>code: not_implemented</code> و <code>message_fa</code> در <code>error.details</code>. تخصیص فعلی: <code>dispatchService</code> + round-robin (بدون صف اسلات).
+  </div>
+  <pre><code>-- FUTURE (migration فاز بعد — WF-QUEUE-2+)
+-- queue_slots(driver_id, mine_id, slot_start, slot_end, status)
+--   status: AVAILABLE | HELD | ASSIGNED | COMPLETED
+-- Indexes: (mine_id, slot_start), (driver_id, slot_start)
+-- Integration: قبل از strategy.dispatch() در dispatchService — فیلتر کاندیدها بر اساس اسلات آزاد</code></pre>
+  <p><strong>تست:</strong> <code>npm run test:wf-queue1</code> (۳×) — بدون migration و بدون cron.</p>
 
   <p class="note">تسک‌های اجرایی با پرامپت در بخش <a href="#todo">تسک‌های باقی‌مانده</a> (کارت‌های WF-*).</p>
 </section>
@@ -902,7 +918,7 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
     <tbody>
       <tr><td><span class="priority p1">P1</span></td><td>FIN-POLICY → ACC-FUND → FIN-DUAL → <strong>COMM-UI-LEGACY</strong> → SVC-CONTRACT → CORE-OS → INVOICE → MINE-PAY → <strong>E2E-UAT-HAUL</strong></td><td>مسیر بحرانی UAT</td></tr>
       <tr><td><span class="priority p2">P2</span></td><td>GOV, <strong>WS-DUAL-ROLE</strong>, <strong>SLA-ESCALATION</strong>, <strong>WF-ROLE-INBOX ✓</strong>, <strong>WB-MANUAL ✓</strong>, <strong>CONTRACT-VERSION-UI ✓</strong>, <strong>HH-BULK-IMPORT ✓</strong>, <strong>HSA-MATRIX ✓</strong>, <strong>TENANT-SCOPE ✓</strong>, <strong>DISPATCH-LOCK ✓</strong>, <strong>COMM-COOP-MOBILE ✓</strong>, <strong>PILOT-TAFTAN ✓</strong>, WF-*, <strong>INFRA-REGRESSION ✓</strong>, WB-INT</td><td>حاکمیت + پاسخ معماری کارفرما</td></tr>
-      <tr><td><span class="priority p3">P3</span></td><td>BANK-AUTO, SET-CYCLE, HOURLY-*, …, <strong>HH-KYC-COMMITTEE</strong>, WF-QUEUE (spike)</td><td>فاز بعد</td></tr>
+      <tr><td><span class="priority p3">P3</span></td><td>HOURLY-*, DRIVER-AVAIL, TENANT-RLS, …</td><td>فاز بعد</td></tr>
     </tbody>
   </table>
   <p class="good"><strong>۳۴ کارت انجام‌شده</strong> — پس از هر کارت جدید: anchor → <code>DONE_ANCHORS</code> در <code>gen_prompts.py</code> + <code>python docs/scripts/gen_prompts.py</code></p>
@@ -921,6 +937,7 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
       <tr><td>Audit / Idempotency / Event</td><td><code>audit.ts</code>, <code>idempotency.ts</code>, <code>eventBus.ts</code></td><td>همان</td></tr>
       <tr><td>AdminFinance تجمیعی</td><td><code>AdminFinance.tsx</code></td><td>هم‌پوشان <a href="mvp-task-prompts-pro-fa.html#fin-dual-1">FIN-DUAL-1</a></td></tr>
       <tr><td>باسکول read-only راننده</td><td><span class="status s-ok">✓</span></td><td><code>weighbridge_read_screen.dart</code></td><td>WF-WB-READ-1 — <code>GET …/weighbridge-status</code> + flutter test</td></tr>
+      <tr><td>In Transit (نقشه حمل)</td><td><span class="status s-ok">✓</span></td><td><code>in_transit_screen.dart</code></td><td>WF-INTRANSIT-1 — <code>GET /api/driver/missions/:id</code> + flutter test</td></tr>
     </tbody>
   </table>
 
@@ -942,7 +959,7 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
       <tr><td><strong>CONTRACT-VERSION-UI-1 ✓</strong></td><td>P2</td><td>سؤال ۶ — UI الحاقیه/نسخه — <code>test:contract-version-ui1</code></td></tr>
       <tr><td><strong>HH-BULK-IMPORT-1 ✓</strong></td><td>P2</td><td>سؤال ۵ — CSV import + KYC PENDING — <code>test:hh-bulk-import1</code></td></tr>
       <tr><td><strong>HSA-MATRIX-1 ✓</strong></td><td>P2</td><td>سؤال ۱۰ — جدول <a href="#hsa-matrix">#hsa-matrix</a> + Collapse در <code>PanelHome.tsx</code></td></tr>
-      <tr><td><strong>HH-KYC-COMMITTEE-1</strong></td><td>P3</td><td>سؤال ۷ — کمیته configurable</td></tr>
+      <tr><td><strong>HH-KYC-COMMITTEE-1 ✓</strong></td><td>P3</td><td>سؤال ۷ — quorum configurable per coop — <code>test:hh-kyc-committee1</code></td></tr>
     </tbody>
   </table>
 
@@ -956,7 +973,7 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
   </ul>
 
   <h3>عمداً خارج فاز ۱ (کارت P3 / خارج PENDING)</h3>
-  <p>ساعتی: HOURLY-REJ, NEED-HOURLY, CONSULT-UI, HOURLY-APP · بانک اتومات: BANK-AUTO · تسویه هفتگی: SET-CYCLE · کافه‌بازار · WF-QUEUE spike</p>
+  <p>ساعتی: NEED-HOURLY ✓, HOURLY-APP ✓ · بانک اتومات: BANK-AUTO · تسویه هفتگی: SET-CYCLE · کافه‌بازار · WF-QUEUE spike</p>
 </section>
 
 <section class="panel" id="prompt-checklist">
@@ -1099,11 +1116,12 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
       <p><a href="mvp-task-prompts-pro-fa.html#core-os-2"><strong>→ پرامپت</strong></a></p>
     </li>
 
-    <li class="task" id="t-hourly-rej-1">
-      <div><span class="badge new">HOURLY-REJ-1</span> <span class="priority p3">P3</span> <span class="title">رد کارکرد ساعتی — خارج فاز ۱</span></div>
-      <p><a href="mvp-task-prompts-pro-fa.html#hourly-rej-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
+    <li class="task done" id="t-hourly-rej-1">
+      <div><span class="badge done">HOURLY-REJ-1 ✅</span> <span class="priority p3">P3</span> <span class="title">رد کارکرد ساعتی — خارج فاز ۱</span></div>
+      <p><strong>انجام شد:</strong> <code>POST /api/hourly/:id/reject</code> — <code>hourly:reject</code>؛ status=REJECTED + audit <code>hourly_rejected</code>؛ بدون ledger؛ <code>ConsultantHourlyInbox.tsx</code> — <code>npm run test:hourly-rej1</code> (۳×)</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#hourly-rej-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
       <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
-<code>POST /api/hourly/:id/reject</code> (CONSULTANT): rejection_reason اجباری؛ status=REJECTED؛ بدون split مالی. UI در PaymentControl یا صفحه HourlyInbox جدید.
+<code>POST /api/hourly/:id/reject</code> (CONSULTANT): rejection_reason اجباری؛ status=REJECTED؛ بدون split مالی. UI در ConsultantHourlyInbox.
       </div></details>
     </li>
 
@@ -1167,10 +1185,10 @@ Operational + Community در صورت وضعیت جمع می‌شوند؛ تسو
       <p><a href="mvp-task-prompts-pro-fa.html#wb-int-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
     </li>
 
-    <li class="task" id="t-hh-kyc-committee-1">
-      <div><span class="badge new">HH-KYC-COMMITTEE-1</span> <span class="priority p3">P3</span> <span class="title">تأیید خانوار: کمیته / چند امضا (قابل تنظیم)</span></div>
-      <p>پاسخ سؤال ۷ — MVP: یک نفر کافی؛ quorum&gt;1 فاز بعد.</p>
-      <p><a href="mvp-task-prompts-pro-fa.html#hh-kyc-committee-1"><strong>→ پرامپت</strong></a></p>
+    <li class="task done" id="t-hh-kyc-committee-1">
+      <div><span class="badge done">HH-KYC-COMMITTEE-1 ✓</span> <span class="priority p3">P3</span> <span class="title">تأیید خانوار: کمیته / چند امضا (قابل تنظیم)</span></div>
+      <p><strong>انجام شد:</strong> <code>household_approvals</code> + <code>cooperatives.settings_json.household_approval_quorum</code> (پیش‌فرض ۱)؛ approve → ۲۰۲ pending یا APPROVED؛ audit <code>kyc_household_approval</code> — <code>npm run test:hh-kyc-committee1</code> (۳×) + regression <code>test:kyc-nc1</code>.</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#hh-kyc-committee-1"><strong>→ پرامپت (انجام‌شده)</strong></a></p>
     </li>
     <li class="task" id="t-bank-auto-1">
       <div><span class="badge done">BANK-AUTO-1 ✓</span> <span class="priority p3">P3</span> <span class="title">پرداخت خودکار پس از LOCK (آداپتر بانک)</span></div>
@@ -1205,12 +1223,10 @@ Queue job <code>settlement.execute_payouts</code> پس از lock: فراخوان
       <p><a href="mvp-task-prompts-pro-fa.html#currency-ui-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
     </li>
 
-    <li class="task" id="t-hourly-app-1">
-      <div><span class="badge new">HOURLY-APP-1</span> <span class="priority p3">P3</span> <span class="title">UI عملیات ساعتی در اپ</span></div>
-      <p><a href="mvp-task-prompts-pro-fa.html#hourly-app-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
-      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
-در driver_app یا community_app برای OPERATOR: صفحه start/end با عکس و GPS. Consultant: لیست pending در web یا app.
-      </div></details>
+    <li class="task done" id="t-hourly-app-1">
+      <div><span class="badge done">HOURLY-APP-1 ✅</span> <span class="priority p3">P3</span> <span class="title">UI عملیات ساعتی در اپ</span> <span class="status s-ok">✓</span></div>
+      <p><strong>انجام شد:</strong> <code>community_app</code> نقش OPERATOR — <code>hourly_start_screen.dart</code> / <code>hourly_end_screen.dart</code> + GPS (<code>start_geo</code>/<code>end_geo</code>)؛ <code>GET /api/operator/hourly/context</code>؛ صف آفلاین stub — <code>npm run test:hourly1</code> + <code>test:hourly-app1</code> (۳×)</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#hourly-app-1"><strong>→ پرامپت</strong></a></p>
     </li>
 
     <li class="task" id="t-sms-prod-1">
@@ -1225,21 +1241,6 @@ Queue job <code>settlement.execute_payouts</code> پس از lock: فراخوان
       <p><a href="mvp-task-prompts-pro-fa.html#uat-signoff-1"><strong>→ پرامپت</strong></a></p>
     </li>
 
-    <li class="task" id="t-consult-panel-1">
-      <div><span class="badge new">CONSULT-UI-1</span> <span class="priority p3">P3</span> <span class="title">پنل مشاور ساعتی — خارج فاز ۱</span></div>
-      <p><a href="mvp-task-prompts-pro-fa.html#consult-ui-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
-      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
-صفحه <code>ConsultantHourlyInbox.tsx</code>: لیست ENDED؛ فرم billable_hours + approve/reject. بدون wallet/settlement/dispatch.
-      </div></details>
-    </li>
-
-    <li class="task" id="t-need-hourly-1">
-      <div><span class="badge new">NEED-HOURLY-1</span> <span class="priority p3">P3</span> <span class="title">نیاز ساعتی — خارج فاز ۱</span></div>
-      <p><a href="mvp-task-prompts-pro-fa.html#need-hourly-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p>
-      <details class="prompt"><summary>پرامپت</summary><div class="promptfa">
-گسترش operation_needs: operation_type=HOURLY_EQUIPMENT، equipment_type، location، estimated_hours. فرم EmployerNeed با تب حمل/ساعتی. Dispatch برای نوع ساعتی.
-      </div></details>
-    </li>
     <li class="task done" id="t-wf-ops-dash-1"><div><span class="badge new">WF-OPS-DASH-1</span> <span class="priority p2">P2</span> <span class="title">داشبورد وب (وایرفریم ۹)</span> <span class="status s-ok">✓</span></div>
       <p><strong>انجام شد:</strong> <code>GET /api/admin/ops-dashboard</code> + <code>OpsDashboard.tsx</code> (<code>/panel/ops</code>) — <code>npm run test:ops-dash1</code> (۳×)</p></li>
     <li class="task done" id="t-wf-dispatch-board-1"><div><span class="badge new">WF-DISPATCH-BOARD-1</span> <span class="priority p2">P2</span> <span class="title">Dispatch board (۹.۷)</span> <span class="status s-ok">✓</span></div>
@@ -1249,18 +1250,26 @@ Queue job <code>settlement.execute_payouts</code> پس از lock: فراخوان
     <li class="task done" id="t-wf-fin-load-1"><div><span class="badge new">WF-FIN-LOAD-1</span> <span class="priority p2">P2</span> <span class="title">مالی per Load (۱۱)</span> <span class="status s-ok">✓</span></div>
       <p><strong>انجام شد:</strong> <code>GET /api/admin/finance/by-load</code> + <code>FinanceByLoadPage.tsx</code> (<code>/panel/admin/finance/by-load</code>) — CSV + HOLD badge — <code>npm run test:fin-load1</code> (۳×)</p>
       <p><a href="mvp-task-prompts-pro-fa.html#wf-fin-load-1"><strong>→ پرامپت</strong></a></p></li>
-    <li class="task" id="t-wf-queue-1"><div><span class="badge new">WF-QUEUE-1</span> <span class="priority p3">P3</span> <span class="title">صف زمان‌بندی (۹.۳)</span></div>
-      <p><a href="mvp-task-prompts-pro-fa.html#wf-queue-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p><details class="prompt"><summary>پرامپت</summary><div class="promptfa">خارج MVP.</div></details></li>
-    <li class="task" id="t-wf-intransit-1"><div><span class="badge new">WF-INTRANSIT-1</span> <span class="priority p3">P3</span> <span class="title">In Transit (۶)</span></div>
-      <p><a href="mvp-task-prompts-pro-fa.html#wf-intransit-1"><strong>→ پرامپت حرفه‌ای کامل</strong></a></p><details class="prompt"><summary>پرامپت</summary><div class="promptfa"><code>in_transit_screen.dart</code>.</div></details></li>
+    <li class="task done" id="t-wf-queue-1"><div><span class="badge new">WF-QUEUE-1</span> <span class="priority p3">P3</span> <span class="title">صف زمان‌بندی (۹.۳)</span> <span class="status s-ok">✓</span></div>
+      <p><strong>انجام شد (spike):</strong> §۱۵.۷ + <code>ENABLE_DISPATCH_QUEUE=false</code> + <code>GET /api/admin/dispatch-queue</code> → 501 + نقطه اتصال در <code>dispatchService</code> — <code>npm run test:wf-queue1</code> (۳×)</p>
+      <p><a href="mvp-task-prompts-pro-fa.html#wf-queue-1"><strong>→ پرامپت</strong></a> · <a href="#wireframes">§۱۵.۷</a></p></li>
+    <li class="task done" id="t-wf-intransit-1"><div><span class="badge new">WF-INTRANSIT-1</span> <span class="priority p3">P3</span> <span class="title">In Transit (۶)</span> <span class="status s-ok">✓</span></div>
+      <p><strong>انجام شد:</strong> <code>in_transit_screen.dart</code> + <code>GET /api/driver/missions/:id</code> (mine/factory coords) + مسیر <code>/mission/:id/in-transit</code> — CTA → <code>factory_entry</code> — <code>flutter test test/in_transit_test.dart</code> + <code>test/in_transit_eta_test.dart</code></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#wf-intransit-1"><strong>→ پرامپت</strong></a></p></li>
+
+    <li class="task done" id="t-need-hourly-1">
+      <div><span class="badge done">NEED-HOURLY-1 ✅</span> <span class="priority p3">P3</span> <span class="title">نیاز ساعتی — ثبت کارفرما</span></div>
+      <p><strong>انجام شد:</strong> migration <code>0044_operation_needs_hourly_fields</code>؛ <code>POST /api/employer/needs</code> validation HOURLY_EQUIPMENT؛ <code>EmployerNeed.tsx</code> تب «حمل تنی» | «عملیات ساعتی»؛ dispatch → <code>hourlyDispatchStrategy</code> (stub 501) — <code>npm run test:need-hourly1</code> (۳×) + <code>test:emp1</code></p>
+      <p><a href="mvp-task-prompts-pro-fa.html#need-hourly-1"><strong>→ پرامپت</strong></a></p>
+    </li>
 
   </ul>
 </section>
 
 
 <section class="panel" id="done">
-  <h2>تسک‌های انجام‌شده — ۴۴ کارت پرامپت (پایین لیست HTML)</h2>
-  <p class="muted">فهرست تاریخی ~۴۵ آیتم کار زیر + <strong>۴۴ کارت پرامپت</strong> (COMM-TON-1 … WF-FIN-LOAD-1). باقی‌مانده: § <a href="#todo">todo</a> · § <a href="#coverage-gap">شکاف‌ها</a>.</p>
+  <h2>تسک‌های انجام‌شده — ۴۵ کارت پرامپت (پایین لیست HTML)</h2>
+  <p class="muted">فهرست تاریخی ~۴۵ آیتم کار زیر + <strong>۴۵ کارت پرامپت</strong> (COMM-TON-1 … HH-KYC-COMMITTEE-1). باقی‌مانده: § <a href="#todo">todo</a> · § <a href="#coverage-gap">شکاف‌ها</a>.</p>
   <ul>
     <li>✅ DB-1, DB-2 — Postgres کامل</li>
     <li>✅ PERM-1, AUTH-1, COOP-1, COOP-2</li>
@@ -1288,6 +1297,7 @@ Queue job <code>settlement.execute_payouts</code> پس از lock: فراخوان
     <li>✅ <strong>WF-GEOFENCE-1</strong> — mine_entry + factory_entry + geofence_math</li>
     <li>✅ <strong>WF-UNLOAD-1</strong> — unload_confirm_screen</li>
     <li>✅ <strong>WF-WB-READ-1</strong> — <code>weighbridge_read_screen.dart</code> + <code>GET /api/driver/missions/:id/weighbridge-status</code> — <code>flutter test test/weighbridge_read_test.dart</code> + <code>npm run test:wb-read1</code> (۳×)</li>
+    <li>✅ <strong>WF-INTRANSIT-1</strong> — <code>in_transit_screen.dart</code> + <code>GET /api/driver/missions/:id</code> (coords) + <code>/mission/:id/in-transit</code> → factory_entry — <code>flutter test test/in_transit_test.dart</code></li>
     <li>✅ <strong>KYC-NC-1</strong> — NEEDS_CORRECTION + resubmit (۴ entity) + KycInbox — <code>test:kyc-nc1</code></li>
     <li>✅ <strong>FIN-POLICY-1</strong> — <code>resolveFinancePolicy</code> + split — <code>test:fin-policy1</code></li>
     <li>✅ <strong>ACC-FUND-1</strong> — <code>fund_type</code> / <code>ledger_lane</code> روی <code>transactions</code> — <code>test:acc-fund1</code></li>
@@ -1306,6 +1316,7 @@ Queue job <code>settlement.execute_payouts</code> پس از lock: فراخوان
     <li>✅ <strong>WB-INT-1</strong> — <code>POST /api/weighbridge/ingest</code> + <code>X-Weighbridge-Key</code> + <code>weighbridgeIngestService</code> + event <code>weighbridge.agent_ingest</code> — <code>npm run test:wb-int1</code></li>
     <li>✅ <strong>CONTRACT-VERSION-UI-1</strong> — <code>POST /api/service-contracts/:id/new-version</code> + لیست نسخه/badge در <code>RateCards.tsx</code> — <code>npm run test:contract-version-ui1</code> (۳×)</li>
     <li>✅ <strong>HH-BULK-IMPORT-1</strong> — <code>POST /api/coop/households/import</code> + تب «ورود گروهی» در <code>CoopRequests.tsx</code> — <code>npm run test:hh-bulk-import1</code> (۳×)</li>
+    <li>✅ <strong>HH-KYC-COMMITTEE-1</strong> — <code>household_approvals</code> + quorum per coop (<code>settings_json.household_approval_quorum</code>، پیش‌فرض ۱)؛ ۲۰۲ pending / APPROVED؛ audit <code>kyc_household_approval</code> — <code>npm run test:hh-kyc-committee1</code> (۳×)</li>
     <li>✅ <strong>HSA-MATRIX-1</strong> — جدول <a href="#hsa-matrix">#hsa-matrix</a> + راهنمای Collapse در <code>PanelHome.tsx</code> (OPERATION_ADMIN / COOP_ADMIN)</li>
     <li>✅ <strong>CORE-OS-2</strong> — <code>DispatchStrategy</code> + registry — <code>npm run test:core-os2</code> + <code>test:disp1</code></li>
     <li>✅ <strong>E2E-UAT-HAUL-1</strong> — <code>apps/web/e2e/uat-haul-smoke.spec.ts</code> + <code>npm -w @app/web run test:e2e -- uat-haul</code> + <code>npm run test:uat-haul1</code> (۳× API mirror) — <a href="uat-handover-checklist-fa.md">چک‌لیست §۴</a></li>
@@ -1328,6 +1339,10 @@ Queue job <code>settlement.execute_payouts</code> پس از lock: فراخوان
     <li>✅ <strong>CURRENCY-UI-1</strong> — <code>formatMoney</code> web + <code>mineral_ui</code>؛ صفحات wallet/settlement/finance به تومان (API ریال) — <code>npm -w @app/web run test -- formatMoney</code> (۳×)</li>
     <li>✅ <strong>REDISPATCH-1</strong> — <code>POST /api/admin/missions/:id/redispatch</code> (OPERATION_ADMIN + requireMineContext)؛ migration <code>0042_mission_cancelled</code>؛ audit <code>mission.redispatch</code> + event <code>mission.redispatched</code>؛ DISPATCH-LOCK بعد از cancel — <code>npm run test:redispatch1</code> (۳×)</li>
     <li>✅ <strong>SMS-PROD-1</strong> — <code>smsProvider.ts</code> (mock|kavenegar|faraz) + SDK <code>kavenegar</code>؛ <code>notificationService.sendOtp</code>؛ prod بدون log OTP؛ <code>GET /__dev/otp</code> → 404 در production؛ <code>docs/deploy-runbook-fa.md</code> § staging SMS — <code>npm run test:sms-prod1</code> (۳×)</li>
+    <li>✅ <strong>HOURLY-REJ-1</strong> — <code>POST /api/hourly/:id/reject</code> + <code>ConsultantHourlyInbox.tsx</code>؛ audit <code>hourly_rejected</code>؛ بدون ledger — <code>npm run test:hourly-rej1</code> (۳×)</li>
+    <li>✅ <strong>CONSULT-UI-1</strong> — <code>GET /api/hourly?status=ENDED</code> + <code>ConsultantHourlyInbox.tsx</code> (<code>/panel/consultant/hourly</code>)؛ approve/reject modal؛ CONSULTANT nav فقط inbox — <code>npm run test:consult-ui1</code> (۳×)</li>
+    <li>✅ <strong>NEED-HOURLY-1</strong> — <code>operation_needs</code> فیلدهای ساعتی + FK <code>HOURLY_EQUIPMENT</code>؛ <code>EmployerNeed.tsx</code> دو تب؛ validation جدا؛ dispatch stub — <code>npm run test:need-hourly1</code> (۳×) + regression <code>test:emp1</code></li>
+    <li>✅ <strong>HOURLY-APP-1</strong> — <code>community_app</code> OPERATOR: <code>hourly_start_screen</code> / <code>hourly_end_screen</code> + GPS؛ <code>GET /api/operator/hourly/context</code>؛ ENDED در inbox مشاور — <code>npm run test:hourly1</code> + <code>test:hourly-app1</code> (۳×)</li>
     <li>✅ <strong>UAT-SIGNOFF-1</strong> — <a href="uat-handover-checklist-fa.md">چک‌لیست UAT</a> + <a href="deploy-runbook-fa.md">Runbook استقرار</a>؛ infra/comm-ton/invoice/e2e/pilot-taftan؛ امضای کارفرما + tech lead — § <a href="uat-handover-checklist-fa.md">handover</a></li>
   </ul>
 </section>

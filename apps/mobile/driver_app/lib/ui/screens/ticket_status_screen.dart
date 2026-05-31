@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/api_client.dart';
-import '../../core/session_store.dart';
+import 'package:mineral_api/mineral_api.dart';
+
+import '../../core/driver_api_client.dart';
 import '../../models/api_models.dart';
 import '../widgets/weighbridge_flow_strip.dart';
 
@@ -14,7 +15,7 @@ class TicketStatusScreen extends StatefulWidget {
     required this.missionId,
   });
 
-  final ApiClient api;
+  final DriverApiClient api;
   final SessionStore sessionStore;
   final String token;
   final int missionId;
@@ -199,7 +200,8 @@ class _TicketStatusScreenState extends State<TicketStatusScreen> {
                         const SizedBox(height: 8),
                         const Text(
                           'پس از اتمام ماموریت توسط شما، اپراتور باسکول وزن‌ها را ثبت می‌کند؛ ناظر پس از بررسی تأیید یا رد می‌کند. '
-                          'پس از تأیید معتبر، سهم طبق قانون مالی مصوب (تقسیم ۸۵/۱۳/۲) در کیف‌پول‌ها ثبت می‌شود.',
+                          'پس از تأیید معتبر، کرایه عملیاتی (مالک + پلتفرم) و مشارکت جامعه '
+                          '(تن تأییدشده × نرخ ثابت → Pool) جداگانه ثبت می‌شود.',
                           style: TextStyle(color: Colors.black54, height: 1.35),
                         ),
                       ],

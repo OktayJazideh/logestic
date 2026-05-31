@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:driver_app/theme/mineral_theme.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:mineral_api/mineral_api.dart';
 import 'package:driver_app/ui/router.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
   runApp(const DriverApp());
 }
 
@@ -14,7 +16,7 @@ class DriverApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Mineral Haul Platform',
+      title: 'سیستم لجستیک معادن — راننده',
       theme: MineralTheme.lightTheme,
       initialRoute: '/splash',
       onGenerateRoute: AppRouter.onGenerateRoute,

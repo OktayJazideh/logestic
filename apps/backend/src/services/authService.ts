@@ -2,6 +2,7 @@ import { OtpStore } from "../stores/otpStore";
 import { SessionStore, type Session } from "../stores/sessionStore";
 import { UserStore, type User } from "../stores/userStore";
 import { UserRole, UserRoles } from "../types/userRole";
+import { listRolePermissions } from "../types/permissions";
 import { env } from "../config/env";
 
 export class AuthService {
@@ -19,19 +20,17 @@ export class AuthService {
     return this.otpStore.requestOtp(mobile_number);
   }
 
-  verifyOtp(mobile_number: string, otp_code: string) {
-    const res = this.otpStore.verifyOtp(mobile_number, otp_code);
-    if (!res.ok) return { ok: false as const, reason: res.reason, attemptsLeft: (res as any).attemptsLeft };
+  async verifyOtp(mobile_number: string, otp_code: string) {
+    const res = await this.otpStore.verifyOtp(mobile_number, otp_code);
+    if (!res.ok) return { ok: false as const, reason: res.reason, attemptsLeft: (res as { attemptsLeft?: number }).attemptsLeft };
 
-    // Create user if not exists yet.
-    let user = this.userStore.getByMobile(mobile_number);
+    let user = await this.userStore.getByMobile(mobile_number);
     if (!user) {
-      // Default role in MVP: DRIVER (without KYC). For dev we can pre-seed roles via env vars.
       const role: UserRole =
         env.DEV_ADMIN_MOBILE && mobile_number === env.DEV_ADMIN_MOBILE
           ? "ADMIN"
           : env.DEV_COOP_MOBILE && mobile_number === env.DEV_COOP_MOBILE
-            ? "COOP"
+            ? "COOP_ADMIN"
             : env.DEV_EMPLOYER_MOBILE && mobile_number === env.DEV_EMPLOYER_MOBILE
               ? "EMPLOYER"
               : env.DEV_FLEET_OWNER_MOBILE && mobile_number === env.DEV_FLEET_OWNER_MOBILE
@@ -42,12 +41,12 @@ export class AuthService {
                     ? "CONSULTANT"
                     : "DRIVER";
 
-      user = this.userStore.upsertUserByMobile(mobile_number, role, { is_active: true });
+      user = await this.userStore.upsertUserByMobile(mobile_number, role, { is_active: true });
     } else {
-      user = this.userStore.upsertUserByMobile(mobile_number, user.role, { is_active: true });
+      user = await this.userStore.upsertUserByMobile(mobile_number, user.role, { is_active: true });
     }
 
-    const session = this.sessionStore.createSession({
+    const session = await this.sessionStore.createSession({
       userId: user.id,
       mobile_number: user.mobile_number,
       role: user.role,
@@ -57,42 +56,39 @@ export class AuthService {
     return { ok: true as const, session };
   }
 
-  getSession(token: string): Session | null {
+  async getSession(token: string): Promise<Session | null> {
     return this.sessionStore.getSession(token);
   }
 
-  getUserFromSession(token: string): { id: number; mobile_number: string; role: UserRole; is_active: boolean } | null {
-    const s = this.getSession(token);
+  async getUserFromSession(
+    token: string,
+  ): Promise<{
+    id: number;
+    mobile_number: string;
+    role: UserRole;
+    is_active: boolean;
+    is_weighbridge_operator: boolean;
+    cooperative_id?: number;
+  } | null> {
+    const s = await this.getSession(token);
     if (!s) return null;
     if (!s.is_active) return null;
-    return { id: s.userId, mobile_number: s.mobile_number, role: s.role, is_active: s.is_active };
+    const user = await this.userStore.getById(s.userId);
+    return {
+      id: s.userId,
+      mobile_number: s.mobile_number,
+      role: s.role,
+      is_active: s.is_active,
+      is_weighbridge_operator: user?.is_weighbridge_operator ?? false,
+      cooperative_id: user?.cooperative_id,
+    };
   }
 
   listPermissions(role: UserRole): string[] {
-    // Minimal permission model for MVP.
-    const base: string[] = [];
-    switch (role) {
-      case "ADMIN":
-        return ["*"];
-      case "COOP":
-        return ["coop:manage", "coop:read_audit"];
-      case "EMPLOYER":
-        return ["employer:read", "employer:submit_need"];
-      case "DRIVER":
-        return ["driver:read_missions", "driver:execute_steps"];
-      case "FLEET_OWNER":
-        return ["owner:read_finances", "owner:read_transactions"];
-      case "HOUSEHOLD":
-        return ["household:read_shares", "household:read_transactions"];
-      case "CONSULTANT":
-        return ["consultant:approve_hourly"];
-      default:
-        return base;
-    }
+    return listRolePermissions(role);
   }
 
   listMyPermissions(sessionRole: UserRole) {
     return this.listPermissions(sessionRole);
   }
 }
-

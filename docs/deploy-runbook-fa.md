@@ -6,6 +6,8 @@
 
 **چک‌لیست پذیرش کارفرما:** [`uat-handover-checklist-fa.md`](uat-handover-checklist-fa.md)
 
+**کاربران هر نقش + Linux deploy + APK:** [`demo-users-and-deploy-fa.md`](demo-users-and-deploy-fa.md)
+
 ---
 
 ## ۱. پیش‌نیاز
@@ -288,14 +290,33 @@ npm run test:infra-regression
 npm run test:comm-ton1
 npm run test:invoice-draft1
 npm -w @app/backend run test:pilot-taftan1
+npm -w @app/backend run test:hold-settlement1
 npm -w @app/web run test:e2e -- uat-haul
 ```
 
-مرجع کامل: [`uat-handover-checklist-fa.md`](uat-handover-checklist-fa.md)
+مرجع کامل: [`uat-handover-checklist-fa.md`](uat-handover-checklist-fa.md) · [`demo-users-and-deploy-fa.md`](demo-users-and-deploy-fa.md)
 
 ---
 
-## ۱۰. عیب‌یابی سریع
+## ۱۰. APK موبایل (Flutter)
+
+نیاز: Flutter SDK + Android SDK. جزئیات: [`demo-users-and-deploy-fa.md` §۵](demo-users-and-deploy-fa.md).
+
+```bash
+cd apps/mobile/driver_app
+flutter pub get
+flutter build apk --release --dart-define=API_BASE_URL=https://api.example.ir
+# → build/app/outputs/flutter-apk/app-release.apk
+
+cd ../community_app
+flutter build apk --release --dart-define=API_BASE_URL=https://api.example.ir
+```
+
+> `API_BASE_URL` باید آدرس **عمومی** سرور باشد — روی گوشی `localhost` کار نمی‌کند.
+
+---
+
+## ۱۱. عیب‌یابی سریع
 
 | علامت | علت محتمل | اقدام |
 |--------|-----------|--------|

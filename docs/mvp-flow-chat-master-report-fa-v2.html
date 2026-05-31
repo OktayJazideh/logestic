@@ -1,0 +1,1507 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<title>گزارش مستر MVP — نسخهٔ ۲ (پس از سند معماری کارفرما)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#FAFAF7; --panel:#FFFFFF; --text:#1F2937; --muted:#6B7280;
+    --border:#E5E7EB; --soft:#F3F4F6; --soft2:#F9FAFB;
+    --primary:#1B5E20; --primary-2:#2E7D32;
+    --ok:#16A34A; --part:#D97706; --no:#DC2626; --info:#0369A1;
+    --chip-bg:#ECFDF5; --chip-border:#A7F3D0;
+    --warn-bg:#FFFBEB; --warn-border:#FCD34D;
+    --bad-bg:#FEF2F2; --bad-border:#FCA5A5;
+    --code-bg:#0B1020; --code-text:#E5E7EB;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Tahoma,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.85}
+  a{color:var(--primary)}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 18px 80px}
+  header.hero{
+    background:linear-gradient(180deg,#0F3D17 0%,#1B5E20 100%);
+    color:#fff;border-radius:14px;padding:22px 22px 18px;margin-bottom:18px;
+    box-shadow:0 6px 24px rgba(0,0,0,.08)
+  }
+  header.hero h1{margin:0 0 6px;font-size:22px}
+  header.hero p{margin:4px 0;color:#D1FAE5;font-size:13.5px;line-height:1.8}
+  header.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;background:#FFFFFF20;border:1px solid #FFFFFF30;color:#ECFDF5}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  .panel h2{margin:0 0 10px;font-size:18px;color:#0F3D17;border-bottom:2px solid var(--soft);padding-bottom:8px}
+  .panel h3{margin:14px 0 6px;font-size:15px;color:#111827}
+  .panel p,.panel li{font-size:14.2px;color:#374151}
+  .muted{color:var(--muted);font-size:13px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  .toc{background:#F8FAF7;border:1px dashed #C7DDC8;border-radius:10px;padding:12px 14px}
+  .toc ol{margin:0;padding-inline-start:22px}
+  .toc a{text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+
+  .status{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;border:1px solid transparent;white-space:nowrap}
+  .s-ok{background:#ECFDF5;color:#065F46;border-color:#A7F3D0}
+  .s-part{background:#FFFBEB;color:#92400E;border-color:#FCD34D}
+  .s-no{background:#FEF2F2;color:#991B1B;border-color:#FCA5A5}
+  .s-info{background:#E0F2FE;color:#075985;border-color:#7DD3FC}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff}
+  th,td{border:1px solid var(--border);padding:8px 10px;vertical-align:top;text-align:right}
+  th{background:#F3F6F1;color:#0F3D17;font-weight:700}
+  tbody tr:nth-child(2n){background:#FBFCFA}
+
+  ul.tasks{list-style:none;padding:0;margin:0}
+  ul.tasks li.task{
+    background:#fff;border:1px solid var(--border);border-radius:10px;
+    padding:12px 14px;margin-bottom:10px;
+  }
+  ul.tasks li.task .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+  ul.tasks li.task .row .title{font-weight:700;color:#0F3D17;font-size:14.5px}
+  ul.tasks li.task .why{font-size:13.5px;color:#374151;margin:4px 0 6px}
+  ul.tasks li.task .meta{font-size:12.5px;color:#6B7280}
+  ul.tasks li.task code{background:#F1F5F9;border-radius:4px;padding:1px 5px;font-size:12.5px;color:#0F172A}
+
+  details.prompt{margin-top:8px;background:#F8FAF7;border:1px dashed #C7DDC8;border-radius:8px;padding:8px 10px}
+  details.prompt > summary{cursor:pointer;font-weight:700;color:#0F3D17;font-size:13.5px}
+  details.prompt pre{margin:8px 0 0;background:var(--code-bg);color:var(--code-text);padding:12px 14px;border-radius:8px;direction:ltr;font-family:Menlo,Consolas,monospace;font-size:12.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+  details.prompt .promptfa{margin:8px 0 0;background:#FFFFFF;border:1px solid #D1D5DB;border-radius:8px;padding:10px 12px;font-size:13.4px;line-height:1.95;color:#1F2937}
+
+  .epic{border-right:4px solid var(--primary);padding:8px 14px 8px 8px;background:#FAFCF9;border-radius:8px;margin:10px 0 14px}
+  .epic h3{margin:0 0 4px;color:#0F3D17}
+  .epic .epic-meta{font-size:12.5px;color:#475569}
+
+  .badge{display:inline-block;background:#0F3D17;color:#fff;border-radius:6px;padding:1px 7px;font-size:11.5px;margin-inline-end:6px}
+  .badge.warn{background:#92400E}
+  .badge.no{background:#991B1B}
+  .badge.info{background:#075985}
+  .badge.new{background:#7C3AED}
+
+  .note{background:#FFFBEB;border:1px solid #FCD34D;color:#92400E;padding:10px 12px;border-radius:8px;font-size:13.5px}
+  .bad{background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;padding:10px 12px;border-radius:8px;font-size:13.5px}
+  .good{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;padding:10px 12px;border-radius:8px;font-size:13.5px}
+  .info{background:#E0F2FE;border:1px solid #7DD3FC;color:#075985;padding:10px 12px;border-radius:8px;font-size:13.5px}
+
+  .qa{background:#FFFFFF;border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+  .qa .q{font-weight:700;color:#0F3D17;margin-bottom:6px}
+  .qa .a{color:#374151;font-size:14px}
+
+  .priority{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;margin-inline-start:6px}
+  .p1{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+  .p2{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+  .p3{background:#E0E7FF;color:#3730A3;border:1px solid #A5B4FC}
+
+  .golden{background:linear-gradient(180deg,#FFFBEB 0%,#FEF9C3 100%);border:2px dashed #D97706;border-radius:10px;padding:14px 16px;color:#7C2D12;font-size:14.5px;line-height:2}
+  .golden strong{color:#7C2D12}
+
+  .decisions li{padding:8px 0;border-bottom:1px dashed #E5E7EB}
+  .decisions li:last-child{border-bottom:0}
+  .decisions .k{font-weight:700;color:#0F3D17}
+  .decisions .v{color:#1F2937}
+
+  .answered{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;padding:8px 10px;border-radius:8px;font-size:13px;margin-top:6px}
+  .answered::before{content:"✅ پاسخ کارفرما: ";font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <h1>📋 گزارش مستر MVP — نسخهٔ ۲ (پس از سند معماری کارفرما)</h1>
+    <p>این نسخه پس از دریافت «سند جامع معماری و چشم‌انداز» از کارفرما بازنویسی شده. اکثر ابهامات قبلی پاسخ گرفته و تبدیل به «تصمیم قطعی» شده‌اند. سوال‌های جواب‌گرفته از فهرست سوالات حذف شده و فقط سوال‌های واقعاً باز باقی مانده‌اند.</p>
+    <p>تسک‌های تازه‌ای که از سند کارفرما بیرون آمدند (Rule Engine، Event Bus، Queue، Reconciliation، Notification، Idempotency، Offline، Soft Delete، KPI، Permission Matrix رسمی، Community App) به چک‌لیست اضافه شدند.</p>
+    <div class="meta">
+      <span class="pill">آخرین به‌روزرسانی: ۱۴۰۵/۲/۲۳ (نسخهٔ ۲)</span>
+      <span class="pill">منبع: کد logestic + Draft Architecture V1 کارفرما</span>
+      <span class="pill">اصل طلایی: «هیچ فرآیند رسمی خارج از سیستم معتبر نیست»</span>
+    </div>
+  </header>
+
+  <!-- TOC -->
+  <nav class="panel toc" id="toc">
+    <h2>فهرست مطالب</h2>
+    <ol>
+      <li><a href="#how">۰. راهنمای استفاده از این گزارش</a></li>
+      <li><a href="#vision">۱. چشم‌انداز و اصل طلایی (طبق سند کارفرما)</a></li>
+      <li><a href="#summary">۲. خلاصهٔ مدیریتی — همین الان کجاییم؟</a></li>
+      <li><a href="#decisions">۳. تصمیمات قطعی کارفرما (تبدیل سوال به جواب)</a></li>
+      <li><a href="#roles">۴. ماتریس نقش‌ها (Permission Matrix رسمی)</a></li>
+      <li><a href="#fsm">۵. ماشین وضعیت ماموریت + Settlement (طبق اسپک جدید)</a></li>
+      <li><a href="#matrix">۶. ماتریس وضعیت اسپک در برابر کد فعلی</a></li>
+      <li><a href="#checklist">۷. چک‌لیست کارهای باقی‌مانده (۲۸ کارت)</a></li>
+      <li><a href="#epics">۸. اپیک‌های توسعه (نقشهٔ راه)</a></li>
+      <li><a href="#questions">۹. سوال‌های باقی‌مانده (محاوره‌ای)</a></li>
+      <li><a href="#suggestions">۱۰. پیشنهادهای ما (محاوره‌ای)</a></li>
+      <li><a href="#critique">۱۱. انتقادهای رو راست (محاوره‌ای)</a></li>
+      <li><a href="#dod">۱۲. تعریف «انجام شده» (DoD)</a></li>
+      <li><a href="#files">۱۳. نقشهٔ فایل‌های اصلی</a></li>
+      <li><a href="#chat-rule">۱۴. قاعدهٔ «یک چت = یک تسک»</a></li>
+    </ol>
+  </nav>
+
+  <!-- 0. How to use -->
+  <section class="panel" id="how">
+    <h2>۰. راهنمای استفاده از این گزارش</h2>
+    <ul>
+      <li><strong>کارفرما (غیرفنی):</strong> بخش‌های ۱، ۲، ۳، ۹، ۱۰، ۱۱ را بخوانید.</li>
+      <li><strong>مدیر فنی پروژه:</strong> ۴، ۵، ۶، ۷، ۸، ۱۲ نقشهٔ راه است.</li>
+      <li><strong>توسعه‌دهنده:</strong> پرامپت داخل هر کارت در بخش ۷ را کپی کنید، یک چت جدید بسازید، تمام مستندات لازم در همان پرامپت آمده.</li>
+    </ul>
+    <div class="note"><strong>قاعدهٔ مهم:</strong> «یک چت = یک تسک». هر کارت یک چت جدید.</div>
+  </section>
+
+  <!-- 1. Vision -->
+  <section class="panel" id="vision">
+    <h2>۱. چشم‌انداز و اصل طلایی (طبق سند معماری کارفرما)</h2>
+    <p>این پروژه فقط اپ حمل بار یا اپ تعاونی نیست. یک <strong>زیرساخت دیجیتال برای مدیریت عملیات، تسویه، شفافیت و حکمرانی تعاونی‌های صنعتی</strong> است؛ ترکیبی از Logistics Platform + Financial Settlement System + Cooperative OS + Governance Infrastructure.</p>
+
+    <div class="golden">
+      <strong>اصل طلایی پروژه:</strong><br>
+      «هیچ فرآیند رسمی خارج از سیستم معتبر نیست.»<br>
+      ماموریت، تأیید، تسویه، عضویت، اعتراض، باسکول — همگی باید داخل سیستم ثبت، تأیید و Audit شوند.
+    </div>
+
+    <h3>ساختار قدرت (طبق سند)</h3>
+    <ul>
+      <li><strong>شرکت اپراتور پلتفرم:</strong> مالک Core System + Rule Engine + Settlement Engine + Wallet Engine + Audit System. <em>پیمانکار معدن نیست، تعاونی نیست، واسطهٔ پنهان پول نیست</em> — فقط اپراتور شفاف زیرساخت.</li>
+      <li><strong>تعاونی:</strong> مجری محلی + معرف خانوار/راننده/ناوگان + بازوی اجتماعی. <em>Settlement را کنترل نمی‌کند، Ruleها را تغییر نمی‌دهد، Audit را حذف نمی‌کند.</em></li>
+      <li><strong>کارفرما (معدن/کارخانه):</strong> ثبت نیاز، ثبت ماموریت، تأیید عملیات، پرداخت هزینه.</li>
+      <li><strong>خانوار:</strong> ذی‌نفع اجتماعی، مشاهدهٔ سهم/کیف‌پول/وضعیت تسویه، ثبت اعتراض.</li>
+      <li><strong>مالک ناوگان:</strong> درآمد بر اساس عملیات تأییدشده.</li>
+      <li><strong>راننده / اپراتور:</strong> مجری عملیات، بدون دسترسی به اطلاعات مالی دیگران.</li>
+    </ul>
+
+    <h3>اصول معماری اضافه‌شده در سند کارفرما</h3>
+    <ul>
+      <li><strong>Event-Driven Architecture</strong> — همهٔ اتفاقات Event هستند.</li>
+      <li><strong>Rule Engine قابل پیکربندی</strong> — هیچ Ruleای Hardcode نباشد (درصد سهم، Threshold وزن، دورهٔ Settlement …).</li>
+      <li><strong>Ledger-Based Finance</strong> — هیچ Balance مستقیم ویرایش نشود.</li>
+      <li><strong>Idempotency</strong> روی عملیات حساس (Settlement، Mission Create، Payment، Weighbridge).</li>
+      <li><strong>Queue + Retry + Reconciliation</strong> برای کارهای Async.</li>
+      <li><strong>Soft Delete</strong> برای هیچ دادهٔ مهمی delete واقعی نشود.</li>
+      <li><strong>Offline Strategy</strong> در اپ راننده برای محیط معدن.</li>
+      <li><strong>Notification</strong> در سه کانال: Push / SMS / In-App.</li>
+      <li><strong>KPI & Observability</strong> برای راندمان ناوگان، درصد تأخیر، HOLD، failed settlement.</li>
+      <li><strong>Geo-Configurable</strong> برای معدن/جاده/روستا/محدوده.</li>
+    </ul>
+  </section>
+
+  <!-- 2. Executive Summary -->
+  <section class="panel" id="summary">
+    <h2>۲. خلاصهٔ مدیریتی — همین الان کجاییم؟</h2>
+    <div class="grid2">
+      <div>
+        <h3>کارمی‌کند ✅</h3>
+        <ul>
+          <li>ورود OTP موبایل + session + users (Postgres — DB-1)</li>
+          <li>۷ نقش با RBAC ساده (ولی نام‌ها قدیمی، نه طبق Permission Matrix جدید)</li>
+          <li>ماشین وضعیت ۹‌حالته ماموریت (CREATED→…→SETTLED) + validate گذار — <code>npm run test:fsm1</code> (۳×)</li>
+          <li>تیکت باسکول با ۶ وضعیت + Adjustment</li>
+          <li>تقسیم ۸۵/۱۳/۲ روی هر ماموریت تأییدشده</li>
+          <li>اپ Flutter راننده (Login/OTP/Mine/Missions/Ticket)</li>
+          <li>پنل وب با ۹ صفحه</li>
+          <li><s>Hold/Release/Reversal با ثبت دلیل</s> <strong>REVERSE-1 انجام شد</strong> — پنجره ۷۲ساعت + post-settled adjustment؛ <code>test:rev1</code> ۳×</li>
+          <li><s>Community Pool ماهانه snapshot-based</s> <strong>POOL-1 انجام شد</strong> — <code>distributePool</code> + <code>test:pool1</code> ۳×</li>
+          <li>Audit Log در Postgres (DB-2)</li>
+        </ul>
+      </div>
+      <div>
+        <h3>نیست یا منحرف ❌</h3>
+        <ul>
+          <li><strong>State Machine ماموریت ۹‌حالته</strong> طبق اسپک جدید — P1</li>
+          <li><s>Settlement Lifecycle ۵‌حالته</s> <strong>SET-1 انجام شد</strong> — <code>test:set1</code> ۳×</li>
+          <li><strong>Permission Matrix رسمی</strong> با ۸ نقش (OPERATION_ADMIN، COOP_ADMIN، COOP_OPERATOR …) — P1</li>
+          <li><s>Rate Card نسخه‌گذاری</s> <strong>RATE-1 انجام شد</strong> — CRUD + activate + UI</li>
+          <li><s>Rule Engine قابل پیکربندی</s> <strong>RULE-1 انجام شد</strong> — finance_rules + RuleEngine + UI</li>
+          <li><strong>فرم نیاز کارفرما</strong> فقط alert می‌زند — P1</li>
+          <li><strong>Dispatch Engine</strong> سیستمی (حذف رانت) — P1</li>
+          <li><s>عملیات ساعتی</s> <strong>HOURLY-1 انجام شد</strong> — OPERATOR + START/END/verify + Rate Card HOURLY</li>
+          <li><s>Settlement ماهانه + payment_reference اجباری + receipt</s> <strong>SET-1 انجام شد</strong></li>
+          <li><strong>فرمول ۱۳٪ جدید</strong>: `pool / household_snapshot_count` — P1</li>
+          <li><s>Threshold ۵٪ وزن</s> <strong>WB-1 انجام شد</strong> — PENDING_HOLD + <code>weighbridge.threshold</code> از RuleEngine</li>
+          <li><strong>Idempotency Key</strong> روی endpointهای مالی — P1</li>
+          <li><s>Event Bus in-process + جدول events</s> <strong>EVENT-1 انجام شد</strong> — <code>test:event1</code> ۳×</li>
+          <li><s>Queue + Worker (Async Jobs)</s> <strong>QUEUE-1 انجام شد</strong> — settlement Async 202+polling؛ <code>test:queue1</code> + <code>test:set1</code> ۳×</li>
+          <li><s>Reconciliation Engine</s> <strong>RECON-1 انجام شد</strong> — nightly QUEUE-1؛ <code>reconciliation_issues</code>؛ <code>ReconciliationPage.tsx</code>؛ <code>test:recon1</code> ۳×</li>
+          <li><s>Notification</s> <strong>NOTIF-1 انجام شد</strong> — Push/SMS/In-App + <code>GET /api/notifications</code>؛ <code>test:notif1</code> ۳×</li>
+          <li><s>Audit Log دائمی + UI مرور</s> <strong>AUDIT-1 انجام شد</strong> — <code>GET /api/audit</code>؛ <code>AuditViewer.tsx</code>؛ <code>test:audit1</code> ۳×</li>
+          <li><s>داشبورد مالی ادمین + IBAN ماسک + Export</s> <strong>FIN-UI-1 انجام شد</strong> — <code>AdminFinance.tsx</code>؛ <code>test:fin1</code> + <code>test:fin-iban</code> (۳×)</li>
+          <li><strong>Soft Delete</strong> سراسری — P2</li>
+          <li><strong>Offline راننده</strong> + Sync — <span style="color:#16A34A">✓ انجام شد (OFFLINE-1)</span></li>
+          <li><s>KPI Dashboard</s> <strong>KPI-1 انجام شد</strong> — <code>kpi_snapshots</code>؛ nightly QUEUE-1؛ <code>AdminKpi.tsx</code>؛ <code>/api/healthz</code> + pino؛ <code>test:kpi1</code> ۳×</li>
+          <li><strong>Community App</strong> (خانوار/تعاونی) — P2</li>
+          <li><s>تست‌های اتوماتیک</s> <strong>TEST-1 انجام شد</strong> — Vitest + Playwright + GitHub Actions</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Decisions -->
+  <section class="panel" id="decisions">
+    <h2>۳. تصمیمات قطعی کارفرما (تبدیل سوال به جواب)</h2>
+    <p class="muted">سوال‌های نسخهٔ قبلی این گزارش بسیاری‌اش با سند معماری کارفرما جواب گرفت. این بخش، تصمیم‌های قطعی است و دیگر سوال نیستند:</p>
+    <ul class="decisions">
+      <li><span class="k">۱) تعاونی-معدن:</span> <span class="v">فاز ۱ = یک معدن + یک تعاونی. ولی معماری از روز اول باید چندتایی پشتیبانی کند (Geo-Configurable + Multi-Tenant).</span></li>
+      <li><span class="k">۲) فرمول سهم ۱۳٪ خانوار:</span> <span class="v">سهم اجتماعی منطقه است و <strong>مستقل از تعداد ماموریت‌های خانوار</strong>. فرمول رسمی: <code>community_pool ÷ household_snapshot_count</code>. یعنی پایان ماه، عکس (snapshot) از همهٔ خانوارهای فعال گرفته می‌شود و سهم به‌طور مساوی بین‌شان تقسیم می‌شود.</span></li>
+      <li><span class="k">۳) تعاونی واسطهٔ مالی نیست:</span> <span class="v">پرداخت از پلتفرم مستقیماً به IBAN هر ذی‌نفع (مالک ناوگان / خانوار). تعاونی فقط مجری محلی + معرف عضو است.</span></li>
+      <li><span class="k">۴) Reverse با محدودیت زمان:</span> <span class="v">فقط داخل بازهٔ زمانی محدود + ثبت دلیل + Audit. بعد از آن فقط Adjustment رسمی.</span></li>
+      <li><span class="k">۵) آستانهٔ اختلاف وزن:</span> <span class="v">۵٪ → HOLD/FLAG اتومات. این Threshold باید <em>configurable</em> باشد (داخل Rule Engine).</span></li>
+      <li><span class="k">۶) حالت پرداخت بانکی:</span> <span class="v">Settlement Lifecycle رسمی: <code>PENDING → CALCULATED → READY_FOR_SETTLEMENT → IN_BANK_QUEUE → SETTLED / FAILED</code>.</span></li>
+      <li><span class="k">۷) عملیات ساعتی:</span> <span class="v">نقش رسمی <code>OPERATOR</code> با START/END + امکان ثبت عکس + توضیح + لوکیشن. CONSULTANT_VERIFICATION گام جدا.</span></li>
+      <li><span class="k">۸) Dispatch:</span> <span class="v">باید کاملاً سیستمی باشد (نه انتخاب دستی). هدف: حذف رانت / حذف رابطه. Marketplace آزاد یا انتخاب ماموریت توسط راننده <em>نداریم</em>.</span></li>
+      <li><span class="k">۹) Mission State Machine:</span> <span class="v">۹ حالت رسمی: <code>CREATED → ASSIGNED → ACCEPTED → ARRIVED → LOADED → IN_TRANSIT → DELIVERED → VERIFIED → SETTLED</code>.</span></li>
+      <li><span class="k">۱۰) Permission Matrix:</span> <span class="v">۸ نقش رسمی: <code>ADMIN، OPERATION_ADMIN، COOP_ADMIN، COOP_OPERATOR، CONSULTANT، DRIVER، FLEET_OWNER، HOUSEHOLD</code>.</span></li>
+      <li><span class="k">۱۱) ساختار سه کلاینت:</span> <span class="v">Admin Panel + Driver App + Community App (برای تعاونی و خانوار با Role-Based).</span></li>
+      <li><span class="k">۱۲) Ledger:</span> <span class="v">هیچ Balanceای مستقیم ویرایش نمی‌شود — همه چیز Transaction-Based + Immutable.</span></li>
+      <li><span class="k">۱۳) Idempotency:</span> <span class="v">روی Settlement / Mission Creation / Payment / Weighbridge اجباری.</span></li>
+      <li><span class="k">۱۴) Soft Delete:</span> <span class="v">هیچ دادهٔ مهمی Hard Delete نمی‌شود.</span></li>
+      <li><span class="k">۱۵) Notification:</span> <span class="v">سه کانال Push / SMS / In-App برای ماموریت/Settlement/HOLD/اعتراض/تأیید/پرداخت.</span></li>
+      <li><span class="k">۱۶) Event-Driven:</span> <span class="v">همه‌چیز Event است (mission_created, settlement_generated, payment_failed, vehicle_approved, household_added …).</span></li>
+      <li><span class="k">۱۷) خارج از Scope MVP:</span> <span class="v">AI سنگین، سیستم ملی، Marketplace آزاد، انتخابات، شبکهٔ اجتماعی، چند معدن همزمان، پلاک‌خوان پیشرفته.</span></li>
+    </ul>
+  </section>
+
+  <!-- 4. Permission Matrix -->
+  <section class="panel" id="roles">
+    <h2>۴. ماتریس نقش‌ها (Permission Matrix رسمی)</h2>
+    <p class="muted">طبق سند معماری کارفرما، ۸ نقش رسمی داریم. این جدول، تفکیک دسترسی‌ها است که باید در کد پیاده شود (تسک <a href="#t-perm-1">PERM-1</a>).</p>
+    <table>
+      <thead>
+        <tr><th>نقش</th><th>دسترسی‌های اصلی</th><th>محدودیت‌ها</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>ADMIN</code></td><td>دسترسی کامل به کل سیستم، Rule Engine، Audit، Reverse</td><td>—</td></tr>
+        <tr><td><code>OPERATION_ADMIN</code></td><td>مدیریت عملیات روزانه، Dispatch، Settlement، HOLD/Release</td><td>تغییر Rule Engine ندارد. Reverse با محدودیت زمان.</td></tr>
+        <tr><td><code>COOP_ADMIN</code></td><td>مدیریت اعضای تعاونی، گزارش، اعتراض، ناوگان</td><td>scope = تعاونی خودش. Settlement تغییر نمی‌دهد.</td></tr>
+        <tr><td><code>COOP_OPERATOR</code></td><td>تأیید عضویت، بررسی محلی</td><td>scope = تعاونی خودش.</td></tr>
+        <tr><td><code>OPERATOR</code></td><td>شروع/پایان شیفت ساعتی (<code>hourly:start</code>, <code>hourly:end</code>) + عکس/لوکیشن</td><td>تأیید نهایی و نرخ ندارد.</td></tr>
+        <tr><td><code>CONSULTANT</code></td><td>تأیید عملیات ساعتی (CONSULTANT_VERIFICATION)</td><td>اجازهٔ تأیید باسکول ندارد. اجازهٔ تغییر نرخ ندارد.</td></tr>
+        <tr><td><code>DRIVER</code></td><td>مشاهده ماموریت، ثبت وضعیت، مشاهده عملکرد خود</td><td>کیف‌پول دیگران، اطلاعات مالی دیگران ندارد.</td></tr>
+        <tr><td><code>FLEET_OWNER</code></td><td>کیف‌پول خود، تراکنش‌های خود، ناوگان خود</td><td>—</td></tr>
+        <tr><td><code>HOUSEHOLD</code></td><td>کیف‌پول، سهم، وضعیت Settlement، ثبت اعتراض</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="info" style="margin-top:10px"><strong>وضعیت کد (۱۶ مه ۲۰۲۶):</strong> ۸ نقش پایه + <code>OPERATOR</code> (HOURLY-1) در enum و <code>permissions.ts</code>؛ legacy <code>COOP</code> → <code>COOP_ADMIN</code>. تست: <code>npm run test:rbac</code> (۳×)، <code>npm run test:hourly1</code> (۳×).</div>
+  </section>
+
+  <!-- 5. FSM -->
+  <section class="panel" id="fsm">
+    <h2>۵. ماشین وضعیت ماموریت + Settlement (طبق اسپک جدید)</h2>
+
+    <h3>۵.۱ Mission Lifecycle (۹ حالت)</h3>
+    <table>
+      <thead><tr><th>وضعیت</th><th>چه کسی منتقل می‌کند؟</th><th>توضیح</th></tr></thead>
+      <tbody>
+        <tr><td><code>CREATED</code></td><td>سیستم (پس از Dispatch)</td><td>ماموریت ساخته شد ولی هنوز به راننده نرسیده.</td></tr>
+        <tr><td><code>ASSIGNED</code></td><td>سیستم</td><td>به راننده تخصیص داده شد.</td></tr>
+        <tr><td><code>ACCEPTED</code></td><td>راننده</td><td>راننده ماموریت را قبول کرد.</td></tr>
+        <tr><td><code>ARRIVED</code></td><td>راننده</td><td>به مبدأ رسید (loading point).</td></tr>
+        <tr><td><code>LOADED</code></td><td>راننده / اپراتور باسکول</td><td>بارگیری انجام شد و وزن خالی/پر ثبت شد.</td></tr>
+        <tr><td><code>IN_TRANSIT</code></td><td>راننده</td><td>در مسیر مقصد.</td></tr>
+        <tr><td><code>DELIVERED</code></td><td>راننده</td><td>به مقصد رسید و تخلیه شد.</td></tr>
+        <tr><td><code>VERIFIED</code></td><td>COOP_ADMIN / OPERATION_ADMIN</td><td>تیکت باسکول تأیید شد، سهم محاسبه شد.</td></tr>
+        <tr><td><code>SETTLED</code></td><td>Settlement Engine</td><td>پرداخت ماهانه انجام شد و رسید بانکی ثبت شد.</td></tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top:8px"><strong>وضعیت فعلی کد:</strong> migration <code>0007_mission_fsm_9</code>، <code>lib/missionFsm.ts</code>، گذار غیرمجاز → 409 <code>invalid_transition</code>، Flutter <code>mission_flow.dart</code> (۹ گام فارسی) — <code>npm run test:fsm1</code> + <code>test:duty-db2</code> (هر کدام ۳×).</div>
+
+    <h3>۵.۲ Settlement Lifecycle (۵ حالت)</h3>
+    <div class="note" style="margin-top:8px"><strong>وضعیت فعلی کد (SET-1):</strong> enum batch در Postgres؛ <code>POST /api/admin/settlement/monthly-close|lock|send-to-bank|mark-paid|mark-failed</code>؛ export Excel؛ UI <code>SettlementPage.tsx</code> — <code>npm run test:set1</code> (۳×).</div>
+    <table>
+      <thead><tr><th>وضعیت</th><th>توضیح</th></tr></thead>
+      <tbody>
+        <tr><td><code>PENDING</code></td><td>ماموریت تأیید شد ولی هنوز در batch نرفته.</td></tr>
+        <tr><td><code>CALCULATED</code></td><td>پایان ماه: سهم‌ها محاسبه شدند، batch DRAFT.</td></tr>
+        <tr><td><code>READY_FOR_SETTLEMENT</code></td><td>batch قفل شد، آمادهٔ ارسال به بانک.</td></tr>
+        <tr><td><code>IN_BANK_QUEUE</code></td><td>دستور پرداخت به بانک رفت، منتظر تأیید.</td></tr>
+        <tr><td><code>SETTLED</code></td><td>پرداخت موفق + شمارهٔ پیگیری بانکی + رسید.</td></tr>
+        <tr><td><code>FAILED</code></td><td>پرداخت ناموفق → بازگشت به صف Manual Review.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 6. Status Matrix -->
+  <section class="panel" id="matrix">
+    <h2>۶. ماتریس وضعیت اسپک در برابر کد فعلی</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>قابلیت اسپک</th><th>وضعیت</th><th>کجای کد</th><th>توضیح</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>۱</td><td>ورود با OTP موبایل</td><td><span class="status s-ok">عملیاتی</span></td><td><code>routes/auth.ts</code>, <code>pages/LoginPage.tsx</code>, <code>hooks/useAuthGuard.ts</code></td><td>OTP/session/users روی Postgres؛ وب: <code>/login</code> دو‌مرحله‌ای، guard پنل، logout، resend ۶۰ث — <code>npm run test:auth-login</code> (۳×).</td></tr>
+        <tr><td>۲</td><td>۸ نقش رسمی + RBAC ماتریسی</td><td><span class="status s-ok">عملیاتی</span></td><td><code>types/userRole.ts</code>, <code>middleware/rbac.ts</code></td><td>PERM-1: ماتریس، <code>requirePermission</code>، scope تعاونی، <code>AdminUsers.tsx</code>، <code>test:rbac</code> ۳×.</td></tr>
+        <tr><td>۳</td><td>KYC حقوقی تعاونی + KYC خانوار/راننده/ناوگان</td><td><span class="status s-ok">عملیاتی</span></td><td><code>adminCooperatives.ts</code>, <code>routes/coopKyc.ts</code>, <code>pages/KycInbox.tsx</code></td><td>COOP-1: <code>test:coop1</code> ۳×. COOP-2: migration <code>0005_kyc_entities</code>، ۱۶ endpoint KYC + <code>GET /coop/kyc/inbox</code>، audit <code>kyc_change</code>، <code>test:coop2</code> ۳×.</td></tr>
+        <tr><td>۴</td><td>موجودیت Cooperative</td><td><span class="status s-ok">عملیاتی</span></td><td><code>cooperativesRepository.ts</code>, <code>routes/coop.ts</code></td><td>COOP-1: migration <code>0003_cooperatives</code>+<code>0004_cooperatives_kyc_status</code>، admin KYC، <code>GET /coop/me</code>، scope — <code>npm run test:coop1</code> ۳×.</td></tr>
+        <tr><td>۵</td><td>ساختار جغرافیایی (Geo-Configurable)</td><td><span class="status s-part">ناقص</span></td><td><code>mineDataStore.ts</code></td><td>mines/villages در Postgres + <code>npm run db:seed</code>؛ road/area نیست.</td></tr>
+        <tr><td>۶</td><td>ثبت نیاز کارفرما + Dispatch سیستمی</td><td><span class="status s-no">ندارد</span></td><td><code>EmployerNeed.tsx</code></td><td>فقط alert. هیچ API و الگوریتم Dispatch نیست.</td></tr>
+        <tr><td>۷</td><td>Mission FSM ۹‌حالته</td><td><span class="status s-ok">عملیاتی</span></td><td><code>lib/missionFsm.ts</code>, <code>missionStore.ts</code>, <code>mission_flow.dart</code></td><td>MISSION-FSM-1: enum ۹‌تایی، migration <code>0007</code> (COMPLETED→VERIFIED)، validate گذار، Dispatch CREATED→ASSIGNED، تأیید باسکول DELIVERED→VERIFIED، تسویه VERIFIED→SETTLED — <code>npm run test:fsm1</code> (۳×).</td></tr>
+        <tr><td>۸</td><td>تیکت باسکول + Threshold ۵٪</td><td><span class="status s-part">ناقص</span></td><td><code>weighbridge.ts</code></td><td>تیکت کار می‌کند، ولی HOLD/FLAG اتومات روی اختلاف ۵٪ نیست.</td></tr>
+        <tr><td>۹</td><td>Adjustment Request</td><td><span class="status s-ok">عملیاتی</span></td><td><code>weighbridge.ts</code></td><td>پیشنهاد/تأیید/رد + delta wallet دارد.</td></tr>
+        <tr><td>۱۰</td><td>عملیات ساعتی + نقش OPERATOR</td><td><span class="status s-ok">عملیاتی</span></td><td><code>routes/hourly.ts</code>, <code>hourlyWorkLogsRepository.ts</code></td><td>HOURLY-1: START→END→verify؛ نرخ از Rate Card <code>HOURLY</code>؛ migration <code>0008</code>+<code>0009</code> — <code>npm run test:hourly1</code> (۳×).</td></tr>
+        <tr><td>۱۱</td><td>Rate Card نسخه‌گذاری‌شده + Rule Engine</td><td><span class="status s-ok">انجام شد</span></td><td><code>rateCardsRepository.ts</code>, <code>financeRulesRepository.ts</code>, <code>pages/RateCards.tsx</code>, <code>pages/RuleEngine.tsx</code></td><td><strong>RATE-1 + RULE-1</strong> (۱۶ مه ۲۰۲۶): migrations <code>0011</code>/<code>0012</code>؛ split/threshold/period از DB؛ <code>GET/POST /api/admin/rules</code> (ADMIN)؛ <code>npm run test:rate1</code> + <code>test:rule1</code> (هر کدام ۳×).</td></tr>
+        <tr><td>۱۲</td><td>تقسیم ۸۵/۱۳/۲ روی ماموریت</td><td><span class="status s-ok">عملیاتی</span></td><td><code>financeLedgerRepository.ts</code></td><td>داخل <code>prisma.$transaction</code>؛ ۱۳٪ فقط community_pool.</td></tr>
+        <tr><td>۱۳</td><td>Walletها (owner/household/platform/community_pool)</td><td><span class="status s-part">ناقص</span></td><td><code>walletsRepository.ts</code></td><td>Postgres (DB-2)؛ Idempotency دارد؛ <strong>RECON-1</strong> تطبیق شبانه ledger↔balance + POOL_DISTRIBUTION به‌عنوان CREDIT.</td></tr>
+        <tr><td>۱۴</td><td>فرمول جدید ۱۳٪ (pool / snapshot)</td><td><span class="status s-ok">انجام شد</span></td><td><code>communityPoolsRepository.ts</code>, <code>financeStore.ts</code></td><td><strong>POOL-1</strong> (۱۶ مه ۲۰۲۶): <code>distributePool(poolId)</code>، snapshot خانوار APPROVED، <code>POOL_DISTRIBUTION</code>، باقی‌مانده از Rule Engine؛ فقط <code>POST /api/admin/settlement/monthly-close</code> — <code>npm run test:pool1</code> (۳×): ۱۲۰۰۰۰÷۳=۴۰۰۰۰.</td></tr>
+        <tr><td>۱۵</td><td>Settlement Lifecycle ۵‌حالته + Bank Reference + Receipt</td><td><span class="status s-ok">انجام شد</span></td><td><code>settlementRepository.ts</code>, <code>SettlementPage.tsx</code></td><td><strong>SET-1</strong> (۱۶ مه ۲۰۲۶): migrations <code>0014</code>–<code>0016</code>؛ lifecycle CALCULATED→READY→IN_BANK_QUEUE→SETTLED/FAILED؛ payout per line؛ export Excel؛ <code>npm run test:set1</code> (۳×).</td></tr>
+        <tr><td>۱۶</td><td>HOLD/Release/Reversal + پنجره ۷۲ساعت</td><td><span class="status s-ok">انجام شد</span></td><td><code>missionStore.ts</code>, <code>weighbridge.ts</code></td><td><strong>REVERSE-1</strong> (۱۶ مه ۲۰۲۶): <code>verified_at</code>، <code>reverse.window_hours</code>، post-settled adjustment؛ <code>npm run test:rev1</code> (۳×).</td></tr>
+        <tr><td>۱۷</td><td>Audit Log جامع (DB + UI)</td><td><span class="status s-ok">انجام شد</span></td><td><code>auditLogsRepository.ts</code>, <code>routes/audit.ts</code>, <code>AuditViewer.tsx</code></td><td><strong>AUDIT-1</strong> (۱۷ مه ۲۰۲۶): <code>audit_logs</code> دائمی؛ <code>GET /api/audit</code> (ADMIN + COOP_ADMIN scope)؛ JSON Diff رنگی؛ <code>npm run test:audit1</code> (۳×).</td></tr>
+        <tr><td>۱۸</td><td>صفحهٔ شفافیت + فرم اعتراض</td><td><span class="status s-ok">انجام شد</span></td><td><code>MembersTransparencyPage.tsx</code>, <code>routes/coop.ts</code></td><td><strong>OBJ-1</strong> (۱۷ مه ۲۰۲۶): دکمهٔ «ثبت اعتراض» + فرم reporter_name/mobile اختیاری؛ کد پیگیری؛ بخش «بررسی اعتراض‌ها» (معتبر/رد + reason + audit)؛ <code>npm run test:obj1</code> (۳×).</td></tr>
+        <tr><td>۱۹</td><td>Admin Finance Dashboard + Export</td><td><span class="status s-ok">انجام شد</span></td><td><code>AdminFinance.tsx</code>, <code>routes/adminFinance.ts</code>, <code>lib/iban.ts</code></td><td><strong>FIN-UI-1</strong> (۱۷ مه ۲۰۲۶): کارت خلاصه + نمودار Chart.js (CDN) + IBAN ماسک/چک‌سام/reveal با audit؛ <code>GET /api/admin/finance/summary</code>، <code>export</code>، <code>iban/reveal</code>؛ <code>npm run test:fin1</code> (۳×).</td></tr>
+        <tr><td>۲۰</td><td>اتصال Prisma به Postgres</td><td><span class="status s-ok">عملیاتی</span></td><td><code>repositories/</code></td><td>DB-1 + DB-2: missions/loads/tickets/wallets/transactions/pools/settlement/audit در Postgres.</td></tr>
+        <tr><td>۲۱</td><td>اپ راننده (Flutter)</td><td><span class="status s-ok">عملیاتی</span></td><td><code>apps/mobile/driver_app</code></td><td>FSM ۹‌مرحله‌ای + <strong>OFFLINE-1</strong> صف Hive و Sync خودکار (۱۷ مه ۲۰۲۶). API مشترک: <code>packages/mineral_api</code>.</td></tr>
+        <tr><td>۲۱ب</td><td>اپ جامعه/تعاونی (Flutter)</td><td><span class="status s-ok">انجام شد</span></td><td><code>apps/mobile/community_app</code>, <code>packages/mineral_api</code></td><td><strong>COMM-APP-1</strong> (۱۷ مه ۲۰۲۶): نقش‌محور HOUSEHOLD / COOP_OPERATOR / COOP_ADMIN؛ OTP مشترک؛ <code>npm run test:comm-app1</code> + <code>scripts/test-comm-app1.ps1</code> (۳×).</td></tr>
+        <tr><td>۲۲</td><td>Community App (تعاونی/خانوار)</td><td><span class="status s-no">ندارد</span></td><td>—</td><td>هیچ کلاینت موبایلی برای خانوار/تعاونی نیست.</td></tr>
+        <tr><td>۲۳</td><td>Event Bus + Event-Driven</td><td><span class="status s-ok">انجام شد</span></td><td><code>services/eventBus.ts</code>, <code>events</code> table</td><td><strong>EVENT-1</strong> (۱۶ مه ۲۰۲۶): EventEmitter in-process، ۲۱ رویداد، persist + audit subscriber، <code>npm run test:event1</code> (۳×).</td></tr>
+        <tr><td>۲۴</td><td>Rule Engine قابل پیکربندی</td><td><span class="status s-ok">انجام شد</span></td><td><code>financeRulesRepository.ts</code>, <code>RuleEngine.tsx</code></td><td><strong>RULE-1</strong> — migration <code>0012</code>، <code>test:rule1</code> (۳×).</td></tr>
+        <tr><td>۲۵</td><td>Queue + Worker (Async Jobs)</td><td><span class="status s-ok">انجام شد</span></td><td><code>queues/jobQueue.ts</code>, <code>JobsMonitor.tsx</code></td><td><strong>QUEUE-1</strong> (۱۶ مه ۲۰۲۶): settlement Async (202+polling)؛ distribute-pool؛ export Excel؛ retry ۳×؛ <code>failed_jobs</code>؛ <code>test:queue1</code> + <code>test:set1</code> (۳×)؛ in-memory.</td></tr>
+        <tr><td>۲۶</td><td>Reconciliation Engine</td><td><span class="status s-ok">انجام شد</span></td><td><code>reconciliationService.ts</code>, <code>ReconciliationPage.tsx</code></td><td><strong>RECON-1</strong> (۱۷ مه ۲۰۲۶): migration <code>0021</code>؛ wallet/settlement/pool checks؛ nightly QUEUE-1؛ <code>GET/POST /api/admin/reconciliation/issues</code>؛ <code>npm run test:recon1</code> (۳×).</td></tr>
+        <tr><td>۲۷</td><td>Notification (Push/SMS/In-App)</td><td><span class="status s-ok">انجام شد</span></td><td><code>notificationService.ts</code>, <code>routes/notifications.ts</code></td><td><strong>NOTIF-1</strong> (۱۷ مه ۲۰۲۶): جداول <code>notifications</code> + <code>notification_preferences</code>؛ migration <code>0022</code>؛ subscriber EVENT-1؛ SMS Kavenegar/FarazSMS (stub بدون کلید)؛ Push FCM stub؛ <code>GET /api/notifications</code>؛ <code>npm run test:notif1</code> (۳×).</td></tr>
+        <tr><td>۲۸</td><td>Idempotency Key روی APIهای حساس</td><td><span class="status s-yes">دارد</span></td><td><code>idempotencyMiddleware</code>, <code>test:idem1</code></td><td>IDEM-1 — کش ۲۴ساعته، replay هدر، employer/needs + settlement + weighbridge + payment + <strong>driver mission steps</strong> (۱۷ مه ۲۰۲۶).</td></tr>
+        <tr><td>۲۹</td><td>Soft Delete سراسری</td><td><span class="status s-no">ندارد</span></td><td>—</td><td>هنوز delete رخ نمی‌دهد ولی الگو هم نیست.</td></tr>
+        <tr><td>۳۰</td><td>Offline Sync اپ راننده</td><td><span class="status s-ok">انجام شد</span></td><td><code>mission_step_queue_store.dart</code>, <code>mission_sync_service.dart</code></td><td><strong>OFFLINE-1</strong> (۱۷ مه ۲۰۲۶): Hive local queue، نشانگر «در انتظار Sync»، Idempotency-Key ثابت، 409 → ریست محلی؛ <code>scripts/test-offline1.ps1</code> / <code>flutter test</code> (۳×).</td></tr>
+        <tr><td>۳۱</td><td>KPI Dashboard + Observability</td><td><span class="status s-ok">انجام شد</span></td><td><code>kpiService.ts</code>, <code>AdminKpi.tsx</code>, <code>/api/healthz</code></td><td><strong>KPI-1</strong> (۱۷ مه ۲۰۲۶): migration <code>0024</code>؛ KPI روزانه از QUEUE-1 (۰۰:۳۵)؛ fleet_efficiency، delay، hold، utilization، failed_settlement؛ pino؛ <code>npm run test:kpi1</code> (۳×).</td></tr>
+        <tr><td>۳۲</td><td>تست اتوماتیک</td><td><span class="status s-ok">انجام شد</span></td><td><code>vitest</code>, <code>playwright</code>, <code>.github/workflows/ci.yml</code></td><td><strong>TEST-1</strong> (۱۷ مه ۲۰۲۶): Vitest حداقلی (OTP، FSM ۹ وضعیت، split ۱۰۰٪، adjustment delta، settlement، idempotency) + Playwright (Login→Panel، Need→Inbox) + CI روی push.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 7. Checklist -->
+  <section class="panel" id="checklist">
+    <h2>۷. چک‌لیست کارهای باقی‌مانده — ۲۸ کارت ریز</h2>
+    <p class="muted">برای هر کارت اولویت (P1/P2/P3) و یک پرامپت طولانیِ آمادهٔ کپی آمده. کارت‌های پایه (DB/RBAC/FSM) باید زودتر بسته شوند چون بقیه به آن‌ها متکی هستند.</p>
+
+    <ul class="tasks">
+
+      <!-- DB-1 -->
+      <li class="task" id="t-db-1">
+        <div class="row">
+          <span class="badge">DB-1</span>
+          <span class="title">روشن کردن Prisma و انتقال موجودیت‌های پایه به Postgres</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok">انجام شد</span>
+        </div>
+        <div class="why">پایه‌ای‌ترین کار MVP. موجودیت‌های پایه در Postgres؛ missions/wallets/settlement هنوز RAM (DB-2).</div>
+        <details open class="prompt">
+          <summary>نتیجهٔ پیاده‌سازی DB-1 (۱۶ مه ۲۰۲۶)</summary>
+          <div class="promptfa">
+<ul>
+<li><strong>انجام شد:</strong> <code>src/repositories/</code> (users, sessions, otps, mines, villages, cooperatives, households, fleet_owners, drivers, vehicles, rate_cards)</li>
+<li><strong>Migration:</strong> <code>prisma/migrations/0001_baseline</code> — اجرا: <code>npm run db:migrate</code></li>
+<li><strong>Seed:</strong> <code>npm run db:seed</code> (دو معدن، روستاها، تعاونی‌ها، کاربران ۰۹۰۰…، نرخ ORE)</li>
+<li><strong>تست:</strong> <code>npm run smoke</code> (OTP روی DB)، <code>npm run test:db1</code> (۳ بار OTP+session)</li>
+</ul>
+<p><strong>هنوز RAM (DB-2):</strong></p>
+<table>
+<tr><th>Store</th><th>Endpointهای وابسته</th></tr>
+<tr><td><code>missionStore</code></td><td><code>/driver/missions*</code>, <code>/weighbridge/*</code>, <code>POST /__dev/seed/demo</code> (بخش mission)</td></tr>
+<tr><td><code>financeStore</code></td><td><code>/wallet/*</code>, تقسیم ۸۵/۱۳/۲ در approve باسکول، <code>/settlement/community-pools/*</code></td></tr>
+<tr><td><code>settlementStore</code></td><td><code>/settlement/batches*</code></td></tr>
+<tr><td><code>hourlyWorkLogsRepository</code></td><td><code>POST /hourly/start|end|verify</code> (Postgres)</td></tr>
+<tr><td><code>auditLogStore</code></td><td><code>GET /api/audit</code> + <code>GET /api/auth/__dev/audit</code> + ثبت رویدادها (Postgres)</td></tr>
+<tr><td><code>entitiesStore.objections</code></td><td><code>/coop/objections*</code> (اعتراض عضویت)</td></tr>
+</table>
+          </div>
+        </details>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+سلام. پروژهٔ logestic، مسیر بک‌اند <code>apps/backend</code>. schema.prisma کامل هست ولی هیچ store واقعاً به DB وصل نیست.
+<ol>
+<li><code>db/prisma.ts</code> رو چک کن و PrismaClient رو درست singleton کن.</li>
+<li>یک پوشهٔ <code>repositories/</code> بساز و این موجودیت‌ها رو منتقل کن: users, sessions, otps, mines, villages, cooperatives, households, fleet_owners, drivers, vehicles, rate_cards.</li>
+<li>store‌های قدیمی (userStore, sessionStore, otpStore, mineDataStore, entitiesStore، seed نرخ در financeStore) رو پشت همین Repositoryها بازنویسی کن طوری که route‌ها تغییری نکنن.</li>
+<li>یک migration به نام <code>0001_baseline</code> بساز.</li>
+<li>اسکریپت <code>scripts/seed.ts</code> برای پر کردن دیتای devSeed در DB واقعی.</li>
+<li>گزارش بده کدوم endpointها هنوز RAM هستن (احتمالاً missionStore، financeStore، settlementStore برای DB-2).</li>
+</ol>
+حق تغییر منطق کسب‌وکار (تقسیم ۸۵/۱۳/۲) نداری؛ فقط جای ذخیره عوض می‌شه.
+          </div>
+        </details>
+      </li>
+
+      <!-- DB-2 -->
+      <li class="task" id="t-db-2">
+        <div class="row">
+          <span class="badge">DB-2</span>
+          <span class="title">انتقال missions/loads/tickets/wallets/transactions/community_pool/settlement به Postgres</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok">انجام شد</span>
+        </div>
+        <div class="why">قلب عملیات و مالی. باید با Transaction دیتابیسی محافظت شود (Atomicity).</div>
+        <details open class="prompt">
+          <summary>نتیجهٔ پیاده‌سازی DB-2 (۱۶ مه ۲۰۲۶)</summary>
+          <div class="promptfa">
+<ul>
+<li><strong>Repository:</strong> loads, missions, weighbridge, wallets, communityPools, financeLedger, settlement, auditLogs</li>
+<li><strong>Transaction:</strong> approve باسکول + approve adjustment (split + audit)</li>
+<li><strong>۱۳٪:</strong> فقط <code>community_pools</code> — نه wallet خانوار</li>
+<li><strong>تست:</strong> <code>npm run test:duty-db2</code> (۳× E2E)</li>
+</ul>
+          </div>
+        </details>
+        <details class="prompt">
+          <summary>پرامپت چت جدید (آرشیو)</summary>
+          <div class="promptfa">
+DB-1 انجام شده. حالا missions/loads/weighbridge_tickets/weighbridge_adjustment_requests/wallets/transactions/community_pools/settlement_batches/settlement_lines/payment_payouts/audit_logs رو به Repository ببر.<br>
+نکات حیاتی:
+<ul>
+<li>تقسیم ۸۵/۱۳/۲ داخل یک <code>prisma.$transaction</code> اجرا بشه.</li>
+<li>Adjustment delta + wallet update + audit در یک transaction.</li>
+<li>سهم ۱۳٪ <strong>مستقیم</strong> به wallet خانوار نمی‌ره؛ فقط به community_pool می‌ره (طبق تصمیم کارفرما؛ توزیع در POOL-1 ماهانه).</li>
+</ul>
+تست duty: یک سناریوی end-to-end از devSeed تا approve باسکول و جمع موجودی = ۱۰۰٪ مبلغ ماموریت.
+          </div>
+        </details>
+      </li>
+
+      <!-- PERM-1 -->
+      <li class="task" id="t-perm-1">
+        <div class="row">
+          <span class="badge">PERM-1</span>
+          <span class="status s-ok">انجام شد</span>
+          <span class="title">پیاده‌سازی Permission Matrix رسمی (۸ نقش)</span>
+          <span class="priority p1">P1</span>
+        </div>
+        <div class="why">طبق سند معماری کارفرما باید ۸ نقش رسمی باشد. الان فقط ۷ نقش با نام‌های قدیمی است.</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+طبق سند معماری کارفرما این ۸ نقش باید رسماً پیاده بشن: ADMIN, OPERATION_ADMIN, COOP_ADMIN, COOP_OPERATOR, CONSULTANT, DRIVER, FLEET_OWNER, HOUSEHOLD.
+<ol>
+<li>در <code>types/userRole.ts</code> هر ۸ تا رو اضافه کن. نقش قدیمی <code>COOP</code> رو نگه دار به‌عنوان alias یا با migration به <code>COOP_ADMIN</code> تبدیل کن (در گزارش پایان توضیح بده).</li>
+<li>middleware <code>requireRoles</code> رو ارتقا بده به یک Permission Matrix:
+<pre dir="ltr" style="background:#0B1020;color:#E5E7EB;padding:8px;border-radius:6px;font-size:11px">
+const PERMISSIONS = {
+  ADMIN: ['*'],
+  OPERATION_ADMIN: ['ops:*', 'settlement:execute', 'dispatch:create', 'hold:create'],
+  COOP_ADMIN: ['coop:manage', 'kyc:approve', 'members:read', 'audit:read'],
+  COOP_OPERATOR: ['kyc:review', 'members:read'],
+  CONSULTANT: ['hourly:verify'],
+  DRIVER: ['mission:read_own', 'mission:execute_steps'],
+  FLEET_OWNER: ['wallet:read_own', 'vehicles:read_own'],
+  HOUSEHOLD: ['wallet:read_own', 'shares:read_own', 'objection:create']
+}
+</pre>
+</li>
+<li>یک decorator به اسم <code>requirePermission('settlement:execute')</code> اضافه کن.</li>
+<li>scope tenant: COOP_ADMIN و COOP_OPERATOR فقط روی cooperative_id خودشون، DRIVER فقط روی mission‌های assigned_to خودش، FLEET_OWNER فقط روی fleet_owner_id خودش.</li>
+<li>صفحهٔ <code>AdminUsers.tsx</code> برای تخصیص نقش به کاربر (فقط ADMIN).</li>
+<li>تست data isolation: COOP_A نباید اعضای COOP_B رو ببینه.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- AUTH-1 -->
+      <li class="task" id="t-auth-1">
+        <div class="row">
+          <span class="badge">AUTH-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">صفحهٔ ورود وب با OTP + Guard سشن</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why"><strong>انجام شد.</strong> <code>/login</code> دو‌مرحله‌ای، <code>useAuthGuard</code>، خروج در هدر، resend با شمارش ۶۰ث. تست: <code>npm -w @app/web run test:auth-login</code> (۹ بار اجرا شد — OK).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+در <code>apps/web</code> (Vite + React + react-router-dom) صفحهٔ <code>/login</code> دو‌مرحله‌ای بساز:
+<ol>
+<li>گام ۱: شمارهٔ موبایل → <code>POST /api/auth/request-otp</code>.</li>
+<li>گام ۲: کد ۶ رقمی → <code>POST /api/auth/verify-otp</code> → ذخیرهٔ توکن در localStorage → ریدایرکت به <code>/panel</code>.</li>
+<li>Hook <code>useAuthGuard()</code> در PanelLayout: اگه توکن نبود یا 401 برگشت، ریدایرکت به <code>/login</code>.</li>
+<li>دکمهٔ Logout در هدر.</li>
+<li>شمارش معکوس ۶۰ ثانیه برای resend OTP. قفل بعد از ۳ تلاش غلط (سرور خودش این رو هندل می‌کنه).</li>
+<li>هیچ‌جا توکن یا OTP در console چاپ نشه.</li>
+</ol>
+<p><strong>پیاده‌سازی:</strong> <code>apps/web/src/pages/LoginPage.tsx</code>, <code>hooks/useAuthGuard.ts</code>, <code>apiPostPublic</code> در <code>api.ts</code>.</p>
+          </div>
+        </details>
+      </li>
+
+      <!-- COOP-1 -->
+      <li class="task" id="t-coop-1">
+        <div class="row">
+          <span class="badge">COOP-1</span>
+          <span class="title">موجودیت Cooperative + KYC حقوقی + Multi-Tenant</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok">انجام شد</span>
+        </div>
+        <div class="why">تعاونی طرف حساب معدن است (طبق تصمیم کارفرما). جدول cooperatives، KYC حقوقی ADMIN، invite-manager، و scope چندتعاونی پیاده شد.</div>
+        <details open class="prompt">
+          <summary>نتیجهٔ پیاده‌سازی COOP-1 (۱۶ مه ۲۰۲۶)</summary>
+          <div class="promptfa">
+<ul>
+<li><strong>Migration:</strong> <code>0003_cooperatives</code> + <code>0004_cooperatives_kyc_status</code>؛ <code>households.cooperative_id</code> در <code>0002_perm_rbac</code>.</li>
+<li><strong>Admin API:</strong> <code>routes/adminCooperatives.ts</code> — create/verify/suspend/invite-manager.</li>
+<li><strong>Coop API:</strong> <code>GET /api/coop/me</code>؛ scope با <code>requireCooperativeScope</code> + <code>requireActiveCooperative</code>.</li>
+<li><strong>تست:</strong> <code>npm run test:coop1</code> (۳×).</li>
+</ul>
+          </div>
+        </details>
+        <details class="prompt">
+          <summary>پرامپت اصلی (مرجع)</summary>
+          <div class="promptfa">
+طبق سند معماری کارفرما تعاونی موجودیت رسمی است. می‌خوام:
+<ol>
+<li>Migration <code>0002_cooperatives</code>:
+   <ul>
+     <li><code>cooperatives</code>: id, name, mine_id (FK), national_id (شناسهٔ ملی)، registration_number (شمارهٔ ثبت)، charter_file_url (اساسنامه)، ceo_name، board_members (JSON)، activity_scope، geo_area، iban، status (PENDING_KYC/ACTIVE/SUSPENDED)، created_at.</li>
+     <li><code>households.cooperative_id</code> FK + index.</li>
+   </ul>
+</li>
+<li>گردش‌کار KYC حقوقی توسط ADMIN:
+   <ul>
+     <li><code>POST /api/admin/cooperatives</code> → ساخت تعاونی PENDING_KYC.</li>
+     <li><code>POST /api/admin/cooperatives/:id/verify</code> → ACTIVE (با ثبت Audit).</li>
+     <li><code>POST /api/admin/cooperatives/:id/suspend</code> → SUSPENDED (با reason).</li>
+   </ul>
+</li>
+<li>اعطای نقش به کاربر: <code>POST /api/admin/cooperatives/:id/invite-manager</code> با mobile_number + role (COOP_ADMIN یا COOP_OPERATOR).</li>
+<li>endpoint <code>GET /api/coop/me</code> برای کاربر COOP_ADMIN.</li>
+<li>scope: همهٔ endpointهای /coop/* باید روی cooperative_id کاربر فیلتر شوند.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- COOP-2 -->
+      <li class="task" id="t-coop-2">
+        <div class="row">
+          <span class="badge">COOP-2</span>
+          <span class="title">گردش‌کار KYC اشخاص: خانوار / راننده / ناوگان</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why">۱۶ endpoint در <code>routes/coopKyc.ts</code> + <code>GET /coop/kyc/inbox</code> + <code>pages/KycInbox.tsx</code>؛ migration <code>0005_kyc_entities</code>؛ audit <code>kyc_change</code>. تست: <code>npm run test:coop2</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+endpointها:
+<ul>
+<li><code>POST /api/coop/households/request</code> برای ثبت‌نام جدید (هر کاربر می‌تونه).</li>
+<li><code>POST /api/coop/households/:id/approve</code> (COOP_OPERATOR یا COOP_ADMIN).</li>
+<li><code>POST /api/coop/households/:id/reject</code> (با reason).</li>
+<li><code>POST /api/coop/households/:id/suspend</code> (با reason).</li>
+<li>همین چهارتا برای drivers و fleet_owners و vehicles.</li>
+</ul>
+نکات:
+<ul>
+<li>scope: فقط روی cooperative_id کاربر.</li>
+<li>هر تغییر در audit_logs با action='kyc_change' و before/after.</li>
+<li>وضعیت‌های مجاز طبق schema (HouseholdStatus, ApprovalStatus).</li>
+<li>صفحهٔ <code>KycInbox.tsx</code> در وب با لیست PENDING + دکمه‌های تأیید/رد/تعلیق.</li>
+<li>برای DRIVER اضافی: آپلود گواهینامه + مدارک هویتی (file_url).</li>
+<li>برای FLEET_OWNER/Vehicle: پلاک + مالکیت + بیمه.</li>
+</ul>
+          </div>
+        </details>
+      </li>
+
+      <!-- EMP-1 -->
+      <li class="task" id="t-emp-1">
+        <div class="row">
+          <span class="badge">EMP-1</span>
+          <span class="title">API ثبت نیاز کارفرما + اتصال فرم وب</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why"><strong>انجام شد.</strong> جدول operation_needs (migration 0006)، routes/employer.ts، EmployerNeed.tsx (POST واقعی)، EmployerInbox.tsx (لیست + لغو). کاربر seed: 09000000007 نقش EMPLOYER. تست: npm run test:emp1 (۳ بار).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>جدول <code>operation_needs</code>: id, mine_id, employer_user_id, village_id, material_type, quantity_tons, note, status (PENDING/DISPATCHED/CANCELLED), created_at.</li>
+<li>endpointها:
+   <ul>
+     <li><code>POST /api/employer/needs</code> فقط EMPLOYER.</li>
+     <li><code>GET /api/employer/needs</code> برای EMPLOYER (لیست خودش) و OPERATION_ADMIN/ADMIN (همه).</li>
+     <li><code>POST /api/employer/needs/:id/cancel</code> با reason.</li>
+   </ul>
+</li>
+<li>اتصال فرم وب (به جای alert).</li>
+<li>صفحه <code>EmployerInbox.tsx</code> با لیست نیازهای ثبت‌شدهٔ خود کاربر و وضعیت.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- DISP-1 -->
+      <li class="task" id="t-disp-1">
+        <div class="row">
+          <span class="badge">DISP-1</span>
+          <span class="title">Dispatch Engine سیستمی (حذف رانت، حذف انتخاب دستی)</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why"><strong>انجام شد.</strong> <code>services/dispatchService.ts</code> + <code>POST /api/admin/needs/:id/dispatch</code>. round-robin + ظرفیت؛ ۳۰تن و دو کامیون ۲۰تنی → ۲۰+۱۰. Event: <code>mission.created</code>, <code>mission.assigned</code> (EVENT-1). <strong>فلگ:</strong> <code>DISPATCH_MODE</code> در <code>apps/backend/src/config/env.ts</code> — <code>manual</code> (پیش‌فرض) فقط endpoint ادمین؛ <code>auto</code> بلافاصله بعد از ثبت نیاز. تست: <code>npm run test:disp1</code>.</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+سرویس <code>DispatchService</code> در <code>services/dispatchService.ts</code>:
+<ol>
+<li>متد <code>dispatchNeed(needId, dispatchedByUserId)</code>:
+   <ul>
+     <li>ورودی: needId از <code>operation_needs</code>.</li>
+     <li>الگوریتم MVP: round-robin روی fleet_owners و drivers APPROVED معدن، با وزن‌دهی به (آخرین ماموریت تخصیص‌داده‌شده + ظرفیت ماشین).</li>
+     <li>تن لازم رو به ظرفیت وسایل تقسیم کن و چند Load + Mission بساز.</li>
+     <li>وضعیت need → DISPATCHED.</li>
+     <li>همه‌چیز در prisma.$transaction.</li>
+     <li>هیچ کاربری حق <em>انتخاب راننده/ناوگان</em> ندارد (خواست صریح کارفرما).</li>
+   </ul>
+</li>
+<li>endpoint: <code>POST /api/admin/needs/:id/dispatch</code> برای OPERATION_ADMIN و ADMIN.</li>
+<li>تست: need با ۳۰ تن + ۲ کامیون ۲۰ تنی → دو ماموریت (۲۰ + ۱۰).</li>
+<li>Event منتشر کن: <code>mission.created</code>, <code>mission.assigned</code> — <strong>EVENT-1 انجام شد</strong>.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- FSM-1 -->
+      <li class="task" id="t-fsm-1">
+        <div class="row">
+          <span class="badge">MISSION-FSM-1</span>
+          <span class="title">گسترش State Machine ماموریت به ۹ حالت رسمی</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why"><strong>انجام شد.</strong> migration <code>0007_mission_fsm_9</code>، <code>lib/missionFsm.ts</code>، validate گذار → 409 <code>invalid_transition</code>، Flutter <code>mission_flow.dart</code> (۹ گام فارسی). تست: <code>npm run test:fsm1</code> + <code>test:duty-db2</code> (هر کدام ۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+طبق سند معماری V1 کارفرما، ماشین وضعیت ماموریت ۹ حالت دارد:
+<pre dir="ltr" style="background:#0B1020;color:#E5E7EB;padding:8px;border-radius:6px;font-size:11px">
+CREATED → ASSIGNED → ACCEPTED → ARRIVED → LOADED → IN_TRANSIT → DELIVERED → VERIFIED → SETTLED
+</pre>
+<ol>
+<li>enum <code>MissionStatus</code> در schema.prisma رو به این ۹ مقدار تبدیل کن (migration با data conversion: COMPLETED قدیمی → VERIFIED).</li>
+<li>هر گذار باید validate بشه؛ گذار غیرمجاز → 409 invalid_transition.</li>
+<li>چه کسی هر گذار را می‌زند:
+   <ul>
+     <li><code>CREATED → ASSIGNED</code>: سیستم (Dispatch)</li>
+     <li><code>ASSIGNED → ACCEPTED</code>: DRIVER</li>
+     <li><code>ACCEPTED → ARRIVED</code>: DRIVER (با لوکیشن)</li>
+     <li><code>ARRIVED → LOADED</code>: DRIVER + weighbridge ticket EMPTY/LOADED</li>
+     <li><code>LOADED → IN_TRANSIT</code>: DRIVER</li>
+     <li><code>IN_TRANSIT → DELIVERED</code>: DRIVER (با لوکیشن مقصد)</li>
+     <li><code>DELIVERED → VERIFIED</code>: COOP_ADMIN/OPERATION_ADMIN (تأیید تیکت باسکول → اعمال تقسیم ۸۵/۱۳/۲)</li>
+     <li><code>VERIFIED → SETTLED</code>: Settlement Engine ماهانه</li>
+   </ul>
+</li>
+<li>اپ Flutter (<code>mission_flow.dart</code>) رو هم‌زمان به‌روزرسانی کن: ۹ گام، label فارسی.</li>
+<li>تست: هر transition قانونی + رد ۲ transition غیرقانونی.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- HOURLY-1 -->
+      <li class="task" id="t-hourly-1">
+        <div class="row">
+          <span class="badge">HOURLY-1</span>
+          <span class="title">عملیات ساعتی: نقش OPERATOR + START/END/photo/location + CONSULTANT_VERIFICATION</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why"><strong>انجام شد.</strong> Flow START→END→verify + عکس/لوکیشن؛ migrations 0008/0009؛ <code>npm run test:hourly1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>نتیجهٔ پیاده‌سازی HOURLY-1 (۱۶ مه ۲۰۲۶)</summary>
+          <div class="promptfa">
+<ul>
+<li><code>OPERATOR</code> + <code>POST /api/hourly/start|/:id/end|/:id/verify</code> + Rate Card <code>HOURLY</code> + split 85/13/2 در verify</li>
+</ul>
+          </div>
+        </details>
+        <details class="prompt">
+          <summary>پرامپت چت جدید (مرجع)</summary>
+          <div class="promptfa">
+<ol>
+<li>نقش OPERATOR رو طبق PERM-1 اضافه کن (نقش رسمی، نه فلگ).</li>
+<li>جدول <code>hourly_work_logs</code> فیلدها: started_at, ended_at, raw_hours (computed), billable_hours, start_photo_url, end_photo_url, start_geo (lat,lng), end_geo, note, consultant_verified_at, consultant_user_id, hourly_rate_snapshot (از Rate Card).</li>
+<li>endpointها:
+   <ul>
+     <li><code>POST /api/hourly/start</code> (OPERATOR) → بدنه: mission_id, vehicle_id, household_id, start_photo_url, start_geo. raw_hours خالی.</li>
+     <li><code>POST /api/hourly/:id/end</code> (OPERATOR) → end_photo_url, end_geo. raw_hours = (ended_at - started_at).</li>
+     <li><code>POST /api/hourly/:id/verify</code> (CONSULTANT) → billable_hours (می‌تونه ≤ raw_hours باشه، نه بالاتر) + reason. اگر Rate Card معتبر نباشه: 409.</li>
+   </ul>
+</li>
+<li>نرخ هیچ‌جا دستی پذیرفته نشه؛ از Rate Card معتبر (RATE-1) خوانده می‌شه.</li>
+<li>تقسیم ۸۵/۱۳/۲ بعد از verify در یک transaction.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- WB-1 -->
+      <li class="task" id="t-wb-1">
+        <div class="row">
+          <span class="badge">WB-1</span>
+          <span class="title">جداسازی نقش اپراتور باسکول + Threshold ۵٪ → HOLD اتومات</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why"><strong>انجام شد.</strong> وزن: <code>COOP_OPERATOR</code> یا <code>is_weighbridge_operator</code>؛ تأیید: <code>COOP_ADMIN</code>/<code>OPERATION_ADMIN</code>/<code>ADMIN</code>؛ اختلاف ≥۵٪ → <code>PENDING_HOLD</code> + event <code>weighbridge.anomaly</code>؛ migration <code>0010</code>؛ تست: <code>npm run test:wb1</code> (۳×). <strong>تصمیم:</strong> <code>COOP_OPERATOR</code> + فلگ <code>is_weighbridge_operator</code>.</div>
+        <details class="prompt">
+          <summary>نتیجهٔ پیاده‌سازی WB-1 (۱۶ مه ۲۰۲۶)</summary>
+          <div class="promptfa">
+<ul>
+<li><code>CONSULTANT</code> دیگر approve/reject/weights باسکول ندارد.</li>
+<li>Threshold: <code>ruleEngine</code> کلید <code>weighbridge.threshold</code> (پیش‌فرض ۰.۰۵).</li>
+</ul>
+          </div>
+        </details>
+        <details class="prompt">
+          <summary>پرامپت چت جدید (مرجع)</summary>
+          <div class="promptfa">
+<ol>
+<li>اپراتور باسکول: نقش رسمی جدید نمی‌سازیم؛ از فلگ <code>is_weighbridge_operator</code> روی user استفاده کن یا از COOP_OPERATOR. تصمیم با خودت در گزارش پایان.</li>
+<li>RBAC:
+   <ul>
+     <li><code>POST /weighbridge/tickets/:id/weights</code> → اپراتور (یا COOP_OPERATOR).</li>
+     <li><code>POST /weighbridge/tickets/:id/approve</code> → COOP_ADMIN، OPERATION_ADMIN، ADMIN.</li>
+     <li><code>POST /weighbridge/tickets/:id/reject</code> → همان بالا.</li>
+   </ul>
+</li>
+<li>منطق Threshold:
+   <ul>
+     <li>اگر <code>|loaded_weight - empty_weight - quantity_tons*1000| / (quantity_tons*1000) ≥ 0.05</code> → status=PENDING_HOLD + Event <code>weighbridge.anomaly</code>.</li>
+     <li>درصد ۵٪ از Rule Engine (<code>weighbridge.threshold</code>، پیش‌فرض 0.05) — <strong>RULE-1 انجام شد</strong>.</li>
+   </ul>
+</li>
+<li>CONSULTANT دیگه روی باسکول دسترسی approve نداره (فقط hourly:verify).</li>
+<li>هر تغییر در audit_logs.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- RATE-1 -->
+      <li class="task" id="t-rate-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge">RATE-1</span>
+          <span class="title">Rate Card نسخه‌گذاری‌شده + CRUD</span>
+          <span class="priority p1">P1</span>
+        </div>
+        <div class="why"><s>امروز فقط یک seed سفت‌سخت.</s> <strong>انجام شد (۱۶ مه ۲۰۲۶):</strong> migration <code>0011</code>، POST/activate/GET+audit، seed نسخه‌دار، <code>RateCards.tsx</code>، تسویه از DB — <code>npm run test:rate1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>جدول <code>rate_cards</code> در DB فعال (mine_id, cooperative_id?, operation_type=TONNAGE|HOURLY, material_type, unit_type, rate, effective_from, effective_to?, status=DRAFT|ACTIVE|ARCHIVED, created_by).</li>
+<li>endpoints (ADMIN/OPERATION_ADMIN/COOP_ADMIN در scope خودش):
+   <ul>
+     <li><code>POST /api/rate-cards</code> → DRAFT</li>
+     <li><code>POST /api/rate-cards/:id/activate</code> → اگر کارت ACTIVE قبلی همان (mine, op_type, material) باشد، ARCHIVED می‌شود و effective_to خورده می‌شود.</li>
+     <li><code>GET /api/rate-cards?mine_id=&date=</code> → فقط معتبرها.</li>
+   </ul>
+</li>
+<li>Audit برای هر activate/archive.</li>
+<li>منطق <code>creditMissionShares</code> و <code>creditHourlyShares</code> از این جدول بخواند، نه seed.</li>
+<li>UI: <code>RateCards.tsx</code> با جدول + فرم افزودن نسخهٔ جدید.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- RULE-1 -->
+      <li class="task" id="t-rule-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="title">Rule Engine قابل پیکربندی (درصد سهم، Threshold، دوره)</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۶ مه ۲۰۲۶):</strong> migration <code>0012_finance_rules</code>، <code>RuleEngine</code> (<code>get</code>/<code>setActive</code> + audit)، split در <code>financeLedgerRepository</code>، threshold باسکول، <code>period_key</code> از <code>settlement.period_days</code>؛ <code>GET/POST /api/admin/rules</code> (ADMIN)؛ UI <code>RuleEngine.tsx</code>؛ <code>npm run test:rule1</code> (۳×): <code>split.owner</code> ۰.۸۵→۰.۸۰ فقط پس از <code>effective_from</code>.</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>جدول <code>finance_rules</code>:
+   <ul>
+     <li>key (string, e.g. <code>split.owner</code>, <code>split.household</code>, <code>split.platform</code>, <code>weighbridge.threshold</code>, <code>settlement.period_days</code>, <code>reverse.window_hours</code>)</li>
+     <li>value (decimal یا json)</li>
+     <li>scope (GLOBAL یا mine_id یا cooperative_id)</li>
+     <li>effective_from, effective_to?, version, status (ACTIVE/ARCHIVED), created_by</li>
+   </ul>
+</li>
+<li>سرویس <code>RuleEngine</code>:
+   <ul>
+     <li><code>get(key, ctx)</code> → مقدار فعلی برای آن scope/تاریخ.</li>
+     <li><code>setActive(key, value, scope, effective_from)</code> → نسخهٔ قبلی ARCHIVED می‌شود، نسخهٔ جدید ACTIVE.</li>
+     <li>هر تغییر در audit_logs.</li>
+   </ul>
+</li>
+<li>تمام جاهای hardcoded رو به <code>ruleEngine.get(...)</code> تبدیل کن (financeStore split، weighbridge threshold، monthly period).</li>
+<li>endpoint <code>GET /api/admin/rules</code> + <code>POST /api/admin/rules</code> فقط ADMIN.</li>
+<li>UI: <code>RuleEngine.tsx</code> با لیست + فرم تغییر.</li>
+<li>تست: تغییر <code>split.owner</code> از 0.85 به 0.80 → ماموریت بعدی با ۸۰٪ اعمال شود، ماموریت‌های قبلی بدون تأثیر.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- POOL-1 -->
+      <li class="task" id="t-pool-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge">POOL-1</span>
+          <span class="title">Community Pool ماهانه + فرمول جدید (pool ÷ snapshot)</span>
+          <span class="priority p1">P1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۶ مه ۲۰۲۶):</strong> migration <code>0013_pool_distribution</code>؛ ۸۵/۱۳/۲ (۱۳٪ فقط pool)؛ <code>distributePool(poolId)</code> با snapshot خانوار APPROVED، تراکنش <code>POOL_DISTRIBUTION</code>، باقی‌مانده <code>pool.remainder.target</code>؛ توزیع فقط از <code>POST /api/admin/settlement/monthly-close</code>؛ <code>npm run test:pool1</code> (۳×): pool=120000، ۳ خانوار → ۴۰۰۰۰ + remainder ۱۰۰۰÷۳.</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>منطق <code>creditMissionShares</code> و <code>creditHourlyShares</code> رو طوری اصلاح کن:
+   <ul>
+     <li>۸۵٪ → wallet مالک (همان).</li>
+     <li>۱۳٪ → <strong>community_pool ماهانه</strong> (نه wallet خانوار).</li>
+     <li>۲٪ → wallet پلتفرم.</li>
+   </ul>
+</li>
+<li>متد جدید <code>distributePool(poolId)</code>:
+   <ul>
+     <li>یک snapshot از همهٔ خانوارهای APPROVED تعاونی بگیر (در تاریخ پایان ماه).</li>
+     <li>فرمول: <code>per_household_amount = pool.total_amount / household_snapshot_count</code> (مساوی برای همه).</li>
+     <li>برای هر خانوار transaction از نوع POOL_DISTRIBUTION در wallet ثبت کن.</li>
+     <li>اگر باقی‌ماندهٔ تقسیم > 0 (مثلاً ۱۰۰۰ ÷ ۳ = ۳۳۳ × ۳ = ۹۹۹) → باقی‌مانده به wallet تعاونی یا rounding-bucket می‌رود (سیاستش از Rule Engine).</li>
+     <li>pool.status = DISTRIBUTED.</li>
+   </ul>
+</li>
+<li>distribute فقط در SET-1 (monthly-close) فراخوانی می‌شود.</li>
+<li>تست: ماه با ۴ ماموریت، pool=120000، خانوارهای فعال=۳ → هر خانوار 40000.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- SET-1 -->
+      <li class="task" id="t-set-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge">SET-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">Settlement ماهانه + Lifecycle ۵‌حالته + Bank Reference + Receipt</span>
+          <span class="priority p1">P1</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۶ مه ۲۰۲۶):</strong> migrations <code>0014</code>–<code>0016</code>؛ admin settlement lifecycle + export + UI؛ <code>npm run test:set1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>enum SettlementBatchStatus به: <code>DRAFT, CALCULATED, READY_FOR_SETTLEMENT, IN_BANK_QUEUE, SETTLED, FAILED, CANCELLED</code>.</li>
+<li>endpointها:
+   <ul>
+     <li><code>POST /api/admin/settlement/monthly-close</code> (mine_id, year, month) → جمع‌آوری ماموریت‌های VERIFIED + hourly_logs APPROVED → ساخت batch با status=CALCULATED + اجرای <code>distributePool</code> روی همان ماه.</li>
+     <li><code>POST /api/admin/settlement/:batchId/lock</code> → CALCULATED → READY_FOR_SETTLEMENT.</li>
+     <li><code>POST /api/admin/settlement/:batchId/send-to-bank</code> → READY → IN_BANK_QUEUE + Event <code>settlement.in_bank_queue</code>.</li>
+     <li><code>POST /api/admin/settlement/:batchId/mark-paid</code> با <strong>payment_reference اجباری</strong> + <strong>receipt_file_url</strong> → IN_BANK_QUEUE → SETTLED + برای هر خط یک payment_payout ساخته شود.</li>
+     <li><code>POST /api/admin/settlement/:batchId/mark-failed</code> با reason → FAILED + Event برای Manual Review.</li>
+   </ul>
+</li>
+<li>Zod validation: payment_reference اجباری، حداقل ۸ کاراکتر.</li>
+<li>پس از SETTLED، missionها به status=SETTLED می‌روند.</li>
+<li>endpoint Export: <code>GET /api/admin/settlement/:batchId/export?format=excel</code> با ستون‌های (نقش, نام, IBAN, مبلغ, payment_reference).</li>
+<li>UI: SettlementPage.tsx با ۴ دکمه (Close, Lock, Send-to-Bank, Mark-Paid) + فرم upload رسید.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- REVERSE-1 -->
+      <li class="task" id="t-rev-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge">REVERSE-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">پنجرهٔ زمانی Reverse + Adjustment رسمی</span>
+          <span class="priority p1">P1</span>
+        </div>
+        <div class="why">انجام شد (۱۶ مه ۲۰۲۶): migration 0017_mission_verified_at؛ reverse.window_hours از Rule Engine (پیش‌فرض ۷۲)؛ POST /api/missions/:id/payment/reversal با 409 reverse_window_expired / cannot_reverse_settled؛ POST /api/missions/:id/adjustment/post-settled (ADMIN) + audit؛ npm run test:rev1 (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>از Rule Engine کلید <code>reverse.window_hours</code> بخوان (پیش‌فرض ۷۲).</li>
+<li>endpoint <code>POST /missions/:id/payment/reversal</code>:
+   <ul>
+     <li>اگر <code>now - mission.verified_at > window_hours</code> → 409 reverse_window_expired. پیشنهاد در پاسخ: «از Adjustment Request استفاده کنید».</li>
+     <li>اگر mission.status = SETTLED → 409 cannot_reverse_settled (فقط با endpoint جدا).</li>
+     <li>reason اجباری.</li>
+   </ul>
+</li>
+<li>endpoint جدید <code>POST /missions/:id/adjustment/post-settled</code> فقط ADMIN، با reason + bank_reference (در صورت بازگشت پول).</li>
+<li>تست: بعد از ۷۲ ساعت reverse رد می‌شود.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- EVENT-1 -->
+      <li class="task" id="t-event-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge">EVENT-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">Event Bus داخلی + رویدادهای کلیدی</span>
+          <span class="priority p2">P2</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۶ مه ۲۰۲۶):</strong> <code>services/eventBus.ts</code> با <code>EventEmitter</code>؛ ۲۱ رویداد canonical (dot-notation)؛ جدول <code>events</code> (migration <code>0018_domain_events</code>)؛ subscriber audit-only؛ هوک QUEUE/NOTIF؛ <code>npm run test:event1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>یک EventBus سادهٔ in-process با <code>EventEmitter</code> از Node بساز در <code>services/eventBus.ts</code>.</li>
+<li>تعریف Eventها:
+   <ul>
+     <li><code>mission.created</code>, <code>mission.assigned</code>, <code>mission.accepted</code>, <code>mission.delivered</code>, <code>mission.verified</code>, <code>mission.settled</code></li>
+     <li><code>weighbridge.weights_submitted</code>, <code>weighbridge.approved</code>, <code>weighbridge.anomaly</code>, <code>weighbridge.adjustment_approved</code></li>
+     <li><code>settlement.calculated</code>, <code>settlement.in_bank_queue</code>, <code>settlement.settled</code>, <code>settlement.failed</code></li>
+     <li><code>kyc.household_approved</code>, <code>kyc.driver_approved</code>, <code>kyc.cooperative_verified</code></li>
+     <li><code>payment.hold</code>, <code>payment.release</code>, <code>payment.reverse</code>, <code>payment.failed</code></li>
+   </ul>
+</li>
+<li>هر Event در <code>events</code> table هم ذخیره شود (event_name, payload JSON, correlation_id, occurred_at, published_by).</li>
+<li>subscriberها در ابتدا فقط audit-only باشن (هر event در audit log رد می‌گذارد).</li>
+<li>آماده‌سازی برای QUEUE-1 و NOTIF-1 که از این Eventها بخوانند.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- QUEUE-1 -->
+      <li class="task" id="t-queue-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge new">QUEUE-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">Queue + Worker برای کارهای Async</span>
+          <span class="priority p2">P2</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۶ مه ۲۰۲۶):</strong> settlement کاملاً Async — <code>monthly-close</code> / <code>distribute-pool</code> / <code>export</code> → <strong>202</strong> + <code>GET /admin/jobs/:id</code> + download؛ retry نمایی ۳×؛ <code>failed_jobs</code>؛ <code>JobsMonitor.tsx</code>؛ <code>test:queue1</code> + <code>test:set1</code> (۳×)؛ in-memory (BullMQ با <code>REDIS_URL</code>).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>کتابخانهٔ سبک پیشنهادی: <code>bullmq</code> با Redis. اگر زیرساخت Redis نداریم، یک in-memory queue ساده با retry محدود کافی است (در گزارش پایان توضیح بده).</li>
+<li>صف‌ها:
+   <ul>
+     <li><code>settlement</code>: monthly-close، distribute pool، export Excel</li>
+     <li><code>notification</code>: ارسال Push/SMS/In-App</li>
+     <li><code>reconciliation</code>: نوبتی هر شب</li>
+     <li><code>event_log</code>: persist Eventها</li>
+   </ul>
+</li>
+<li>هر job باید retry با backoff داشته باشد (3 retry، exponential).</li>
+<li>job‌های Failed به <code>failed_jobs</code> برن + قابل Manual Retry با endpoint.</li>
+<li>UI ادمین: <code>JobsMonitor.tsx</code> با لیست در‌حال‌اجرا/شکست‌خورده + دکمهٔ Retry.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- IDEM-1 -->
+      <li class="task" id="t-idem-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge new">IDEM-1</span>
+          <span class="title">Idempotency Key برای endpointهای حساس</span>
+          <span class="priority p1">P1</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۶ مه ۲۰۲۶):</strong> <code>idempotencyMiddleware</code> + جدول <code>idempotency_keys</code> (TTL 24h)؛ کش 2xx + <code>Idempotency-Replayed</code>؛ employer/dispatch/weighbridge/settlement/payment؛ <code>test:idem1</code> 3×.</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>middleware <code>idempotencyMiddleware</code>:
+   <ul>
+     <li>اگر header <code>Idempotency-Key</code> آمد، در جدول <code>idempotency_keys</code> (key, route, request_hash, response_body, status_code, created_at) جستجو کن.</li>
+     <li>اگر همان key قبلاً موفق بوده → پاسخ کش‌شده برگردان.</li>
+     <li>اگر هنوز در حال پردازش → 409 idempotency_in_progress.</li>
+     <li>اگر key جدید → پردازش + ذخیرهٔ پاسخ.</li>
+     <li>TTL: ۲۴ ساعت.</li>
+   </ul>
+</li>
+<li>اعمال روی این روت‌ها:
+   <ul>
+     <li><code>POST /api/employer/needs</code></li>
+     <li><code>POST /api/admin/needs/:id/dispatch</code></li>
+     <li><code>POST /api/weighbridge/tickets/:id/weights</code></li>
+     <li><code>POST /api/weighbridge/tickets/:id/approve</code></li>
+     <li>تمام endpointهای settlement</li>
+     <li><code>POST /api/missions/:id/payment/*</code></li>
+   </ul>
+</li>
+<li>کلاینت‌ها (web + flutter) Idempotency-Key با UUID v4 بفرستند.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- RECON-1 -->
+      <li class="task" id="t-recon-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge new">RECON-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">Reconciliation Engine (Wallet ↔ Ledger ↔ Bank)</span>
+          <span class="priority p2">P2</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۷ مه ۲۰۲۶):</strong> <code>ReconciliationService</code> — wallet ledger↔balance، settlement payout↔lines (COMPLETED)، POOL_DISTRIBUTION↔DISTRIBUTED؛ جدول <code>reconciliation_issues</code>؛ nightly QUEUE-1 (۰۰:۳۰)؛ <code>GET /api/admin/reconciliation/issues</code> + Resolve؛ <code>ReconciliationPage.tsx</code>؛ <code>npm run test:recon1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>سرویس <code>ReconciliationService</code>:
+   <ul>
+     <li>بررسی: <code>sum(transactions where wallet_id=X) == wallet.balance</code> برای همهٔ کیف‌پول‌ها → mismatch‌ها در <code>reconciliation_issues</code> ثبت می‌شود.</li>
+     <li>بررسی: مجموع payment_payouts SETTLED با مجموع settlement_lines با همان batch_id برابر باشد.</li>
+     <li>بررسی: هر تراکنش از نوع POOL_DISTRIBUTION باید به یک pool DISTRIBUTED مرتبط باشد.</li>
+   </ul>
+</li>
+<li>اجرای روزانه نیمه‌شب از QUEUE-1.</li>
+<li>endpoint <code>GET /api/admin/reconciliation/issues</code> برای ADMIN.</li>
+<li>UI: <code>ReconciliationPage.tsx</code> با لیست issues + دکمهٔ Resolve (با reason).</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- NOTIF-1 -->
+      <li class="task" id="t-notif-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge new">NOTIF-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">Notification چندکاناله (Push / SMS / In-App)</span>
+          <span class="priority p2">P2</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۷ مه ۲۰۲۶):</strong> <code>NotificationService</code> + InApp/SMS/Push adapters؛ subscriber EVENT-1؛ <code>GET /api/notifications</code>؛ <code>test:notif1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>سرویس <code>NotificationService</code> با ۳ adapter:
+   <ul>
+     <li>InApp: نوشتن در جدول <code>notifications</code> + کاربر در پنل می‌بیند.</li>
+     <li>SMS: یک adapter پیامک ایرانی (Kavenegar یا فراز‌اس‌ام‌اس). اگر کلید نیست → console.log و در DB ثبت کن.</li>
+     <li>Push: FCM برای Flutter (در ابتدا stub، در فاز بعد فعال).</li>
+   </ul>
+</li>
+<li>Subscriber روی EVENT-1 برای این رویدادها:
+   <ul>
+     <li>mission.assigned → SMS+Push به راننده.</li>
+     <li>settlement.settled → SMS به مالک ناوگان + خانوار (مبلغ + payment_reference).</li>
+     <li>weighbridge.anomaly → SMS به OPERATION_ADMIN.</li>
+     <li>kyc.household_approved → SMS به متقاضی.</li>
+   </ul>
+</li>
+<li>جدول <code>notification_preferences</code> برای کاربر (in_app/sms/push روشن/خاموش).</li>
+<li>endpoint <code>GET /api/notifications</code> برای In-App.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- AUDIT-1 -->
+      <li class="task" id="t-audit-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge">AUDIT-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">انتقال Audit Log به DB + صفحهٔ مرور Audit</span>
+          <span class="priority p2">P2</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۷ مه ۲۰۲۶):</strong> <code>AuditLogStore</code> → جدول <code>audit_logs</code>؛ <code>GET /api/audit</code> (ADMIN همه / COOP_ADMIN در scope)؛ <code>AuditViewer.tsx</code> + JSON Diff رنگی؛ <code>lib/auditCoopScope.ts</code>؛ <code>npm run test:audit1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>AuditLogStore از RAM به جدول <code>audit_logs</code> منتقل شود.</li>
+<li>endpoint <code>GET /api/audit?entity_type=&entity_id=&from=&to=&user_id=&limit=&offset=</code> برای ADMIN (همه) و COOP_ADMIN (در scope تعاونی).</li>
+<li>صفحهٔ <code>AuditViewer.tsx</code> با فیلتر تاریخ، نوع موجودیت، کاربر.</li>
+<li>before/after به‌صورت JSON Diff رنگ‌بندی‌شده.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- OBJ-1 -->
+      <li class="task" id="t-obj-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge">OBJ-1</span>
+          <span class="title">فرم ثبت اعتراض در فرانت‌اند + رسیدگی</span>
+          <span class="priority p2">P2</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۷ مه ۲۰۲۶):</strong> <code>MembersTransparencyPage.tsx</code> — دکمهٔ «ثبت اعتراض» به‌ازای هر عضو؛ <code>POST /api/coop/objections</code> + کد پیگیری؛ بخش «بررسی اعتراض‌ها» برای COOP_ADMIN/ADMIN (معتبر/رد + reason در audit). بک‌اند: فیلدهای اختیاری، <code>reporter_mobile</code>، resolve با reason. <code>npm run test:obj1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>در MembersTransparencyPage.tsx دکمهٔ «ثبت اعتراض» به‌ازای هر عضو.</li>
+<li>فرم: reporter_name (اختیاری)، reporter_mobile (اختیاری)، reason (اجباری).</li>
+<li><code>POST /api/coop/objections</code> + نمایش کد پیگیری.</li>
+<li>بخش «بررسی اعتراض‌ها» برای COOP_ADMIN/ADMIN: دکمه‌های «معتبر/رد» با reason. ثبت در audit.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- FIN-UI-1 -->
+      <li class="task" id="t-fin-ui-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge">FIN-UI-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">داشبورد مالی ادمین + IBAN ماسک + Export</span>
+          <span class="priority p2">P2</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۷ مه ۲۰۲۶):</strong> <code>AdminFinance.tsx</code> — کارت خلاصه، نمودار Chart.js (CDN)، جدول IBAN ماسک (<code>IRxx ******** xxxx</code>) + چک‌سام + «نمایش کامل» با audit؛ Export Excel/PDF. بک‌اند: <code>GET /api/admin/finance/summary</code>، <code>GET /api/admin/finance/export</code>، <code>POST /api/admin/finance/iban/reveal</code>؛ <code>lib/iban.ts</code>؛ <code>npm run test:fin1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+صفحهٔ <code>AdminFinance.tsx</code> با ۴ بخش:
+<ol>
+<li>کارت‌های خلاصه (سهم مالکان/Community Pool/پلتفرم/تعداد ماموریت VERIFIED ماه جاری).</li>
+<li>نمودار سه ماه اخیر (Chart.js از CDN).</li>
+<li>جدول IBAN ماسک‌شده (<code>IRxx ******** xxxx</code>) + اعتبارسنجی چک‌سام + دکمهٔ «نمایش کامل» با ثبت دلیل در audit.</li>
+<li>Export Excel/PDF.</li>
+</ol>
+سمت backend: <code>GET /api/admin/finance/summary?year=&month=&mine_id=</code> و <code>GET /api/admin/finance/export</code>.
+          </div>
+        </details>
+      </li>
+
+      <!-- SOFT-1 -->
+      <li class="task" id="t-soft-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge new">SOFT-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">Soft Delete سراسری</span>
+          <span class="priority p2">P2</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۷ مه ۲۰۲۶):</strong> فیلد <code>deleted_at</code> روی users, households, drivers, vehicles, fleet_owners, cooperatives, rate_cards, operation_needs, finance_rules؛ migration <code>0023_soft_delete</code>؛ Prisma <code>$use</code> middleware؛ <code>softDeleteService</code> + audit با reason؛ <code>POST /api/admin/soft-delete</code> و <code>POST /api/admin/restore</code>؛ <code>npm run test:soft1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>به جداول کلیدی فیلد <code>deleted_at: DateTime?</code> اضافه کن (users, households, drivers, vehicles, fleet_owners, cooperatives, rate_cards, operation_needs، …).</li>
+<li>middleware Prisma که در همهٔ queryها پیش‌فرض <code>where: { deleted_at: null }</code> بزند.</li>
+<li>هیچ endpoint عمومی delete واقعی نداشته باشد؛ همه softDelete کنند با reason در audit.</li>
+<li>برای ADMIN یک endpoint <code>POST /admin/restore</code> برای بازگردانی.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- OFFLINE-1 -->
+      <li class="task" id="t-offline-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge new">OFFLINE-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">Offline + Sync در اپ راننده</span>
+          <span class="priority p2">P2</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۷ مه ۲۰۲۶):</strong> صف محلی Hive (<code>mission_step_queue_store.dart</code>)؛ گذار وضعیت آفلاین + بج «در انتظار Sync»؛ <code>mission_sync_service.dart</code> با replay و همان UUID به‌عنوان <code>Idempotency-Key</code>؛ middleware روی <code>POST /api/driver/missions/:id/steps</code>؛ 409 <code>invalid_transition</code> → SnackBar + پاک‌سازی صف + refresh؛ <code>connectivity_plus</code> برای Sync خودکار؛ تست واحد <code>flutter test</code> + <code>scripts/test-offline1.ps1</code> (۳×). تست دستی: Airplane Mode → گذار → خاموش کردن حالت پرواز → Sync.</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>در اپ Flutter یک Local Queue با <code>hive</code> یا <code>sembast</code> بساز.</li>
+<li>وقتی راننده گذار وضعیت می‌زند (ACCEPTED, ARRIVED, …) و آفلاین است، در Local Queue ذخیره کند + نشانگر «در انتظار Sync».</li>
+<li>وقتی شبکه برگشت، Sync اتومات شود (با Idempotency-Key همان UUID locally generated).</li>
+<li>Conflict Handling: اگر سرور گفت 409 invalid_transition، یک پیام به کاربر و ریست وضعیت محلی.</li>
+<li>تست در حالت Airplane Mode.</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- COMM-APP-1 -->
+      <li class="task" id="t-comm-1">
+        <div class="row">
+          <span class="badge">COMM-APP-1</span>
+          <span class="title">Community App (Flutter) برای تعاونی + خانوار</span>
+          <span class="priority p2">P2</span>
+          <span class="status s-ok">انجام شد</span>
+        </div>
+        <div class="why">طبق سند: یک کلاینت موبایل دوم با Role-Based برای COOP_ADMIN/COOP_OPERATOR/HOUSEHOLD.</div>
+        <details open class="prompt">
+          <summary>نتیجهٔ پیاده‌سازی COMM-APP-1 (۱۷ مه ۲۰۲۶)</summary>
+          <div class="promptfa">
+<ul>
+<li><strong>پکیج:</strong> <code>apps/mobile/packages/mineral_api</code></li>
+<li><strong>اپ:</strong> <code>apps/mobile/community_app</code></li>
+<li><strong>تست:</strong> <code>npm run test:comm-app1</code> (۳×)</li>
+</ul>
+          </div>
+        </details>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+یک پروژهٔ Flutter جدید (<code>apps/mobile/community_app</code>) با ساختار مشابه driver_app اما نقش‌محور:
+<ol>
+<li>Login OTP مشترک.</li>
+<li>اگر نقش = HOUSEHOLD: صفحات «کیف‌پول», «سهم ماهانه», «وضعیت Settlement», «ثبت اعتراض'.</li>
+<li>اگر نقش = COOP_OPERATOR: KYC Inbox (تأیید/رد عضویت).</li>
+<li>اگر نقش = COOP_ADMIN: KYC Inbox + گزارش اعضا + بررسی اعتراض.</li>
+<li>API Client مشترک با driver_app (refactor به یک package داخلی).</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- KPI-1 -->
+      <li class="task" id="t-kpi-1">
+        <div class="row">
+          <span class="badge" style="background:#16A34A">✓ انجام شد</span>
+          <span class="badge new">KPI-1</span>
+          <span class="status s-ok" style="margin-right:8px">انجام شد</span>
+          <span class="title">KPI Dashboard + Observability پایه</span>
+          <span class="priority p2">P2</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۷ مه ۲۰۲۶):</strong> <code>kpiService</code> — fleet_efficiency، delay_pct (آستانه <code>KPI_DELAY_HOURS</code>)، hold_pct، vehicle_utilization، failed_settlement؛ جدول <code>kpi_snapshots</code>؛ nightly QUEUE-1 (۰۰:۳۵)؛ <code>GET /api/admin/kpi/dashboard</code> + <code>POST /api/admin/kpi/compute</code>؛ <code>AdminKpi.tsx</code> با Chart.js؛ <code>GET /api/healthz</code> + pino؛ <code>npm run test:kpi1</code> (۳×).</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید</summary>
+          <div class="promptfa">
+<ol>
+<li>محاسبهٔ KPI روزانه از QUEUE-1:
+   <ul>
+     <li>راندمان ناوگان: <code>verified_missions / assigned_missions</code></li>
+     <li>درصد تأخیر: ماموریت‌هایی که > X ساعت طول کشیدند</li>
+     <li>درصد HOLD</li>
+     <li>Utilization وسیله</li>
+     <li>failed_settlement</li>
+   </ul>
+</li>
+<li>ذخیره در <code>kpi_snapshots</code> (date, mine_id, key, value).</li>
+<li>صفحهٔ <code>AdminKpi.tsx</code> با چارت.</li>
+<li>Observability پایه: <code>/healthz</code> دقیق‌تر + لاگ‌گیری ساختاریافته (pino).</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+      <!-- TEST-1 -->
+      <li class="task" id="t-test-1">
+        <div class="row">
+          <span class="badge">TEST-1</span>
+          <span class="title">تست‌های اتوماتیک پایه</span>
+          <span class="priority p2">P2 ✓</span>
+        </div>
+        <div class="why"><strong>انجام شد (۱۷ مه ۲۰۲۶).</strong> <code>apps/backend</code>: Vitest (<code>npm test</code>) — واحد <code>missionFsm.test.ts</code> (۹ وضعیت + ۸ گذار + OPERATION_ADMIN + ۲ غیرقانونی)؛ یکپارچه: OTP، FSM HTTP، split ۱۰۰٪، adjustment delta، settlement (monthly-close + mark-failed بدون ref + mark-paid بدون ref→۴۰۰)، idempotency replay. <code>apps/web</code>: Playwright <code>e2e/login-panel.spec.ts</code>, <code>e2e/employer-need-inbox.spec.ts</code>. CI: <code>.github/workflows/ci.yml</code> روی push.</div>
+        <details class="prompt">
+          <summary>پرامپت چت جدید (آرشیو)</summary>
+          <div class="promptfa">
+<ol>
+<li>Vitest برای backend — ✓</li>
+<li>Playwright: Login OTP → Panel، Employer Need → Inbox — ✓</li>
+<li>GitHub Actions روی push — ✓</li>
+</ol>
+          </div>
+        </details>
+      </li>
+
+    </ul>
+  </section>
+
+  <!-- 8. Epics -->
+  <section class="panel" id="epics">
+    <h2>۸. اپیک‌های توسعه (نقشهٔ راه)</h2>
+
+    <div class="epic">
+      <h3>E0 — پایهٔ ذخیره‌سازی</h3>
+      <div class="epic-meta">DB-1، DB-2 — P1 — بدون این هیچ‌چیز production نیست.</div>
+    </div>
+    <div class="epic">
+      <h3>E1 — هویت، نقش‌ها، KYC</h3>
+      <div class="epic-meta">AUTH-1، PERM-1، COOP-1، COOP-2 — P1.</div>
+    </div>
+    <div class="epic">
+      <h3>E2 — جریان عملیاتی تنی</h3>
+      <div class="epic-meta">EMP-1، DISP-1، MISSION-FSM-1، RATE-1، WB-1 — P1.</div>
+    </div>
+    <div class="epic">
+      <h3>E3 — عملیات ساعتی</h3>
+      <div class="epic-meta">HOURLY-1، RATE-1 — P1.</div>
+    </div>
+    <div class="epic">
+      <h3>E4 — مالی و Rule Engine</h3>
+      <div class="epic-meta">RULE-1 ✓، POOL-1 ✓، SET-1 ✓، REVERSE-1 ✓، IDEM-1 ✓، FIN-UI-1 ✓ — P1/P2.</div>
+    </div>
+    <div class="epic">
+      <h3>E5 — Event-Driven و زیرساخت</h3>
+      <div class="epic-meta">EVENT-1 ✓، QUEUE-1 ✓، RECON-1 ✓، NOTIF-1 ✓، AUDIT-1 ✓، SOFT-1 — P2.</div>
+    </div>
+    <div class="epic">
+      <h3>E6 — کلاینت‌ها و تجربهٔ کاربر</h3>
+      <div class="epic-meta">COMM-APP-1 (P2)، <strong>OFFLINE-1 ✓</strong>، OBJ-1 ✓.</div>
+    </div>
+    <div class="epic">
+      <h3>E7 — حکمرانی و کیفیت</h3>
+      <div class="epic-meta">KPI-1 ✓، <strong>TEST-1 ✓</strong> — P2.</div>
+    </div>
+  </section>
+
+  <!-- 9. Questions (only the truly open ones) -->
+  <section class="panel" id="questions">
+    <h2>۹. سوال‌های باقی‌مانده (فقط مواردی که سند کارفرما جواب نداده)</h2>
+    <p class="muted">سوال‌های پاسخ‌گرفته (تعاونی-معدن، فرمول ۱۳٪، Reverse window، آستانهٔ وزن، Dispatch سیستمی، Mission FSM ۹ حالته، Settlement Lifecycle، نقش‌ها، Notification، Idempotency، Event-Driven، Soft Delete، KPI، Offline) از این بخش حذف شدند چون قطعی شده‌اند.</p>
+
+    <div class="qa">
+      <div class="q">۱. شمارهٔ پیگیری بانکی چه فرمتی است؟ (پایای ۱۲ رقمی، شناسهٔ ساتنا، یا متن آزاد)</div>
+      <div class="a">فعلاً فرض ما «متن آزاد ولی اجباری حداقل ۸ کاراکتر» است. اگر استاندارد خاصی می‌خواهید بفرمایید.</div>
+    </div>
+    <div class="qa">
+      <div class="q">۲. اعتراض ناشناس مجاز است؟</div>
+      <div class="a">طبق سند فقط گفته «ثبت اعتراض». اگر می‌خواهید reporter_mobile اجباری باشد، تنظیم می‌کنیم.</div>
+    </div>
+    <div class="qa">
+      <div class="q">۳. در عملیات ساعتی نقش OPERATOR چه کسی است؟ سرگروه معدن، یا خود راننده، یا COOP_OPERATOR؟</div>
+      <div class="a">سند نقش OPERATOR را تعریف کرده ولی نگفته «چه کسی این نقش را می‌گیرد». ما فرض می‌کنیم «سرگروه معدن یا COOP_OPERATOR». لطفاً تأیید.</div>
+    </div>
+    <div class="qa">
+      <div class="q">۴. کارفرما (EMPLOYER) می‌تواند چند نیاز همزمان ثبت کند یا فقط یکی فعال؟</div>
+      <div class="a">فعلاً فرض «چند نیاز همزمان مجاز». اگر می‌خواهید قفل شود بفرمایید.</div>
+    </div>
+    <div class="qa">
+      <div class="q">۵. صفحهٔ شفافیت اعضا را عموم (بدون لاگین) ببیند یا فقط کاربران لاگین‌شده؟</div>
+      <div class="a">سند گفته «نمایش لیست اعضای تأییدشده» ولی level دسترسی را نگفته. ما فرض می‌کنیم «فقط لاگین‌شده‌ها». اگر می‌خواهید عمومی باشد، بفرمایید.</div>
+    </div>
+    <div class="qa">
+      <div class="q">۶. حد آستانهٔ ۵٪ روی وزن، آیا فقط هشدار است یا واقعاً پرداخت را HOLD می‌کند تا تأیید دستی؟</div>
+      <div class="a">سند گفته «HOLD/FLAG». ما فرض می‌کنیم «خودکار HOLD + نیاز به تأیید دستی COOP_ADMIN». اگر فقط FLAG می‌خواهید بفرمایید.</div>
+    </div>
+    <div class="qa">
+      <div class="q">۷. واحد پولی در گزارش‌ها ریال است یا تومان؟</div>
+      <div class="a">سند نگفته. فرض ما «ریال» است.</div>
+    </div>
+    <div class="qa">
+      <div class="q">۸. ارائه‌دهندهٔ SMS کدام است؟ (Kavenegar / فراز / غیره)</div>
+      <div class="a">برای NOTIF-1 نیاز داریم. اگر API Key دارید بفرمایید، در غیر این صورت فعلاً stub می‌گذاریم.</div>
+    </div>
+    <div class="qa">
+      <div class="q">۹. باقی‌ماندهٔ تقسیم Community Pool (rounding remainder) به کجا برود؟</div>
+      <div class="a">مثلاً ۱۰۰۰۰۰ ÷ ۳ = ۳۳۳۳۳ × ۳ = ۹۹۹۹۹، باقی‌ماندهٔ ۱ ریال. پیشنهاد ما: به wallet تعاونی یا به ماه بعد منتقل شود. کدام؟</div>
+    </div>
+    <div class="qa">
+      <div class="q">۱۰. مدت پنجرهٔ Reverse دقیقاً چند ساعت است؟</div>
+      <div class="a">سند گفته «بازهٔ زمانی محدود» اما عدد نداده. پیشنهاد ما: ۷۲ ساعت. در Rule Engine قابل تغییر است.</div>
+    </div>
+    <div class="qa">
+      <div class="q">۱۱. PDF رسید رسمی برای کاربران لازم است؟ (با امضا/مهر)</div>
+      <div class="a">سند صراحت نداده. اگر بله، یک تسک جدا تعریف می‌کنیم.</div>
+    </div>
+  </section>
+
+  <!-- 10. Suggestions -->
+  <section class="panel" id="suggestions">
+    <h2>۱۰. پیشنهادهای ما (محاوره‌ای)</h2>
+    <ul>
+      <li><strong>اول پایه‌ها، بعد ویترین.</strong> Vision کارفرما خیلی بزرگ است — Event-Driven، Rule Engine، Queue، Reconciliation. اما اگر بخواهیم همه را یک‌دفعه شروع کنیم، هیچ‌کدام تمام نمی‌شود. توصیه: <em>اول DB + Permission Matrix + Mission FSM ۹‌حالته (E0+E1+E2) — این سه باعث می‌شود به یک «نسخهٔ قابل دموی واقعی به یک معدن» برسیم. بعد E4 (مالی) و سپس E5 (زیرساخت).</em></li>
+      <li><strong>Event Bus در ابتدا in-process باشد.</strong> برای MVP لازم نیست Redis/Kafka. یک EventEmitter ساده + جدول events کافی است. وقتی به ۵ معدن رسیدیم، مهاجرت می‌کنیم.</li>
+      <li><strong>Idempotency را زود وارد کنید.</strong> هزینهٔ افزودنش الان کم است. اگر تا production نیاید، آن‌وقت کابوس می‌شود.</li>
+      <li><strong>Rule Engine را در همان روز اول راه بیندازیم.</strong> چون اگر فردا کارفرما گفت «۸۰/۱۵/۵»، نمی‌خواهیم به ۲۰ جای کد دست بزنیم. حتی اگر فقط یک key (split.owner) در آن باشد، باز ارزش دارد.</li>
+      <li><strong>SMS واقعی را زود وصل کنید.</strong> چون کارفرما عملاً با SMS تست می‌کند («راننده هنوز پیام نگرفته!»). اگر قرار است Kavenegar باشد، همان روز اول API Key بگیرید.</li>
+      <li><strong>Community App را پس از تکمیل بک‌اند شروع کنید.</strong> اگر همین الان شروع کنیم، هر تغییر روی API هم driver_app و هم community_app را خراب می‌کند. بهتر است یک API Layer پایدار باشد بعد UI.</li>
+      <li><strong>Reconciliation شبانه را با لاگ شفاف بنویسید.</strong> این پایهٔ اعتماد کارفرما است: هر شب گزارش «امروز هیچ mismatch نبود / این موارد بود».</li>
+      <li><strong>یک Staging مستقل برای کارفرما بالا بیاید.</strong> هر کارت تمام شد، روی Staging مستقر شود، کارفرما خودش با موبایل تست کند.</li>
+      <li><strong>گزارش هفتگی نیم‌صفحه‌ای.</strong> «این هفته چی تمام شد، کجا گیر کردیم، هفتهٔ بعد چی کار می‌کنیم». طولانی نباشد، خوانده می‌شود.</li>
+      <li><strong>نقش AUDITOR_READONLY بعداً اضافه شود.</strong> برای حسابرس مستقل / نمایندهٔ تعاونی. در سند نبود ولی نیاز خواهد شد.</li>
+    </ul>
+  </section>
+
+  <!-- 11. Critiques -->
+  <section class="panel" id="critique">
+    <h2>۱۱. انتقادهای رو راست (محاوره‌ای)</h2>
+    <ul>
+      <li><strong>سند Vision عالی است ولی Scope بزرگ‌تر از MVP شده.</strong> سند می‌گوید «فقط MVP» و در همان زمان «Event-Driven، Rule Engine، Queue، Reconciliation، KPI، Offline، چندکاناله، Community App و …» می‌خواهد. اگر همه را در MVP بریزیم، MVP حداقل ۸ ماه طول می‌کشد. باید با کارفرما توافق کنیم کدام‌ها واقعاً «روز اول لانچ» لازم‌اند (P1) و کدام‌ها «اولین آپدیت بعد از لانچ» (P2). در این گزارش این تفکیک شده ولی کارفرما باید تأیید کند.</li>
+      <li><strong>کد فعلی عمدتاً Postgres است (DB-1 + DB-2).</strong> ماموریت، کیف پول، تسویه و audit در DB؛ hourly logs و objections هنوز RAM.</li>
+      <li><strong>چند انحراف از اسپک قبلی هنوز هست.</strong> WB-1، HOURLY-1، MISSION-FSM-1، RATE-1، RULE-1، POOL-1، SET-1، REVERSE-1، <strong>EVENT-1</strong>، <strong>QUEUE-1</strong>، <strong>RECON-1</strong>، <strong>NOTIF-1</strong> انجام شد؛ باقی موارد P2.</li>
+      <li><strong>«فرمول جدید ۱۳٪» تغییر معماری بزرگی است.</strong> از «به نسبت ماموریت» به «pool ÷ snapshot». این کار به migration دیتای قبلی و arrange جدید transaction نیاز دارد. خوبی‌اش: عادلانه‌تر است. سختی‌اش: همهٔ تست‌ها و expectationها باید بازنویسی شوند.</li>
+      <li><strong>عدم وجود «حساب پلتفرم» در مدل فعلی.</strong> ۲٪ به wallet با نام platform می‌رود ولی صاحب آن wallet چه کسی است؟ باید یک system_user تعریف شود.</li>
+      <li><strong>تعارض احتمالی بین «Dispatch سیستمی» و واقعیت میدانی.</strong> کارفرما می‌خواهد «حذف رانت و انتخاب دستی». اما در محل ممکن است گاهی راننده‌ای مریض باشد و باید جابجا شود. باید endpoint «اضطراری Re-Dispatch» با ثبت دلیل پیش‌بینی کنیم تا قانون شکسته نشود ولی واقعیت هم پاسخ بگیرد.</li>
+      <li><strong>Snapshot ماهانهٔ خانوارها ابهام دارد.</strong> اگر در روز ۲۹ ماه یک خانوار APPROVED شد، آیا در snapshot همان ماه می‌آید یا نه؟ پیشنهاد ما: cutoff روز آخر ماه + ساعت ۲۳:۵۹. باید رسماً تأیید شود.</li>
+      <li><strong>یک‌دست نبودن نام‌گذاری در کد و اسپک.</strong> کد <code>COOP</code> دارد، اسپک <code>COOP_ADMIN/COOP_OPERATOR</code>. وضعیت ماموریت Flutter اکنون با FSM ۹‌حالته هم‌تراز است؛ سایر mismatchها هنوز بررسی شوند.</li>
+      <li><strong>TEST-1 انجام شد (Vitest + Playwright + CI).</strong> اسکریپت‌های <code>tsx test:*</code> قدیمی همچنان مکمل هستند؛ در refactorهای بعدی پوشش Vitest را گسترش دهید.</li>
+    </ul>
+  </section>
+
+  <!-- 12. DoD -->
+  <section class="panel" id="dod">
+    <h2>۱۲. تعریف «انجام شده» (DoD) برای UAT</h2>
+    <ol>
+      <li>کد در branch جدا با Pull Request تأییدشده merge شده.</li>
+      <li>migration rollback‌پذیر است.</li>
+      <li>حداقل یک تست (Vitest/Playwright) برای کارت نوشته شده.</li>
+      <li>هر منطق حساس در audit_logs منعکس می‌شود.</li>
+      <li>endpointهای جدید همراه مستند کوتاه (sample req/res).</li>
+      <li>UI با RTL فارسی و Tahoma نمایش درست.</li>
+      <li>Idempotency-Key (در صورت مالی بودن) پشتیبانی می‌شود.</li>
+      <li>Event مرتبط منتشر شده و در <code>events</code> + audit log ثبت شده (EVENT-1).</li>
+      <li>ویدیو/اسکرین‌شات UAT کارفرما گرفته شده.</li>
+    </ol>
+  </section>
+
+  <!-- 13. Files -->
+  <section class="panel" id="files">
+    <h2>۱۳. نقشهٔ فایل‌های اصلی</h2>
+    <table>
+      <thead><tr><th>فایل/پوشه</th><th>کاربرد</th></tr></thead>
+      <tbody>
+        <tr><td><code>apps/backend/prisma/schema.prisma</code></td><td>منبع حقیقت مدل داده و enumها.</td></tr>
+        <tr><td><code>apps/backend/src/app.ts</code></td><td>راه‌اندازی Express + mount route‌ها.</td></tr>
+        <tr><td><code>apps/backend/src/repositories/</code></td><td>لایهٔ Postgres (DB-1 + DB-2: missions, wallets, settlement, audit, …).</td></tr>
+        <tr><td><code>apps/backend/src/repositories/financeLedgerRepository.ts</code></td><td>تقسیم ۸۵/۱۳/۲ اتمیک در transaction.</td></tr>
+        <tr><td><code>apps/backend/scripts/duty-db2.ts</code></td><td>تست E2E duty (۳×).</td></tr>
+        <tr><td><code>apps/backend/src/appContext.ts</code></td><td>wiring storeها؛ عملیات/مالی از Repository.</td></tr>
+        <tr><td><code>apps/backend/scripts/seed.ts</code></td><td>seed دیتای dev (mines, users, rate_cards).</td></tr>
+        <tr><td><code>apps/backend/src/services/authService.ts</code></td><td>OTP، ساخت کاربر، session.</td></tr>
+        <tr><td><code>apps/backend/src/stores/missionStore.ts</code></td><td>چرخهٔ ماموریت + باسکول + adjustment + hold/release.</td></tr>
+        <tr><td><code>apps/backend/src/stores/financeStore.ts</code></td><td>تقسیم ۸۵/۱۳/۲ + Community Pool؛ نرخ از <code>rate_cards</code> (RATE-1).</td></tr>
+        <tr><td><code>apps/web/src/pages/RateCards.tsx</code></td><td>UI کارت نرخ: جدول + فرم DRAFT + فعال‌سازی.</td></tr>
+        <tr><td><code>apps/backend/src/stores/entitiesStore.ts</code></td><td>CRUD خانوار/مالک/راننده/وسیله + objection.</td></tr>
+        <tr><td><code>apps/backend/src/stores/settlementStore.ts</code></td><td>Settlement Batch + lines.</td></tr>
+        <tr><td><code>apps/backend/src/services/reconciliationService.ts</code></td><td><strong>RECON-1</strong>: تطبیق شبانه wallet/settlement/pool.</td></tr>
+        <tr><td><code>apps/web/src/pages/ReconciliationPage.tsx</code></td><td>UI لیست issues + Resolve برای ADMIN.</td></tr>
+        <tr><td><code>apps/backend/scripts/test-recon1.ts</code></td><td>تست RECON-1 (۳×).</td></tr>
+        <tr><td><code>apps/backend/src/routes/*.ts</code></td><td>auth, mine, driver, weighbridge, wallet, hourly, settlement, rateCards, coop, devSeed, health.</td></tr>
+        <tr><td><code>apps/web/src/App.tsx</code></td><td>روتر اصلی پنل.</td></tr>
+        <tr><td><code>apps/web/src/pages/*.tsx</code></td><td>۹ صفحهٔ پنل.</td></tr>
+        <tr><td><code>apps/mobile/driver_app/lib/main.dart</code></td><td>بوت اپ Flutter راننده.</td></tr>
+        <tr><td><code>apps/mobile/driver_app/lib/ui/router.dart</code></td><td>۵ مسیر اپ.</td></tr>
+        <tr><td><code>apps/mobile/driver_app/lib/core/mission_flow.dart</code></td><td>ترتیب گام‌های ماموریت (نیاز به ارتقا به ۹).</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 14. Chat rule -->
+  <section class="panel" id="chat-rule">
+    <h2>۱۴. قاعدهٔ «یک چت = یک تسک»</h2>
+    <ol>
+      <li>یک چت جدید باز کنید.</li>
+      <li>فقط پرامپت همان کارت را پیست کنید.</li>
+      <li>اگر مدل سوال پرسید، جواب بدهید؛ اگر کد تولید کرد، روی branch جدا commit کنید.</li>
+      <li>پس از تمام شدن، پیامی به ما با عنوان «کارت <em>کد-کارت</em> تمام شد» و لینک PR بفرستید.</li>
+      <li>ما در گزارش بعدی، آن کارت را حذف می‌کنیم و وضعیت ماتریس را به‌روز می‌کنیم.</li>
+    </ol>
+    <div class="note"><strong>هشدار:</strong> هرگز دو کارت را در یک چت قاطی نکنید. اگر یک تسک خیلی طولانی شد، آن را به دو تسک بشکنید.</div>
+  </section>
+
+  <footer style="text-align:center;color:#6B7280;font-size:12.5px;margin-top:18px">
+    <div>پروژهٔ logestic — گزارش مستر فاز یک — نسخهٔ ۲ (پس از سند Draft Architecture V1 کارفرما)</div>
+    <div>۲۸ کارت ریز • ۸ اپیک • ۸ نقش رسمی • Mission FSM ۹‌حالته • Settlement Lifecycle ۵‌حالته • Rule Engine قابل پیکربندی</div>
+  </footer>
+
+</div>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

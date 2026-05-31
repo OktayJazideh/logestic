@@ -1,82 +1,75 @@
-export type SettlementBatchStatus = "DRAFT" | "LOCKED" | "PAID" | "CANCELLED";
+import * as settlementRepo from "../repositories/settlementRepository";
 
-export type SettlementBatch = {
-  id: number;
-  mine_id?: number;
-  period_start: Date;
-  period_end: Date;
-  status: SettlementBatchStatus;
-  created_by_user_id?: number;
-  created_at: Date;
-};
+export type SettlementBatch = settlementRepo.SettlementBatchRow;
+export type SettlementLine = settlementRepo.SettlementLineRow;
+export type SettlementExportRow = settlementRepo.SettlementExportRow;
 
-export type SettlementLine = {
-  id: number;
-  batch_id: number;
-  wallet_id: number;
-  amount: number;
-  mission_id?: number;
-  note?: string;
-};
-
-/**
- * In-memory settlement batches (mirror of settlement_batches / settlement_lines).
- */
 export class SettlementStore {
-  private batches: SettlementBatch[] = [];
-  private lines: SettlementLine[] = [];
-  private idBatch = 1;
-  private idLine = 1;
-
-  createDraft(params: {
-    mine_id?: number;
-    period_start: Date;
-    period_end: Date;
-    created_by_user_id?: number;
-    lines: Array<{ wallet_id: number; amount: number; mission_id?: number; note?: string }>;
-  }) {
-    const batch: SettlementBatch = {
-      id: this.idBatch++,
-      mine_id: params.mine_id,
-      period_start: params.period_start,
-      period_end: params.period_end,
-      status: "DRAFT",
-      created_by_user_id: params.created_by_user_id,
-      created_at: new Date(),
-    };
-    this.batches.push(batch);
-    for (const l of params.lines) {
-      this.lines.push({
-        id: this.idLine++,
-        batch_id: batch.id,
-        wallet_id: l.wallet_id,
-        amount: l.amount,
-        mission_id: l.mission_id,
-        note: l.note,
-      });
-    }
-    return { batch, lines: this.lines.filter((x) => x.batch_id === batch.id) };
+  createDraft(params: Parameters<typeof settlementRepo.createDraft>[0]) {
+    return settlementRepo.createDraft(params);
   }
 
-  lock(batchId: number) {
-    const b = this.batches.find((x) => x.id === batchId);
-    if (!b || b.status !== "DRAFT") return { ok: false as const, reason: "invalid_batch" };
-    b.status = "LOCKED";
-    return { ok: true as const, batch: b };
+  monthlyClose(params: Parameters<typeof settlementRepo.monthlyClose>[0]) {
+    return settlementRepo.monthlyClose(params);
   }
 
-  markPaid(batchId: number) {
-    const b = this.batches.find((x) => x.id === batchId);
-    if (!b || b.status !== "LOCKED") return { ok: false as const, reason: "invalid_batch" };
-    b.status = "PAID";
-    return { ok: true as const, batch: b };
+  approveBatch(params: Parameters<typeof settlementRepo.approveBatch>[0]) {
+    return settlementRepo.approveBatch(params);
   }
 
-  listBatches() {
-    return this.batches.slice().sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+  lock(batchId: number, lockedByUserId: number) {
+    return settlementRepo.lockBatch(batchId, lockedByUserId);
+  }
+
+  sendToBank(batchId: number) {
+    return settlementRepo.sendToBank(batchId);
+  }
+
+  markPaid(batchId: number, payment_reference: string, receipt_file_url: string) {
+    return settlementRepo.markBatchPaid(batchId, payment_reference, receipt_file_url);
+  }
+
+  markFailed(batchId: number, reason: string, performedByUserId?: number) {
+    return settlementRepo.markBatchFailed(batchId, reason, performedByUserId);
+  }
+
+  listBatches(params?: { mine_id?: number }) {
+    return settlementRepo.listBatches(params);
+  }
+
+  getBatch(batchId: number) {
+    return settlementRepo.getBatch(batchId);
   }
 
   getLines(batchId: number) {
-    return this.lines.filter((l) => l.batch_id === batchId);
+    return settlementRepo.getLines(batchId);
+  }
+
+  buildExportRows(batchId: number) {
+    return settlementRepo.buildExportRows(batchId);
+  }
+
+  buildOwnerExportRows(batchId: number) {
+    return settlementRepo.buildOwnerExportRows(batchId);
+  }
+
+  buildHouseholdExportRows(batchId: number) {
+    return settlementRepo.buildHouseholdExportRows(batchId);
+  }
+
+  ownerWeeklyClose(params: Parameters<typeof settlementRepo.ownerWeeklyClose>[0]) {
+    return settlementRepo.ownerWeeklyClose(params);
+  }
+
+  householdMonthlyClose(params: Parameters<typeof settlementRepo.householdMonthlyClose>[0]) {
+    return settlementRepo.householdMonthlyClose(params);
+  }
+
+  buildMinePaymentExportRows(statementId: number) {
+    return settlementRepo.buildMinePaymentExportRows(statementId);
+  }
+
+  exportRowsToCsv(rows: settlementRepo.SettlementExportRow[], kind?: "internal" | "mine" | "owner" | "household") {
+    return settlementRepo.exportRowsToCsv(rows, kind);
   }
 }

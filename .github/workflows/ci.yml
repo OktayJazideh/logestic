@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  DATABASE_URL: postgresql://mineral:mineral_password@localhost:5434/mineral_mvp
+  TEST_BASE_URL: http://localhost:4000
+  VITE_API_BASE: http://localhost:4000/api
+  PLAYWRIGHT_BASE_URL: http://localhost:5173
+  API_BASE_URL: http://localhost:4000
+  NODE_ENV: test
+  PORT: "4000"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: mineral
+          POSTGRES_PASSWORD: mineral_password
+          POSTGRES_DB: mineral_mvp
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U mineral -d mineral_mvp"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        working-directory: apps/backend
+        run: npm run prisma:generate
+
+      - name: Database migrate and seed
+        working-directory: apps/backend
+        run: |
+          npm run db:migrate
+          npm run db:seed
+
+      - name: Start backend
+        working-directory: apps/backend
+        run: |
+          npm run dev > ../../backend.log 2>&1 &
+          echo $! > ../../backend.pid
+
+      - name: Wait for backend
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:4000/api/health; then exit 0; fi
+            sleep 2
+          done
+          echo "Backend did not start"
+          cat backend.log || true
+          exit 1
+
+      - name: Vitest (backend)
+        working-directory: apps/backend
+        run: npm test
+
+      - name: Infra regression (idem/audit/event/queue/recon/soft)
+        working-directory: apps/backend
+        env:
+          TEST_BASE_URL: http://localhost:4000
+        run: npm run test:infra-regression
+
+      - name: Install Playwright browsers
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Start web
+        working-directory: apps/web
+        env:
+          VITE_API_BASE: http://localhost:4000/api
+        run: |
+          npm run dev > ../../web.log 2>&1 &
+          echo $! > ../../web.pid
+
+      - name: Wait for web
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:5173; then exit 0; fi
+            sleep 2
+          done
+          echo "Web did not start"
+          cat web.log || true
+          exit 1
+
+      - name: Playwright E2E
+        working-directory: apps/web
+        env:
+          HTTP_PROXY: ""
+          HTTPS_PROXY: ""
+          ALL_PROXY: ""
+        run: npm run test:e2e
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          path: |
+            backend.log
+            web.log

@@ -1,108 +1,150 @@
 import 'package:flutter/material.dart';
+import 'package:mineral_api/mineral_api.dart';
 
-import '../../core/mission_flow.dart';
-
-/// Stepper UI aligned with backend mission state machine (strictly forward steps).
+/// Horizontal 7-step wireframe stepper (WF-STEPPER-1).
 class MissionStepper extends StatelessWidget {
   const MissionStepper({
     super.key,
-    required this.currentStatus,
-    required this.onNext,
-    required this.canGoNext,
+    required this.currentStepIndex,
+    required this.labels,
   });
 
-  final String currentStatus;
-  final VoidCallback onNext;
-  final bool canGoNext;
-
-  int get _currentIndex {
-    final idx = MissionFlow.driverStepOrder.indexOf(currentStatus);
-    return idx < 0 ? 0 : idx;
-  }
+  /// Active step `0..labels.length-1` (completed steps are `< currentStepIndex`).
+  final int currentStepIndex;
+  final List<String> labels;
 
   @override
   Widget build(BuildContext context) {
-    final current = _currentIndex;
+    final clampedIndex = currentStepIndex.clamp(0, labels.length - 1);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 8),
-        for (int i = 0; i < MissionFlow.driverStepOrder.length; i++) ...[
-          _StepRow(
-            index: i,
-            label: MissionFlow.labelFa(MissionFlow.driverStepOrder[i]),
-            isDone: i < current,
-            isActive: i == current,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: Row(
+              children: [
+                for (int i = 0; i < labels.length; i++) ...[
+                  if (i > 0) _Connector(isCompleted: i <= clampedIndex),
+                  _StepNode(
+                    index: i,
+                    label: labels[i],
+                    state: i < clampedIndex
+                        ? _StepVisualState.completed
+                        : (i == clampedIndex
+                            ? _StepVisualState.active
+                            : _StepVisualState.upcoming),
+                  ),
+                ],
+              ],
+            ),
           ),
-          if (i < MissionFlow.driverStepOrder.length - 1) const Divider(height: 16),
-        ],
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 48,
-          child: ElevatedButton(
-            onPressed: canGoNext ? onNext : null,
-            child: Text(MissionFlow.primaryActionLabel(currentStatus)),
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
 
-class _StepRow extends StatelessWidget {
-  const _StepRow({
+enum _StepVisualState { completed, active, upcoming }
+
+class _StepNode extends StatelessWidget {
+  const _StepNode({
     required this.index,
     required this.label,
-    required this.isDone,
-    required this.isActive,
+    required this.state,
   });
 
   final int index;
   final String label;
-  final bool isDone;
-  final bool isActive;
+  final _StepVisualState state;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final circleColor = isDone
-        ? colorScheme.primary
-        : (isActive ? colorScheme.primaryContainer : Colors.white);
-    final borderColor = isActive ? colorScheme.primary : Colors.grey.shade300;
+    final Color circleColor;
+    final Color borderColor;
+    final Color labelColor;
+    final Widget circleChild;
 
-    return Row(
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: circleColor,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: borderColor),
+    switch (state) {
+      case _StepVisualState.completed:
+        circleColor = MineralTheme.primary;
+        borderColor = MineralTheme.primary;
+        labelColor = MineralTheme.primary;
+        circleChild = const Icon(Icons.check, size: 14, color: Colors.white);
+      case _StepVisualState.active:
+        circleColor = MineralTheme.primary.withOpacity(0.12);
+        borderColor = MineralTheme.primary;
+        labelColor = MineralTheme.primaryDark;
+        circleChild = Text(
+          '${index + 1}',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: MineralTheme.primary,
           ),
-          child: Center(
-            child: Text(
-              isDone ? '✓' : '${index + 1}',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDone ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.w600,
-              ),
+        );
+      case _StepVisualState.upcoming:
+        circleColor = Colors.white;
+        borderColor = MineralTheme.border;
+        labelColor = MineralTheme.muted;
+        circleChild = Text(
+          '${index + 1}',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: MineralTheme.muted,
+          ),
+        );
+    }
+
+    return SizedBox(
+      width: 72,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: circleColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: borderColor, width: state == _StepVisualState.active ? 2 : 1),
             ),
+            child: Center(child: circleChild),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
+          const SizedBox(height: 6),
+          Text(
             label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-              color: Colors.black87,
+              fontSize: 10,
+              height: 1.2,
+              fontWeight: state == _StepVisualState.active ? FontWeight.w700 : FontWeight.w500,
+              color: labelColor,
             ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+}
+
+class _Connector extends StatelessWidget {
+  const _Connector({required this.isCompleted});
+
+  final bool isCompleted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        height: 2,
+        margin: const EdgeInsets.only(bottom: 22, left: 2, right: 2),
+        color: isCompleted ? MineralTheme.primary : MineralTheme.border,
+      ),
     );
   }
 }

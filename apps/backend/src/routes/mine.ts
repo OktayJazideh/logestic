@@ -5,17 +5,12 @@ import { authMiddleware, type AuthContext } from "../middleware/authMiddleware";
 import { ApiError } from "../http/errors";
 import { success } from "../http/apiResponse";
 import { requireRoles } from "../middleware/rbac";
+import { resolveAuthContext } from "../lib/authContext";
+import * as workspaceRepo from "../repositories/workspaceMembershipsRepository";
 
 const router = Router();
 
-const getAuthContext = (token: string): AuthContext | null => {
-  const u = appContext.authService.getUserFromSession(token);
-  if (!u) return null;
-  const session = appContext.sessionStore.getSession(token);
-  return { token, user: u, mineId: session?.mineId };
-};
-
-const requireAuth = authMiddleware(getAuthContext);
+const requireAuth = authMiddleware(resolveAuthContext);
 
 router.get("/mines", requireAuth, (_req, res) => {
   return res.json(success({ mines: appContext.mineData.listMines() }, (_req as any).requestId));
@@ -25,7 +20,7 @@ router.post(
   "/mine/select",
   requireAuth,
   requireRoles(["ADMIN", "COOP", "EMPLOYER", "DRIVER", "FLEET_OWNER", "HOUSEHOLD", "CONSULTANT"]),
-  (req, res, next) => {
+  async (req, res, next) => {
     const requestId = (req as any).requestId as string | undefined;
     const body = z
       .object({
@@ -59,7 +54,28 @@ router.post(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const auth = (req as any).auth as AuthContext;
-    appContext.sessionStore.setMine(auth.token, mine.id);
+    try {
+      await workspaceRepo.assertUserCanAccessMine({
+        userId: auth.user.id,
+        userRole: auth.user.role,
+        mineId: mine.id,
+        membershipKind: "OPERATIONAL",
+      });
+    } catch (e) {
+      const code = (e as { code?: string }).code;
+      if (code === "workspace_access_denied") {
+        return next(
+          new ApiError({
+            statusCode: 403,
+            code: "workspace_access_denied",
+            message: "You do not have access to this workspace",
+            requestId,
+          }),
+        );
+      }
+      throw e;
+    }
+    await appContext.sessionStore.setMine(auth.token, mine.id);
     return res.json(success({ mine_id: mine.id }, requestId));
   },
 );

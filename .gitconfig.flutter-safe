@@ -1,0 +1,4 @@
+# Local Git config for Flutter SDK on Windows when SDK is owned by Administrators.
+# Used by scripts/run-flutter.ps1 — does NOT modify your global ~/.gitconfig.
+[safe]
+	directory = C:/src/flutter

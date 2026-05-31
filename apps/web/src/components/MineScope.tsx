@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { apiGetData, apiPostData, getStoredToken } from "../api";
 
-export type MineRow = { id: number; mine_code: string; name: string };
+export type WorkspaceRow = {
+  membership_kind: "COMMUNITY" | "OPERATIONAL";
+  mine_id: number;
+  mine_name: string;
+  cooperative_id?: number;
+  subtitle: string;
+  roles: string[];
+};
 
 type Props = {
   /** پس از انتخاب موفق معدن در سشن سرور */
@@ -9,8 +16,8 @@ type Props = {
 };
 
 export function MineScope({ onMineSelected }: Props) {
-  const [mines, setMines] = useState<MineRow[]>([]);
-  const [choice, setChoice] = useState<number | "">("");
+  const [workspaces, setWorkspaces] = useState<WorkspaceRow[]>([]);
+  const [choice, setChoice] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [activeMineId, setActiveMineId] = useState<number | null>(null);
@@ -20,9 +27,9 @@ export function MineScope({ onMineSelected }: Props) {
       setMsg("ابتدا توکن Bearer را در بالای صفحه وارد کنید.");
       return;
     }
-    apiGetData<{ mines: MineRow[] }>("/mines").then((r) => {
+    apiGetData<{ workspaces: WorkspaceRow[] }>("/workspaces").then((r) => {
       if (r.ok) {
-        setMines(r.data.mines);
+        setWorkspaces(r.data.workspaces);
         setMsg(null);
       } else {
         setMsg(r.message);
@@ -30,11 +37,25 @@ export function MineScope({ onMineSelected }: Props) {
     });
   }, []);
 
+  function workspaceKey(w: WorkspaceRow) {
+    return `${w.membership_kind}:${w.mine_id}:${w.cooperative_id ?? 0}`;
+  }
+
   async function applyMine() {
-    if (choice === "") return;
+    if (!choice) return;
     setBusy(true);
     setMsg(null);
-    const r = await apiPostData<{ mine_id: number }>("/mine/select", { mine_id: choice });
+    const ws = workspaces.find((w) => workspaceKey(w) === choice);
+    if (!ws) {
+      setBusy(false);
+      setMsg("فضای کاری انتخاب‌شده نامعتبر است.");
+      return;
+    }
+    const r = await apiPostData<{ mine_id: number }>("/workspaces/select", {
+      mine_id: ws.mine_id,
+      membership_kind: ws.membership_kind,
+      ...(ws.cooperative_id != null ? { cooperative_id: ws.cooperative_id } : {}),
+    });
     setBusy(false);
     if (r.ok) {
       setActiveMineId(r.data.mine_id);
@@ -57,28 +78,33 @@ export function MineScope({ onMineSelected }: Props) {
       <div style={{ fontWeight: 700, marginBottom: 8, color: "#111827" }}>محدوده معدن</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
         <select
-          value={choice === "" ? "" : String(choice)}
-          onChange={(e) => setChoice(e.target.value ? Number(e.target.value) : "")}
+          data-testid="mine-select"
+          value={choice}
+          onChange={(e) => setChoice(e.target.value)}
           style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", minWidth: 200 }}
         >
           <option value="">— انتخاب معدن —</option>
-          {mines.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name} ({m.mine_code})
+          {workspaces.map((w) => (
+            <option
+              key={`${w.membership_kind}-${w.mine_id}-${w.cooperative_id ?? 0}`}
+              value={workspaceKey(w)}
+            >
+              {w.membership_kind === "COMMUNITY" ? "تعاونی" : "معدن"}: {w.subtitle} ({w.roles.join(", ")})
             </option>
           ))}
         </select>
         <button
+          data-testid="mine-apply"
           type="button"
-          disabled={busy || choice === ""}
+          disabled={busy || !choice}
           onClick={() => void applyMine()}
           style={{
             padding: "8px 14px",
             borderRadius: 8,
-            border: "1px solid #1d4ed8",
-            background: choice === "" ? "#E5E7EB" : "#2563EB",
-            color: choice === "" ? "#6B7280" : "#fff",
-            cursor: choice === "" ? "not-allowed" : "pointer",
+            border: "1px solid #1E3A2F",
+            background: !choice ? "#E5E7EB" : "#6B5B4F",
+            color: !choice ? "#6B7280" : "#fff",
+            cursor: !choice ? "not-allowed" : "pointer",
             fontWeight: 600,
           }}
         >

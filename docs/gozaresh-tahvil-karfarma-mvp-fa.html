@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<title>برگه وضعیت تسک‌ها — تحویل MVP به کارفرما</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#FAFAF7; --panel:#FFF; --text:#1F2937; --muted:#6B7280; --border:#E5E7EB;
+    --primary:#1B5E20; --ok:#16A34A; --warn:#D97706; --crit:#DC2626; --info:#0369A1;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:Tahoma,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.75}
+  a{color:var(--primary)}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 18px 64px}
+  header{background:linear-gradient(180deg,#0F3D17,#1B5E20);color:#fff;border-radius:14px;padding:22px;margin-bottom:18px}
+  header h1{margin:0 0 8px;font-size:21px}
+  header p{margin:4px 0;color:#D1FAE5;font-size:14px}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;background:#ffffff22;border:1px solid #ffffff35;margin:4px 0 0 6px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
+  .panel h2{margin:0 0 12px;font-size:17px;color:#0F3D17;border-bottom:2px solid #F3F4F6;padding-bottom:8px}
+  .panel h3{margin:14px 0 8px;font-size:15px;color:#0F3D17}
+  .muted{color:var(--muted);font-size:13px}
+  .status{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700;border:1px solid}
+  .done{background:#ECFDF5;color:#065F46;border-color:#A7F3D0}
+  .part{background:#FFFBEB;color:#92400E;border-color:#FCD34D}
+  .todo{background:#FEF2F2;color:#991B1B;border-color:#FCA5A5}
+  .lock{background:#E0F2FE;color:#075985;border-color:#7DD3FC}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+  th,td{border:1px solid var(--border);padding:8px 10px;vertical-align:top;text-align:right}
+  th{background:#F3F6F1;color:#0F3D17}
+  ul.tasks{list-style:none;padding:0;margin:0}
+  ul.tasks li{border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:14px}
+  .box{padding:12px 14px;border-radius:10px;margin:10px 0;font-size:14px}
+  .box.ok{background:#ECFDF5;border:1px solid #A7F3D0}
+  .box.warn{background:#FFFBEB;border:1px solid #FCD34D}
+  .box.info{background:#E0F2FE;border:1px solid #7DD3FC}
+  pre{background:#F3F4F6;padding:12px;border-radius:8px;font-size:13px;line-height:1.6;overflow:auto}
+  .toc ol{margin:0;padding-inline-start:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>برگه وضعیت تسک‌ها — logestic فاز ۱</h1>
+  <p>برای مکاتبه و نمایش به کارفرما: <strong>تصمیمات جدید</strong>، <strong>ابهامات</strong>، <strong>انجام‌شده</strong>، <strong>باقی‌مانده</strong>.</p>
+  <div>
+    <span class="pill">به‌روز: ۳۱ مه ۲۰۲۶ (گزارش v4)</span>
+    <span class="pill">هماهنگی: <a href="mvp-flow-chat-master-report-fa-v4.html" style="color:#D1FAE5">گزارش مستر v4</a></span>
+    <span class="pill">Freeze فاز ۱: مدل مالی و scope حمل ✓</span>
+  </div>
+</header>
+
+<nav class="panel toc">
+  <h2>فهرست</h2>
+  <ol>
+    <li><a href="#model">مدل مالی نهایی (طبق مکاتبه کارفرما)</a></li>
+    <li><a href="#answers">جواب ۶ سؤال ما — وضعیت</a></li>
+    <li><a href="#client-deliverables">تحویل از سمت کارفرما (۱۱ مورد)</a></li>
+    <li><a href="#clarity">چیزهایی روشن شد / چیزهایی مانده</a></li>
+    <li><a href="#answers">پاسخ مکاتبه ۵ سؤال (دریافت شد)</a></li>
+    <li><a href="#questions">متن مکاتبه (آرشیو)</a></li>
+    <li><a href="#priority">اولویت فعلی کارفرما</a></li>
+    <li><a href="#done">✅ انجام‌شده</a></li>
+    <li><a href="#remaining">⏳ باقی‌مانده</a></li>
+    <li><a href="#uat">پذیرش فاز ۱ (کتبی)</a></li>
+  </ol>
+</nav>
+
+<section class="panel" id="model">
+  <h2>مدل مالی نهایی — طبق آخرین مکاتبه کارفرما</h2>
+  <p>مدل قبلی <strong>۸۵ / ۱۳ / ۲</strong> کنار گذاشته می‌شود. فقط <strong>نحوه حساب کردن</strong> عوض شده؛ خودِ «ثبت مأموریت، تسویه، صندوق اجتماعی، گزارش مالی» همان است و از نو ساخته نمی‌شود.</p>
+
+  <h3>۱) کرایه حمل</h3>
+  <pre>کرایه هر بار (طبق تعرفه معدن)
+  ├── ۹۹٪ → مالک کامیون
+  └── ۱٪  → کارمزد پلتفرم (فقط از همین کرایه)</pre>
+
+  <h3>۲) سهم اجتماعی</h3>
+  <ul>
+    <li><strong>دیگر درصدی از کرایه نیست.</strong></li>
+    <li>اول سال در قرارداد معدن و تعاونی: برای هر تن یک مبلغ ثابت تعیین می‌شود (مثلاً معادل ۱۳٪ یک‌بار به ریال تبدیل شده و تا سال بعد عوض نمی‌شود).</li>
+    <li>حساب: <strong>تعداد تن بار تأییدشده × مبلغ ثابت = سهم اجتماعی</strong></li>
+    <li>مثال کارفرما: ۱٬۰۰۰ تن × ۱۵۰٬۰۰۰ تومان (از ۱۵٪ یک‌بار روی ۱M) = ۱۵۰ میلیون — <em>ربطی به کرایه ندارد.</em></li>
+    <li><strong>در سیستم درصد ذخیره نمی‌شود</strong> — فقط <code>Fixed Rial Amount</code> تا پایان قرارداد (یا الحاقیه).</li>
+    <li><strong>توزیع Pool (MVP):</strong> مساوی بین <code>Approved Household Snapshot</code> در لحظه Distribution.</li>
+  </ul>
+
+  <h3>۳) سه نوع پول جدا از هم در حساب‌ها</h3>
+  <table>
+    <thead><tr><th>چیست</th><th>معنی ساده</th></tr></thead>
+    <tbody>
+      <tr><td>کرایه و تسویه ناوگان</td><td>پولی که به مالک و راننده مربوط است</td></tr>
+      <tr><td>کارمزد پلتفرم</td><td>همان ۱٪ از کرایه</td></tr>
+      <tr><td>صندوق سهم اجتماعی</td><td>پول جدا — امانی — برای تعاون و شفافیت؛ با کرایه قاطی نمی‌شود</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box ok">
+    <strong>یادآوری:</strong> این‌ها در تنظیمات هر معدن قابل تغییر است؛ لازم نیست کل سیستم از نو ساخته شود. فقط عدد قرارداد (مثلاً ریال هر تن و همان ۱٪) را شما تأیید می‌کنید.
+  </div>
+
+  <div class="box ok">
+    <strong>جهت پروژه:</strong> زیرساخت تعاونی صنعتی با قانون و شفافیت — نه فقط اپ حمل؛ سیستم باید قابل پیگیری و قابل دفاع در حسابرسی باشد، نه فقط ابزار یک معدن یا یک تعاونی.
+  </div>
+
+  <div class="box info" style="margin-top:12px">
+    <strong>مقیاس محصول (تأکید تیم توسعه):</strong> این پروژه <em>اختصاصی یک معدن</em> نیست. هدف: <strong>پلتفرم SaaS</strong> برای هر معدن + هر تعاونی (ایران و در بلندمدت بین‌المللی).<br>
+    • <strong>طلای تفتان</strong> = اولین <strong>مشتری پایلوت / UAT</strong> (اولین tenant)، نه محدودیت معماری.<br>
+    • از اول: چند معدن، چند تعاونی، Workspace، قرارداد خدمت per معدن–تعاونی، جداسازی داده (TENANT + در آینده RLS).<br>
+    • انتشار: پنل وب + اپ‌ها برای اکوسیستم ملی/جهانی — کافه‌بازار و موارد مشابه فاز بعد، نه «فقط دمو داخلی یک معدن».
+  </div>
+</section>
+
+
+<section class="panel" id="client-deliverables">
+  <h2>تحویل از سمت کارفرما — تعهد مکاتبه اخیر</h2>
+  <p class="muted">کارفرما اعلام کرده این موارد را برای Deploy و تست واقعی آماده می‌کند. (نام تجاری پروژه در مکاتبه آمده؛ در پیاده‌سازی فنی فعلاً از <code>logestic</code> استفاده می‌شود تا برند نهایی جداگانه قفل شود.)</p>
+  <table>
+    <thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>یادداشت برای تیم</th></tr></thead>
+    <tbody>
+      <tr><td>۱</td><td>دامنه <code>.ir</code> + DNS (panel / api)</td><td><span class="status part">در دست کارفرما</span></td><td>پس از تحویل DNS → SSL و استقرار staging/production</td></tr>
+      <tr><td>۲</td><td>زیرساخت: Liara یا VPS ایران‌سرور</td><td><span class="status part">انتخاب کارفرما</span></td><td>مشخصات پیشنهادی سرور در <a href="mvp-flow-chat-master-report-fa-v3.html#deploy-infra">گزارش مستر §۱۹</a></td></tr>
+      <tr><td>۳</td><td>پنل SMS (کاوه‌نگار/فراز) + API Key + Sender</td><td><span class="status part">در دست کارفرما</span></td><td>→ SMS-PROD-1</td></tr>
+      <tr><td>۴</td><td>معدن پایلوت + مسئول هماهنگی عملیاتی</td><td><span class="status part">معدن ✓ تعاونی/تماس بعداً</span></td><td><strong>طلای تفتان</strong> — نام تعاونی و مسئولین بعد از هماهنگی داخلی</td></tr>
+      <tr><td>۵</td><td>اطلاعات باسکول (مدل، نرم‌افزار، API/Serial/TCP، نصب‌کننده)</td><td><span class="status part">از معدن جمع‌آوری</span></td><td>→ WB-INT-1</td></tr>
+      <tr><td>۶</td><td>لیست کاربران اولیه (ادمین، اپراتور باسکول، معدن، تعاونی، راننده)</td><td><span class="status part">آماده‌سازی</span></td><td>برای تست MVP</td></tr>
+      <tr><td>۷</td><td>حساب کافه‌بازار (در صورت انتشار عمومی)</td><td><span class="status todo">فاز بعد</span></td><td>فعلاً APK/staging کافی است</td></tr>
+      <tr><td>۸</td><td>مدل مالی MVP (۹۹/۱ + Community ثابت)</td><td><span class="status done">قفل شد</span></td><td>هم‌خوان § مدل بالا</td></tr>
+      <tr><td>۹</td><td>توزیع Community: Equal + Snapshot</td><td><span class="status done">قفل شد</span></td><td>بدون ضریب منطقه‌ای در MVP</td></tr>
+      <tr><td>۱۰</td><td>باسکول = Core (Agent + Queue/Offline)</td><td><span class="status done">تأیید جهت</span></td><td>Source of Truth = باسکول؛ نه دستی راننده</td></tr>
+      <tr><td>۱۱</td><td>ورود تست واقعی معدن پس از MVP پایدار</td><td><span class="status done">تأیید اولویت</span></td><td>Reality قبل از mature کردن فاز ۲</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" id="clarity">
+  <h2>چیزهایی که از حرف شما روشن شد / چیزهایی که هنوز مانده</h2>
+
+  <h3>روشن شد — قفل شده (پس از پاسخ مکاتبه)</h3>
+  <ul>
+    <li>Community: <strong>Service Contract</strong> — <code>Usage × Fixed Rial</code> (واحد: تن/لیتر/ساعت/تعداد)؛ کشف ۱۵٪ فقط یک‌بار خارج سیستم.</li>
+    <li>کرایه: <strong>۹۹٪ مالک / ۱٪ Platform Fee</strong> — Rate Card قراردادی؛ MVP یک Rate Card per قرارداد.</li>
+    <li>معدن <strong>تسویه خرد نمی‌زند</strong> — فقط صورت وضعیت رسمی → حساب تعاونی؛ داخلی: Excel + mark-paid.</li>
+    <li><strong>Human Supervised Automation:</strong> Draft صورت وضعیت → Review → Lock → واریز معدن.</li>
+    <li>پلتفرم = <strong>Infrastructure</strong> (مثل اسنپ) — نه کارفرمای عملیات.</li>
+    <li>پایلوت: <strong>معدن طلای تفتان</strong> + سناریوی UAT حداقلی (یک monthly-close کامل).</li>
+    <li>فاز ۱: فقط حمل — ساعتی، بانک اتومات، کافه‌بازار عمداً بعد.</li>
+    <li>۱۳۰/۱۵۰ هزار تومان: فقط مثال — نه عدد قرارداد.</li>
+  </ul>
+
+  <h3>هنوز مانده — برای ورود در سیستم</h3>
+  <ul>
+    <li><strong>عدد Community ثابت</strong> (ریال per ton) + تاریخ اعتبار قرارداد پایلوت.</li>
+    <li>نام <strong>تعاونی</strong>، مسئول عملیات (نام+موبایل)، مسئول تحویل، تاریخ هدف UAT.</li>
+    <li>تحویل زیرساخت: DNS، SMS، باسکول — <a href="#client-deliverables">جدول کارفرما</a>.</li>
+  </ul>
+</section>
+
+<section class="panel" id="answers">
+  <h2>پاسخ مکاتبه ۵ سؤال — وضعیت و جزئیات (برای پرامپت‌دهی)</h2>
+  <p>مرجع کامل: <a href="mvp-flow-chat-master-report-fa-v3.html#client-answers-detail">گزارش v3 § جزئیات</a></p>
+  <table>
+    <thead><tr><th>#</th><th>موضوع</th><th>وضعیت</th><th>جمع‌بندی</th></tr></thead>
+    <tbody>
+      <tr><td>۱</td><td>Community</td><td><span class="status done">مدل قفل</span> · <span class="status part">عدد باز</span></td><td>هر <strong>قرارداد خدمت</strong> عدد جدا (خاک/کانسنگ = قراردادهای مختلف OK). فرمول: Usage×ثابت. ۱۳۰/۱۵۰k فقط مثال.</td></tr>
+      <tr><td>۲</td><td>کرایه ۹۹/۱</td><td><span class="status done">قفل</span></td><td>Rate Card قراردادی؛ per ton؛ یک کارت فعال per قرارداد؛ Community از کرایه کم نمی‌شود.</td></tr>
+      <tr><td>۳</td><td>بانک</td><td><span class="status done">قفل</span></td><td>معدن فقط→حساب تعاونی. مالک/خانوار از <strong>داخل تعاونی</strong> (Excel). Community ابتدا تعاونی سپس distribute. Excel+mark-paid MVP OK.</td></tr>
+      <tr><td>۴</td><td>پایلوت UAT</td><td><span class="status part">نیمه</span></td><td><strong>طلای تفتان</strong> ✓ — تعاونی/مسئولین/تاریخ بعداً.</td></tr>
+      <tr><td>۵</td><td>فاز ۱</td><td><span class="status done">قفل</span></td><td>خارج: ساعتی، نیاز ساعتی کارفرما، تسویه هفتگی مالک، بانک اتومات، کافه‌بازار، سرویس غیرحمل پیچیده.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" id="questions">
+  <h2>مکاتبه — آرشیو (ارسال شده)</h2>
+  <p class="muted">پاسخ دریافت شد — § <a href="#answers">answers</a>. متن زیر فقط برای مرجع است.</p>
+
+  <h3>متن — داخل باکس را انتخاب کنید و کپی کنید</h3>
+  <pre id="copy-letter" style="white-space:pre-wrap;direction:rtl;text-align:right;background:#F8FAF7;border:2px solid #1B5E20;padding:16px;font-size:14px;line-height:1.95;max-height:80vh;overflow:auto">سلام اکتای جان، وقت بخیر
+
+ممنون از جمع‌بندی Freeze. برای اینکه بتوانیم اعداد را در سیستم بگذاریم و UAT را شروع کنیم، لطفاً به چهار موضوع زیر جواب دهید (می‌توانید شماره‌به‌شماره یا در یک پاراگراف بنویسید).
+
+──────────
+۱) سهم اجتماعی (Community) — مبلغ به ازای هر تن
+──────────
+
+شما گفتید: تعداد تن تأییدشده × یک مبلغ ثابت ریالی (درصد فقط برای تعیین اولیه عدد است).
+
+سؤال‌ها:
+• آیا یک مبلغ ثابت برای همهٔ انواع بار کافی است (خاک، کانسنگ، …) یا برای هر نوع ماده / قرارداد عدد جدا دارید؟
+• «تن» همیشه از وزن باسکول (خالی و پر) است یا گاهی استثنا دارید؟
+• این مبلغ ثابت رسماً از کجا تعیین می‌شود؟ (قرارداد سالانه + کارشناس؟ تعرفه معدن؟ جدول دیگر؟) چه کسی آن را امضا می‌کند؟
+• برای معدن پایلوت: نوع بار ……… | مبلغ به ازای هر تن ……… (ریال یا تومان) | از تاریخ ………
+• اعداد ۱۳۰ یا ۱۵۰ هزار تومان در مثال‌های قبلی فقط برای توضیح بود یا همان عدد قرارداد پایلوت است؟
+• اگر وسط سال عوض شد: فقط با الحاقیه؟ چه کسی در سیستم اجازهٔ تغییر عدد دارد؟
+
+──────────
+۲) کرایه حمل (همان ۹۹٪ / ۱٪)
+──────────
+
+۱٪ پلتفرم را تأیید کردید. لطفاً بگویید کرایهٔ هر بار در عمل از کجا می‌آید:
+• Rate Card در پلتفرم؟ قرارداد جدا؟
+• محاسبه به ازای تن؟ مبلغ ثابت هر سفر؟ ترکیبی؟
+• برای MVP یک تعرفه کافی است یا از اول چند Rate Card لازم است؟
+
+──────────
+۳) واریز پول — مسیر بانکی
+──────────
+
+جهت کلی: عملیاتی به مالک؛ Community جدا. برای خروجی Excel و آموزش اپراتور بانک لطفاً مشخص کنید:
+
+الف) مالک ناوگان: واریز همیشه مستقیم به شبای ثبت‌شده در سیستم؟ یا گاهی از حساب تعاونی/معدن؟
+
+ب) خانوار (بعد از تقسیم صندوق Community): واریز مستقیم به شبای هر خانوار؟ یا یکجا به حساب تعاونی و تعاونی پخش می‌کند؟
+
+ج) در فاز فعلی سیستم به بانک وصل نیست؛ فایل Excel با IBAN می‌دهیم، شما در بانک واریز می‌کنید، بعد در سیستم «پرداخت شد» ثبت می‌شود. برای پایلوت همین روش قابل قبول است؟
+
+──────────
+۴) پایلوت و تحویل (UAT)
+──────────
+
+• نام معدن پایلوت: ………
+• نام تعاونی: ………
+• مسئول هماهنگی عملیات (نام + موبایل): ………
+• مسئول پذیرش / تحویل (نام + سمت): ………
+• تاریخ هدف آماده‌بودن: ………
+• حداقل سناریویی که می‌گویید «تحویل را می‌پذیرم» (مثلاً چند بار کامل حمل + یک بار بستن ماه): ………
+
+──────────
+۵) تأیید محدوده فاز ۱ (یک خط)
+──────────
+
+تأیید می‌کنید این موارد عمداً برای فاز بعد است: کار ساعتی، نیاز ساعتی کارفرما، تسویه هفتگی مالک، پرداخت خودکار بانک، انتشار در کافه‌بازار؟  □ بله  □ خیر (توضیح: ………)
+
+با تشکر
+[نام شما]</pre>
+</section>
+
+<section class="panel" id="priority">
+  <h2>اولویت فعلی — طبق کارفرما</h2>
+  <p>تمرکز روی درست کار کردن و قابل اعتماد بودن سیستم، نه اضافه کردن ظاهر برنامه.</p>
+  <ol>
+    <li>ثبت و پیگیری تغییرات (Audit)</li>
+    <li>درستی تسویه و مبالغ</li>
+    <li>دسترسی هر نقش فقط به کار خودش</li>
+    <li>مدیریت خطاها</li>
+    <li>پشتیبان‌گیری</li>
+    <li>ثبت رویدادها برای عیب‌یابی</li>
+    <li>درست بودن باسکول و مراحل مأموریت</li>
+    <li>سرعت قابل قبول در معدن</li>
+  </ol>
+</section>
+
+<section class="panel" id="done">
+  <h2>✅ انجام‌شده</h2>
+  <p class="muted">کارهایی که در محصول فاز ۱ قابل استفاده یا تصمیب‌شده‌اند.</p>
+
+  <h3>حاکمیت، امنیت، Audit</h3>
+  <ul class="tasks">
+    <li><span class="status done">انجام</span> ورود OTP + Session + انتخاب Workspace معدن</li>
+    <li><span class="status done">انجام</span> ۸ نقش + RBAC + مجوزها</li>
+    <li><span class="status done">انجام</span> Audit Log + مشاهده در پنل</li>
+    <li><span class="status done">انجام</span> جلوگیری از ثبت تکراری همان کار</li>
+  </ul>
+
+  <h3>عضویت و کارفرما</h3>
+  <ul class="tasks">
+    <li><span class="status done">انجام</span> KYC تعاونی + خانوار/راننده/مالک/وسیله + «نیاز به اصلاح»</li>
+    <li><span class="status done">انجام</span> ثبت نیاز کارفرما — بدون انتخاب راننده</li>
+    <li><span class="status done">انجام</span> اعتراض عضو با هویت (نه ناشناس)</li>
+    <li><span class="status done">انجام</span> ثبت اولیه خانوار (community)</li>
+  </ul>
+
+  <h3>عملیات حمل</h3>
+  <ul class="tasks">
+    <li><span class="status done">انجام</span> Dispatch سیستمی</li>
+    <li><span class="status done">انجام</span> مأموریت ۹مرحله‌ای + قفل مرحله</li>
+    <li><span class="status done">انجام</span> اپ راننده: ورود، داشبورد، استپر، GPS معدن/کارخانه، تأیید تخلیه</li>
+    <li><span class="status done">انجام</span> آفلاین راننده (صف همگام‌سازی)</li>
+  </ul>
+
+  <h3>باسکول</h3>
+  <ul class="tasks">
+    <li><span class="status done">انجام</span> وزن سیستمی — راننده وزن دستی نمی‌زند</li>
+    <li><span class="status done">انجام</span> آستانه ۵٪ / HOLD + اصلاح با دلیل</li>
+    <li><span class="status done">انجام</span> ثبت و تأیید از پنل وب (WB-UI)</li>
+  </ul>
+
+  <h3>مالی — هم‌راستا با مدل جدید کارفرما</h3>
+  <ul class="tasks">
+    <li><span class="status done">انجام</span> <strong>سهم اجتماعی = تن تأییدشده × مبلغ ثابت</strong> (نه درصد از کرایه)</li>
+    <li><span class="status done">انجام</span> تقسیم عملیاتی جدا (مالک + پلتفرم از کرایه)</li>
+    <li><span class="status done">انجام</span> Rate Card + Rule Engine + Pool ماهانه</li>
+    <li><span class="status done">انجام</span> چرخه Settlement + export بانکی + payment_reference</li>
+    <li><span class="status done">انجام</span> برگشت ۷۲ساعته + تطبیق (Reconciliation)</li>
+    <li><span class="status done">انجام</span> KPI و صفحات مالی ادمین (پایه)</li>
+    <li><span class="status done">انجام</span> seed پایلوت TAFTAN: split عملیاتی <strong>99/1</strong> (FIN-SEED-99-1)</li>
+    <li><span class="status done">انجام</span> فیلتر مأموریت HELD از settlement (HOLD-SETTLEMENT-1)</li>
+    <li><span class="status done">انجام</span> checksum کد ملی در ثبت خانوار (NATID-CHECKSUM-REG-1)</li>
+  </ul>
+
+  <h3>سایر</h3>
+  <ul class="tasks">
+    <li><span class="status done">انجام</span> عملیات ساعتی — منطق API (START/END + تأیید مشاور)</li>
+    <li><span class="status done">انجام</span> Event / Queue (MVP)</li>
+    <li><span class="status done">انجام</span> شفافیت اعضا (پایه)</li>
+    <li><span class="status done">انجام</span> دیتابیس Postgres + مهاجرت + seed دمو</li>
+  </ul>
+</section>
+
+<section class="panel" id="remaining">
+  <h2>⏳ باقی‌مانده — هم‌تراز گزارش v4</h2>
+  <p class="muted">جزئیات و پرامپت: <a href="mvp-flow-chat-master-report-fa-v4.html#remaining">گزارش v4 § remaining</a></p>
+
+  <h3>P0 — قبل UAT میدانی</h3>
+  <ul class="tasks">
+    <li><span class="status part">فاز بعد</span> <strong>WB-LOCAL-AGENT-1</strong> — Agent سخت‌افزار (scaffold آماده؛ UAT = ورود دستی COOP_OPERATOR)</li>
+    <li><span class="status todo">باقی</span> <strong>DEPLOY-SAHMAN-1</strong> — استقرار production / staging + DNS</li>
+    <li><span class="status todo">باقی</span> <strong>CLIENT-DATA-PILOT-1</strong> — عدد Community، IBAN تعاونی، روستاها، contacts</li>
+  </ul>
+
+  <h3>P1 — حین UAT</h3>
+  <ul class="tasks">
+    <li><span class="status todo">باقی</span> <strong>BRAND-SAHMAN-1</strong> — برند «سهمان» در UI (پس از تأیید)</li>
+    <li><span class="status todo">باقی</span> <strong>DISPATCH-AUTO-PILOT-1</strong> — manual vs auto (پیش‌فرض manual)</li>
+    <li><span class="status todo">باقی</span> پر کردن <a href="uat-handover-checklist-fa.md">چک‌لیست UAT</a> + sign-off کتبی</li>
+    <li><span class="status todo">باقی</span> SMS واقعی + backup DB + یک بار restore تست</li>
+  </ul>
+
+  <h3>فاز بعد (P3)</h3>
+  <ul class="tasks">
+    <li><span class="status lock">فاز ۲+</span> TENANT-RLS-1، DRIVER-AVAIL-1، hourly dispatch، SLA cron</li>
+  </ul>
+</section>
+
+<section class="panel" id="uat">
+  <h2>تحویل فاز ۱ — با مکاتبه</h2>
+  <ol>
+    <li>ما دسترسی تست و راهنمای کوتاه را برای همان معدن تست می‌فرستیم.</li>
+    <li>شما (یا نفر معرفی‌شده) یک بار مسیر را در سیستم اجرا می‌کنید و <a href="uat-handover-checklist-fa.md">چک‌لیست</a> را پر می‌کنید.</li>
+    <li>در پاسخ همان مکاتبه می‌نویسید: «فاز ۱ را می‌پذیرم» یا «می‌پذیرم، با این ایرادها: ۱، ۲، …».</li>
+  </ol>
+</section>
+
+<footer style="text-align:center;color:#6B7280;font-size:12px;margin-top:20px">
+  logestic — برگه تحویل کارفرما — پاسخ مکاتبه ثبت شد — ۲۰ مه ۲۰۲۶
+</footer>
+
+</div>
+</body>
+</html>

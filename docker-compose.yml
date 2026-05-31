@@ -4,7 +4,7 @@ services:
     container_name: mineral-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5434:5432"
     environment:
       POSTGRES_USER: mineral
       POSTGRES_PASSWORD: mineral_password

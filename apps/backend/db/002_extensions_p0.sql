@@ -17,7 +17,14 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE "SettlementBatchStatus" AS ENUM ('DRAFT','LOCKED','PAID','CANCELLED');
+  CREATE TYPE "SettlementBatchStatus" AS ENUM (
+    'DRAFT','CALCULATED','READY_FOR_SETTLEMENT','IN_BANK_QUEUE','SETTLED','FAILED','CANCELLED','LOCKED','PAID'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "CommunityPoolStatus" AS ENUM ('OPEN','SNAPSHOT_LOCKED','DISTRIBUTED');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -80,6 +87,19 @@ CREATE TABLE IF NOT EXISTS settlement_lines (
   note        TEXT
 );
 CREATE INDEX IF NOT EXISTS settlement_lines_batch_id_idx ON settlement_lines(batch_id);
+
+CREATE TABLE IF NOT EXISTS community_pools (
+  id                   BIGSERIAL PRIMARY KEY,
+  mine_id              BIGINT REFERENCES mines(id) ON DELETE SET NULL,
+  period_key           VARCHAR(16) NOT NULL,
+  total_amount         DECIMAL(15,2) NOT NULL DEFAULT 0,
+  status               "CommunityPoolStatus" NOT NULL DEFAULT 'OPEN',
+  households_snapshot  JSONB,
+  distributed_at       TIMESTAMPTZ,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT community_pool_unique UNIQUE (mine_id, period_key)
+);
+CREATE INDEX IF NOT EXISTS community_pools_status_idx ON community_pools(status);
 
 CREATE TABLE IF NOT EXISTS weighbridge_adjustment_requests (
   id                     BIGSERIAL PRIMARY KEY,

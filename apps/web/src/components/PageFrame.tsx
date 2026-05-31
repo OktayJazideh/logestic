@@ -1,5 +1,6 @@
 import React from "react";
 import { useAuthMe } from "../hooks/useAuthMe";
+import { brand } from "../theme";
 
 type Props = {
   title: string;
@@ -16,9 +17,11 @@ export function PageFrame({ title, intro, expectedRoles, children }: Props) {
 
   return (
     <div>
-      <h1 style={{ fontSize: 20, color: "#0E3B13", marginTop: 0, marginBottom: 8 }}>{title}</h1>
+      <h1 style={{ fontSize: 20, color: brand.primaryDark, marginTop: 0, marginBottom: 8, fontWeight: 700 }}>
+        {title}
+      </h1>
       {intro && (
-        <div style={{ color: "#4B5563", lineHeight: 1.8, marginBottom: 14, fontSize: 14 }}>{intro}</div>
+        <div style={{ color: brand.textMuted, lineHeight: 1.8, marginBottom: 14, fontSize: 14 }}>{intro}</div>
       )}
       {mismatch && (
         <div
@@ -26,11 +29,11 @@ export function PageFrame({ title, intro, expectedRoles, children }: Props) {
           style={{
             marginBottom: 14,
             padding: 12,
-            borderRadius: 10,
-            border: "1px solid #F59E0B",
-            background: "#FFFBEB",
+            borderRadius: 6,
+            border: `1px solid ${brand.warnBorder}`,
+            background: brand.warnBg,
             fontSize: 13,
-            color: "#92400E",
+            color: brand.warn,
           }}
         >
           برای دادهٔ زنده این بخش توکن با نقش مناسب لازم است. نقش فعلی شما:{" "}
