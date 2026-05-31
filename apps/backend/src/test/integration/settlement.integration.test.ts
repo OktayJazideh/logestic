@@ -12,6 +12,16 @@ async function deleteCurrentMonthBatch(mineId: number, year: number, month: numb
   });
 }
 
+async function waitForBatchStatus(batchId: number, statuses: string[], timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const row = await prisma.settlement_batches.findUnique({ where: { id: BigInt(batchId) } });
+    if (row && statuses.includes(row.status)) return row.status;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return null;
+}
+
 async function ensureBatchInBankQueue(batchId: number, opAdminToken: string): Promise<string> {
   const autoQueued = await waitForBatchStatus(batchId, ["IN_BANK_QUEUE"], 10_000);
   if (autoQueued === "IN_BANK_QUEUE") return autoQueued;
