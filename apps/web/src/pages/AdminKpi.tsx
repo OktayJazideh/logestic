@@ -187,7 +187,7 @@ export default function AdminKpi() {
           },
           options: {
             responsive: true,
-            scales: { y: { beginAtZero: true, max: 100, ticks: { callback: (v) => `${v}%` } } },
+            scales: { y: { beginAtZero: true, max: 100, ticks: { callback: (v: string | number) => `${v}%` } } },
           },
         });
       })

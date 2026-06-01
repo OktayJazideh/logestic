@@ -67,22 +67,19 @@ export default function PeriodStatementPage() {
   const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
-    const token = getStoredToken();
-    if (!token) return;
+    if (!getStoredToken()) return;
     setLoading(true);
     setMsg(null);
-    try {
-      const data = await apiGetData<{ statements: PeriodStatement[] }>(
-        `/admin/finance/period-statements?mine_id=${mineId}&cooperative_id=${coopId}&year=${year}&month=${month}`,
-        token,
-      );
-      setStatement(data.statements[0] ?? null);
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : "خطا در بارگذاری");
+    const r = await apiGetData<{ statements: PeriodStatement[] }>(
+      `/admin/finance/period-statements?mine_id=${mineId}&cooperative_id=${coopId}&year=${year}&month=${month}`,
+    );
+    if (r.ok) {
+      setStatement(r.data.statements[0] ?? null);
+    } else {
+      setMsg(r.message);
       setStatement(null);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }, [year, month, mineId, coopId]);
 
   useEffect(() => {
@@ -90,19 +87,17 @@ export default function PeriodStatementPage() {
   }, [load]);
 
   async function act(path: string, body?: unknown) {
-    const token = getStoredToken();
-    if (!token) return;
+    if (!getStoredToken()) return;
     setLoading(true);
     setMsg(null);
-    try {
-      const data = await apiPostData<{ statement: PeriodStatement }>(path, token, body);
-      setStatement(data.statement);
+    const r = await apiPostData<{ statement: PeriodStatement }>(path, body ?? {});
+    if (r.ok) {
+      setStatement(r.data.statement);
       setMsg("انجام شد");
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : "خطا");
-    } finally {
-      setLoading(false);
+    } else {
+      setMsg(r.message);
     }
+    setLoading(false);
   }
 
   return (
