@@ -2,7 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PageFrame } from "../components/PageFrame";
 import { MineScope } from "../components/MineScope";
+import { fieldBorderStyle, fieldErrorStyle } from "../components/FormField";
+import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostData, getStoredToken } from "../api";
+import { minLength, optionalPositiveNumber, positiveNumber, required } from "../lib/validation";
 
 type VillageRow = { id: number; mine_id: number; name: string; district?: string };
 type OperationTypeRow = { id: string; code: string; name_fa: string };
@@ -25,6 +28,14 @@ export default function EmployerNeed() {
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [submitOk, setSubmitOk] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { getError, validateAll, validateField } = useFieldValidation();
+
+  const inputBase: React.CSSProperties = {
+    width: "100%",
+    padding: "8px 10px",
+    borderRadius: 8,
+    border: "1px solid #E5E7EB",
+  };
 
   function loadVillages() {
     if (!getStoredToken()) return;
@@ -56,24 +67,28 @@ export default function EmployerNeed() {
     setSubmitErr(null);
     setSubmitOk(null);
 
-    if (!villageId) {
-      setSubmitErr("روستای مقصد را انتخاب کنید.");
-      return;
+    if (tab === "haul") {
+      const ok = validateAll({
+        villageId: { value: villageId === "" ? "" : String(villageId), validators: [required("روستای مقصد")] },
+        materialType: { value: materialType, validators: [required("نوع ماده"), minLength(1, "نوع ماده")] },
+        tons: { value: tons, validators: [required("حجم تن"), positiveNumber("حجم تن")] },
+      });
+      if (!ok) return;
+    } else {
+      const schema = {
+        villageId: { value: villageId === "" ? "" : String(villageId), validators: [required("روستای مقصد")] },
+        equipmentType: { value: equipmentType, validators: [required("نوع تجهیز"), minLength(2, "نوع تجهیز")] },
+        locationText: { value: locationText, validators: [required("محل عملیات"), minLength(3, "محل عملیات")] },
+        estimatedHours: { value: estimatedHours, validators: [optionalPositiveNumber("ساعات تخمینی")] },
+      };
+      if (!validateAll(schema)) return;
     }
+
+    if (!villageId) return;
 
     setBusy(true);
     if (tab === "haul") {
       const qty = Number(tons.replace(/,/g, "."));
-      if (!Number.isFinite(qty) || qty <= 0) {
-        setSubmitErr("حجم تن باید عدد مثبت باشد.");
-        setBusy(false);
-        return;
-      }
-      if (!materialType.trim()) {
-        setSubmitErr("نوع ماده را وارد کنید.");
-        setBusy(false);
-        return;
-      }
 
       const r = await apiPostData<{ need: { id: number } }>("/employer/needs", {
         village_id: villageId,
@@ -96,27 +111,10 @@ export default function EmployerNeed() {
       return;
     }
 
-    if (!equipmentType.trim()) {
-      setSubmitErr("نوع تجهیز را وارد کنید.");
-      setBusy(false);
-      return;
-    }
-    if (!locationText.trim()) {
-      setSubmitErr("محل عملیات را وارد کنید.");
-      setBusy(false);
-      return;
-    }
-
     const hoursRaw = estimatedHours.trim();
     let estimated_hours: number | undefined;
     if (hoursRaw) {
-      const h = Number(hoursRaw.replace(/,/g, "."));
-      if (!Number.isFinite(h) || h <= 0) {
-        setSubmitErr("ساعات تخمینی باید عدد مثبت باشد.");
-        setBusy(false);
-        return;
-      }
-      estimated_hours = h;
+      estimated_hours = Number(hoursRaw.replace(/,/g, "."));
     }
 
     const r = await apiPostData<{ need: { id: number } }>("/employer/needs", {
@@ -225,14 +223,23 @@ export default function EmployerNeed() {
           </button>
         </div>
 
-        <form style={{ padding: 16 }} onSubmit={handleSubmit}>
+        <form style={{ padding: 16 }} noValidate onSubmit={handleSubmit}>
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>روستای مقصد</label>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+              روستای مقصد <span style={{ color: "#DC2626" }}>*</span>
+            </label>
             <select
               data-testid="employer-village"
               value={villageId === "" ? "" : String(villageId)}
-              onChange={(e) => setVillageId(e.target.value ? Number(e.target.value) : "")}
-              style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB" }}
+              onChange={(e) => {
+                const v = e.target.value ? Number(e.target.value) : "";
+                setVillageId(v);
+                validateField("villageId", v === "" ? "" : String(v), [required("روستای مقصد")]);
+              }}
+              onBlur={() =>
+                validateField("villageId", villageId === "" ? "" : String(villageId), [required("روستای مقصد")])
+              }
+              style={fieldBorderStyle(inputBase, getError("villageId"))}
             >
               <option value="">— ابتدا معدن را انتخاب کنید —</option>
               {villages.map((v) => (
@@ -242,59 +249,90 @@ export default function EmployerNeed() {
                 </option>
               ))}
             </select>
+            {getError("villageId") && <div role="alert" style={fieldErrorStyle}>{getError("villageId")}</div>}
           </div>
 
           {tab === "haul" ? (
             <>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>نوع ماده</label>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                  نوع ماده <span style={{ color: "#DC2626" }}>*</span>
+                </label>
                 <input
                   data-testid="employer-material"
                   type="text"
                   value={materialType}
-                  onChange={(e) => setMaterialType(e.target.value)}
+                  onChange={(e) => {
+                    setMaterialType(e.target.value);
+                    validateField("materialType", e.target.value, [required("نوع ماده")]);
+                  }}
+                  onBlur={() => validateField("materialType", materialType, [required("نوع ماده")])}
                   placeholder="مثال: ORE"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB" }}
+                  style={fieldBorderStyle(inputBase, getError("materialType"))}
                 />
+                {getError("materialType") && <div role="alert" style={fieldErrorStyle}>{getError("materialType")}</div>}
               </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
-                  حجم تخمینی (تن)
+                  حجم تخمینی (تن) <span style={{ color: "#DC2626" }}>*</span>
                 </label>
                 <input
                   data-testid="employer-tons"
                   type="text"
                   inputMode="decimal"
                   value={tons}
-                  onChange={(e) => setTons(e.target.value)}
+                  onChange={(e) => {
+                    setTons(e.target.value);
+                    validateField("tons", e.target.value, [required("حجم تن"), positiveNumber("حجم تن")]);
+                  }}
+                  onBlur={() => validateField("tons", tons, [required("حجم تن"), positiveNumber("حجم تن")])}
                   placeholder="مثال: 24"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB" }}
+                  style={fieldBorderStyle(inputBase, getError("tons"))}
                 />
+                {getError("tons") && <div role="alert" style={fieldErrorStyle}>{getError("tons")}</div>}
               </div>
             </>
           ) : (
             <>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>نوع تجهیز</label>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                  نوع تجهیز <span style={{ color: "#DC2626" }}>*</span>
+                </label>
                 <input
                   data-testid="employer-equipment"
                   type="text"
                   value={equipmentType}
-                  onChange={(e) => setEquipmentType(e.target.value)}
+                  onChange={(e) => {
+                    setEquipmentType(e.target.value);
+                    validateField("equipmentType", e.target.value, [required("نوع تجهیز"), minLength(2, "نوع تجهیز")]);
+                  }}
+                  onBlur={() =>
+                    validateField("equipmentType", equipmentType, [required("نوع تجهیز"), minLength(2, "نوع تجهیز")])
+                  }
                   placeholder="مثال: بیل مکانیکی"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB" }}
+                  style={fieldBorderStyle(inputBase, getError("equipmentType"))}
                 />
+                {getError("equipmentType") && <div role="alert" style={fieldErrorStyle}>{getError("equipmentType")}</div>}
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>محل عملیات</label>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                  محل عملیات <span style={{ color: "#DC2626" }}>*</span>
+                </label>
                 <input
                   data-testid="employer-location"
                   type="text"
                   value={locationText}
-                  onChange={(e) => setLocationText(e.target.value)}
+                  onChange={(e) => {
+                    setLocationText(e.target.value);
+                    validateField("locationText", e.target.value, [required("محل عملیات"), minLength(3, "محل عملیات")]);
+                  }}
+                  onBlur={() =>
+                    validateField("locationText", locationText, [required("محل عملیات"), minLength(3, "محل عملیات")])
+                  }
                   placeholder="مثال: سایت A — شمال معدن"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB" }}
+                  style={fieldBorderStyle(inputBase, getError("locationText"))}
                 />
+                {getError("locationText") && <div role="alert" style={fieldErrorStyle}>{getError("locationText")}</div>}
               </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
@@ -305,10 +343,21 @@ export default function EmployerNeed() {
                   type="text"
                   inputMode="decimal"
                   value={estimatedHours}
-                  onChange={(e) => setEstimatedHours(e.target.value)}
+                  onChange={(e) => {
+                    setEstimatedHours(e.target.value);
+                    if (e.target.value.trim()) {
+                      validateField("estimatedHours", e.target.value, [optionalPositiveNumber("ساعات تخمینی")]);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (estimatedHours.trim()) {
+                      validateField("estimatedHours", estimatedHours, [optionalPositiveNumber("ساعات تخمینی")]);
+                    }
+                  }}
                   placeholder="مثال: 8"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB" }}
+                  style={fieldBorderStyle(inputBase, getError("estimatedHours"))}
                 />
+                {getError("estimatedHours") && <div role="alert" style={fieldErrorStyle}>{getError("estimatedHours")}</div>}
               </div>
             </>
           )}

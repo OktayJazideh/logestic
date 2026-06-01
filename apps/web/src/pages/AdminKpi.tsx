@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPostData } from "../api";
+import { dateRange } from "../lib/validation";
 
 type KpiPoint = {
   date: string;
@@ -113,6 +114,18 @@ export default function AdminKpi() {
   const chartInstance = useRef<{ destroy: () => void } | null>(null);
 
   const load = useCallback(async () => {
+    const rangeErr = dateRange(from, to);
+    if (rangeErr) {
+      setError(rangeErr);
+      return;
+    }
+    if (mineId.trim()) {
+      const mineErr = /^[1-9]\d*$/.test(mineId.trim()) ? undefined : "شناسه معدن باید عدد صحیح مثبت باشد.";
+      if (mineErr) {
+        setError(mineErr);
+        return;
+      }
+    }
     setBusy(true);
     setError(null);
     const q = new URLSearchParams({ from, to });
@@ -128,6 +141,10 @@ export default function AdminKpi() {
   }, [from, to, mineId]);
 
   const recompute = useCallback(async () => {
+    if (!to.trim()) {
+      setError("تاریخ «تا» برای محاسبه مجدد الزامی است.");
+      return;
+    }
     setBusy(true);
     setError(null);
     const body: { date?: string; mine_id?: number } = { date: to };

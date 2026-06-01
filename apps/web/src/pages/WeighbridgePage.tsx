@@ -3,6 +3,9 @@ import { PageFrame } from "../components/PageFrame";
 import { MineScope } from "../components/MineScope";
 import { apiGetData, apiPostData, getStoredToken } from "../api";
 import { useAuthMe } from "../hooks/useAuthMe";
+import { useFieldValidation } from "../hooks/useFieldValidation";
+import { fieldErrorStyle } from "../components/FormField";
+import { minLength, positiveNumber, required, runValidators } from "../lib/validation";
 
 type ManualReasonCode = "SCALE_DOWN" | "NETWORK" | "OTHER";
 
@@ -65,6 +68,20 @@ export default function WeighbridgePage() {
   const [actionMsg, setActionMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [mineKey, setMineKey] = useState(0);
+  const { getError, validateField, mergeErrors } = useFieldValidation();
+
+  function validateWeightPair(empty: string, loaded: string): Record<string, string | undefined> {
+    const emptyErr = runValidators(empty, [required("وزن خالی"), positiveNumber("وزن خالی")]);
+    const loadedErr = runValidators(loaded, [required("وزن پر"), positiveNumber("وزن پر")]);
+    if (!emptyErr && !loadedErr) {
+      const e = Number(empty.replace(/,/g, "."));
+      const l = Number(loaded.replace(/,/g, "."));
+      if (l <= e) {
+        return { loadedKg: "وزن پر باید بزرگ‌تر از وزن خالی باشد." };
+      }
+    }
+    return { emptyKg: emptyErr, loadedKg: loadedErr };
+  }
 
   const loadTickets = useCallback(async () => {
     if (!getStoredToken()) {
@@ -123,12 +140,14 @@ export default function WeighbridgePage() {
   async function submitWeights(e: React.FormEvent) {
     e.preventDefault();
     if (selectedId == null || !detail) return;
-    const empty = Number(emptyKg.replace(/,/g, "."));
-    const loaded = Number(loadedKg.replace(/,/g, "."));
-    if (!Number.isFinite(empty) || !Number.isFinite(loaded) || loaded <= empty) {
-      setActionMsg("وزن خالی و پر باید عدد معتبر باشند و وزن پر بزرگ‌تر از خالی.");
+    const wErrs = validateWeightPair(emptyKg, loadedKg);
+    if (wErrs.emptyKg || wErrs.loadedKg) {
+      mergeErrors(wErrs);
+      setActionMsg(wErrs.loadedKg ?? wErrs.emptyKg ?? "وزن نامعتبر است.");
       return;
     }
+    const empty = Number(emptyKg.replace(/,/g, "."));
+    const loaded = Number(loadedKg.replace(/,/g, "."));
     setBusy("weights");
     setActionMsg(null);
     const r = await apiPostData<{ ticket: TicketRow; anomaly?: boolean }>(
@@ -152,17 +171,16 @@ export default function WeighbridgePage() {
   async function submitManualWeights(e: React.FormEvent) {
     e.preventDefault();
     if (selectedId == null || !detail) return;
+    const wErrs = validateWeightPair(emptyKg, loadedKg);
+    const noteErr = runValidators(manualNote, [required("توضیح"), minLength(MANUAL_NOTE_MIN, "توضیح ثبت دستی")]);
+    if (wErrs.emptyKg || wErrs.loadedKg || noteErr) {
+      mergeErrors({ ...wErrs, manualNote: noteErr });
+      setActionMsg(noteErr ?? wErrs.loadedKg ?? wErrs.emptyKg ?? "ورودی نامعتبر است.");
+      return;
+    }
     const empty = Number(emptyKg.replace(/,/g, "."));
     const loaded = Number(loadedKg.replace(/,/g, "."));
     const note = manualNote.trim();
-    if (!Number.isFinite(empty) || !Number.isFinite(loaded) || loaded <= empty) {
-      setActionMsg("وزن خالی و پر باید عدد معتبر باشند و وزن پر بزرگ‌تر از خالی.");
-      return;
-    }
-    if (note.length < MANUAL_NOTE_MIN) {
-      setActionMsg(`توضیح ثبت دستی حداقل ${MANUAL_NOTE_MIN} کاراکتر باشد.`);
-      return;
-    }
     setBusy("manual");
     setActionMsg(null);
     const r = await apiPostData<{ ticket: TicketRow; anomaly?: boolean }>(
@@ -202,8 +220,10 @@ export default function WeighbridgePage() {
   async function rejectTicket() {
     if (selectedId == null) return;
     const reason = rejectReason.trim();
-    if (reason.length < 3) {
-      setActionMsg("دلیل رد حداقل ۳ کاراکتر باشد.");
+    const reasonErr = runValidators(reason, [required("دلیل رد"), minLength(3, "دلیل رد")]);
+    if (reasonErr) {
+      mergeErrors({ rejectReason: reasonErr });
+      setActionMsg(reasonErr);
       return;
     }
     setBusy("reject");

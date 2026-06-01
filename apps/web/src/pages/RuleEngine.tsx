@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { fieldErrorStyle } from "../components/FormField";
+import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostData } from "../api";
+import { dateRequired, positiveInt, positiveNumber, required } from "../lib/validation";
 
 type FinanceRule = {
   id: number;
@@ -74,6 +77,7 @@ export default function RuleEnginePage() {
   const [mineId, setMineId] = useState("1");
   const [coopId, setCoopId] = useState("1");
   const [effectiveFrom, setEffectiveFrom] = useState(() => new Date().toISOString().slice(0, 10));
+  const { getError, validateAll, validateField } = useFieldValidation();
 
   const load = useCallback(async () => {
     const q = filterStatus ? `?status=${filterStatus}` : "";
@@ -93,11 +97,15 @@ export default function RuleEnginePage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const schema: Record<string, { value: string; validators: import("../lib/validation").FieldValidator[] }> = {
+      value: { value, validators: [required("مقدار"), positiveNumber("مقدار")] },
+      effectiveFrom: { value: effectiveFrom, validators: [dateRequired("تاریخ اعتبار")] },
+    };
+    if (scopeType === "MINE") schema.mineId = { value: mineId, validators: [positiveInt("mine_id")] };
+    if (scopeType === "COOPERATIVE") schema.coopId = { value: coopId, validators: [positiveInt("cooperative_id")] };
+    if (!validateAll(schema)) return;
+
     const num = Number(value);
-    if (!Number.isFinite(num)) {
-      setErr("مقدار باید عدد باشد.");
-      return;
-    }
     setBusy(true);
     setErr(null);
     setMsg(null);
@@ -131,6 +139,7 @@ export default function RuleEnginePage() {
       {msg && <div style={okStyle}>{msg}</div>}
 
       <form
+        noValidate
         onSubmit={submit}
         style={{
           display: "flex",
@@ -154,8 +163,17 @@ export default function RuleEnginePage() {
           </select>
         </label>
         <label style={labelStyle}>
-          مقدار
-          <input value={value} onChange={(e) => setValue(e.target.value)} style={inputStyle} />
+          مقدار <span style={{ color: "#DC2626" }}>*</span>
+          <input
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              validateField("value", e.target.value, [required("مقدار"), positiveNumber("مقدار")]);
+            }}
+            onBlur={() => validateField("value", value, [required("مقدار"), positiveNumber("مقدار")])}
+            style={inputStyle}
+          />
+          {getError("value") && <span style={fieldErrorStyle}>{getError("value")}</span>}
         </label>
         <label style={labelStyle}>
           scope
@@ -171,19 +189,47 @@ export default function RuleEnginePage() {
         </label>
         {scopeType === "MINE" && (
           <label style={labelStyle}>
-            mine_id
-            <input value={mineId} onChange={(e) => setMineId(e.target.value)} style={inputStyle} />
+            mine_id <span style={{ color: "#DC2626" }}>*</span>
+            <input
+              value={mineId}
+              onChange={(e) => {
+                setMineId(e.target.value);
+                validateField("mineId", e.target.value, [positiveInt("mine_id")]);
+              }}
+              onBlur={() => validateField("mineId", mineId, [positiveInt("mine_id")])}
+              style={inputStyle}
+            />
+            {getError("mineId") && <span style={fieldErrorStyle}>{getError("mineId")}</span>}
           </label>
         )}
         {scopeType === "COOPERATIVE" && (
           <label style={labelStyle}>
-            cooperative_id
-            <input value={coopId} onChange={(e) => setCoopId(e.target.value)} style={inputStyle} />
+            cooperative_id <span style={{ color: "#DC2626" }}>*</span>
+            <input
+              value={coopId}
+              onChange={(e) => {
+                setCoopId(e.target.value);
+                validateField("coopId", e.target.value, [positiveInt("cooperative_id")]);
+              }}
+              onBlur={() => validateField("coopId", coopId, [positiveInt("cooperative_id")])}
+              style={inputStyle}
+            />
+            {getError("coopId") && <span style={fieldErrorStyle}>{getError("coopId")}</span>}
           </label>
         )}
         <label style={labelStyle}>
-          effective_from
-          <input type="date" value={effectiveFrom} onChange={(e) => setEffectiveFrom(e.target.value)} style={inputStyle} />
+          effective_from <span style={{ color: "#DC2626" }}>*</span>
+          <input
+            type="date"
+            value={effectiveFrom}
+            onChange={(e) => {
+              setEffectiveFrom(e.target.value);
+              validateField("effectiveFrom", e.target.value, [dateRequired("تاریخ اعتبار")]);
+            }}
+            onBlur={() => validateField("effectiveFrom", effectiveFrom, [dateRequired("تاریخ اعتبار")])}
+            style={inputStyle}
+          />
+          {getError("effectiveFrom") && <span style={fieldErrorStyle}>{getError("effectiveFrom")}</span>}
         </label>
         <div style={{ alignSelf: "flex-end" }}>
           <button type="submit" disabled={busy} style={btnStyle}>

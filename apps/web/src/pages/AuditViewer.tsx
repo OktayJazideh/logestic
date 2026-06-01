@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
 import { JsonDiffView } from "../components/JsonDiffView";
 import { apiGetData } from "../api";
+import { dateRange, positiveInt } from "../lib/validation";
 
 type AuditLogItem = {
   id: number;
@@ -59,6 +60,7 @@ export default function AuditViewer() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [offset, setOffset] = useState(0);
+  const [filterErr, setFilterErr] = useState<string | null>(null);
   const limit = 30;
 
   const load = useCallback(async () => {
@@ -87,6 +89,26 @@ export default function AuditViewer() {
 
   function applyFilters(e: React.FormEvent) {
     e.preventDefault();
+    if (entityId.trim()) {
+      const err = positiveInt("شناسه موجودیت")(entityId.trim());
+      if (err) {
+        setFilterErr(err);
+        return;
+      }
+    }
+    if (userId.trim()) {
+      const err = positiveInt("شناسه کاربر")(userId.trim());
+      if (err) {
+        setFilterErr(err);
+        return;
+      }
+    }
+    const rangeErr = dateRange(from, to);
+    if (rangeErr) {
+      setFilterErr(rangeErr);
+      return;
+    }
+    setFilterErr(null);
     setOffset(0);
   }
 
@@ -113,7 +135,14 @@ export default function AuditViewer() {
         </div>
       )}
 
+      {filterErr && (
+        <div role="alert" style={{ marginBottom: 12, padding: 12, borderRadius: 10, border: "1px solid #FCA5A5", background: "#FEF2F2", color: "#991B1B", fontSize: 13 }}>
+          {filterErr}
+        </div>
+      )}
+
       <form
+        noValidate
         onSubmit={applyFilters}
         style={{
           marginBottom: 16,

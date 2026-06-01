@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FormField, fieldBorderStyle } from "../components/FormField";
+import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostPublic, getStoredToken, setStoredToken } from "../api";
+import { mobileNumber, otpCode, required, runValidators } from "../lib/validation";
 import { brand, btnPrimary, btnSecondary } from "../theme";
 
 const RESEND_COOLDOWN_SEC = 60;
-const MOBILE_RE = /^\d{9,15}$/;
-const OTP_RE = /^\d{6}$/;
 
 type VerifyDetails = { reason?: string; attemptsLeft?: number };
 
@@ -62,21 +63,12 @@ const alertStyle: React.CSSProperties = {
   lineHeight: 1.5,
 };
 
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontSize: 13,
-  fontWeight: 600,
-  color: brand.text,
-  marginBottom: 6,
-};
-
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 6,
   border: `1px solid ${brand.border}`,
   fontSize: 15,
-  marginBottom: 14,
   boxSizing: "border-box",
   fontFamily: brand.fontFamily,
 };
@@ -99,6 +91,13 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [resendSec, setResendSec] = useState(0);
   const [checkingSession, setCheckingSession] = useState(true);
+  const { getError, validateField, validateAll, clearErrors } = useFieldValidation();
+
+  const mobileValidators = useMemo(() => [required("شماره موبایل"), mobileNumber()], []);
+  const otpValidators = useMemo(() => [required("کد تأیید"), otpCode()], []);
+
+  const mobileValid = !runValidators(mobile, mobileValidators);
+  const otpValid = !runValidators(otp, otpValidators);
 
   useEffect(() => {
     const token = getStoredToken();
@@ -139,8 +138,8 @@ export default function LoginPage() {
 
   const requestOtp = useCallback(async () => {
     const m = mobile.trim();
-    if (!MOBILE_RE.test(m)) {
-      setError("شماره موبایل باید ۹ تا ۱۵ رقم باشد.");
+    if (!validateAll({ mobile: { value: m, validators: mobileValidators } })) {
+      setError(null);
       return;
     }
     setBusy(true);
@@ -153,6 +152,7 @@ export default function LoginPage() {
       setMobile(m);
       setStep(2);
       setOtp("");
+      clearErrors();
       startResendCooldown();
       return;
     }
@@ -161,13 +161,13 @@ export default function LoginPage() {
       return;
     }
     setError(r.message);
-  }, [mobile, startResendCooldown]);
+  }, [mobile, startResendCooldown, validateAll, mobileValidators, clearErrors]);
 
   const verifyOtp = useCallback(async () => {
     const m = mobile.trim();
     const code = otp.trim();
-    if (!OTP_RE.test(code)) {
-      setError("کد باید دقیقاً ۶ رقم باشد.");
+    if (!validateAll({ otp: { value: code, validators: otpValidators } })) {
+      setError(null);
       return;
     }
     setBusy(true);
@@ -184,7 +184,7 @@ export default function LoginPage() {
     }
     const details = r.details as VerifyDetails | undefined;
     setError(otpErrorMessage(details, r.message));
-  }, [mobile, otp, navigate]);
+  }, [mobile, otp, navigate, validateAll, otpValidators]);
 
   if (checkingSession) {
     return (
@@ -195,6 +195,9 @@ export default function LoginPage() {
       </LoginShell>
     );
   }
+
+  const mobileError = getError("mobile");
+  const otpError = getError("otp");
 
   return (
     <LoginShell>
@@ -217,55 +220,88 @@ export default function LoginPage() {
 
         {step === 1 ? (
           <form
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
               void requestOtp();
             }}
           >
-            <label style={labelStyle}>شماره موبایل</label>
-            <input
-              data-testid="login-mobile"
-              type="tel"
-              inputMode="numeric"
-              autoComplete="tel"
-              placeholder="مثلاً 09121234567"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
-              disabled={busy}
-              style={inputStyle}
-            />
-            <button data-testid="login-request-otp" type="submit" disabled={busy} style={btnPrimaryStyle}>
+            <FormField
+              label="شماره موبایل"
+              required
+              error={mobileError}
+              hint="۹ تا ۱۵ رقم، مثلاً 09121234567"
+              htmlFor="login-mobile"
+            >
+              <input
+                id="login-mobile"
+                data-testid="login-mobile"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                placeholder="09121234567"
+                value={mobile}
+                onChange={(e) => {
+                  setMobile(e.target.value.replace(/\D/g, "").slice(0, 15));
+                  if (mobileError) validateField("mobile", e.target.value.replace(/\D/g, "").slice(0, 15), mobileValidators);
+                }}
+                onBlur={() => validateField("mobile", mobile, mobileValidators)}
+                disabled={busy}
+                aria-invalid={!!mobileError}
+                style={fieldBorderStyle(inputStyle, mobileError)}
+              />
+            </FormField>
+            <button
+              data-testid="login-request-otp"
+              type="submit"
+              disabled={busy || !mobileValid}
+              style={{ ...btnPrimaryStyle, opacity: busy || !mobileValid ? 0.65 : 1 }}
+            >
               {busy ? "در حال ارسال…" : "دریافت کد"}
             </button>
           </form>
         ) : (
           <form
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
               void verifyOtp();
             }}
           >
-            <label style={labelStyle}>کد ۶ رقمی</label>
-            <input
-              data-testid="login-otp"
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              placeholder="------"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              disabled={busy}
-              style={{ ...inputStyle, letterSpacing: 6, textAlign: "center" }}
-            />
-            <button data-testid="login-verify" type="submit" disabled={busy || otp.length !== 6} style={btnPrimaryStyle}>
+            <FormField label="کد ۶ رقمی" required error={otpError} htmlFor="login-otp">
+              <input
+                id="login-otp"
+                data-testid="login-otp"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                placeholder="------"
+                value={otp}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  setOtp(v);
+                  if (otpError) validateField("otp", v, otpValidators);
+                }}
+                onBlur={() => validateField("otp", otp, otpValidators)}
+                disabled={busy}
+                aria-invalid={!!otpError}
+                style={fieldBorderStyle({ ...inputStyle, letterSpacing: 6, textAlign: "center" }, otpError)}
+              />
+            </FormField>
+            <button
+              data-testid="login-verify"
+              type="submit"
+              disabled={busy || !otpValid}
+              style={{ ...btnPrimaryStyle, opacity: busy || !otpValid ? 0.65 : 1 }}
+            >
               {busy ? "در حال ورود…" : "ورود"}
             </button>
 
             <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
               <button
                 type="button"
-                disabled={busy || resendSec > 0}
+                disabled={busy || resendSec > 0 || !mobileValid}
                 onClick={() => void requestOtp()}
                 style={btnGhost}
               >
@@ -279,6 +315,7 @@ export default function LoginPage() {
                   setOtp("");
                   setError(null);
                   setResendSec(0);
+                  clearErrors();
                 }}
                 style={btnGhost}
               >

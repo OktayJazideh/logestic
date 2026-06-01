@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPatchData } from "../api";
+import { positiveInt } from "../lib/validation";
 
 type AdminUser = {
   id: number;
@@ -61,8 +62,9 @@ export default function AdminUsers() {
     const body: { role: string; cooperative_id?: number | null } = { role };
     if (COOP_ROLES.has(role)) {
       const coop = draftCoops[userId];
-      if (!coop) {
-        setError("برای نقش تعاونی، شناسهٔ cooperative_id الزامی است.");
+      const coopErr = !coop ? "برای نقش تعاونی، شناسهٔ cooperative_id الزامی است." : positiveInt("cooperative_id")(coop);
+      if (coopErr) {
+        setError(coopErr);
         setBusy(null);
         return;
       }

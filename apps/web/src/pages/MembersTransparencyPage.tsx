@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { fieldErrorStyle } from "../components/FormField";
+import { minLength, required, runValidators } from "../lib/validation";
 import { apiGetData, apiPostData } from "../api";
 import { useAuthMe } from "../hooks/useAuthMe";
 
@@ -308,14 +310,22 @@ export default function MembersTransparencyPage() {
 function ObjectionFormPanel({
   form,
   busy,
+  fieldError,
   onChange,
   onSubmit,
+  onValidate,
 }: {
   form: ObjectionForm;
   busy: boolean;
+  fieldError?: string;
   onChange: (field: keyof ObjectionForm, value: string) => void;
   onSubmit: () => void;
+  onValidate?: (reason: string) => void;
 }) {
+  const reasonErr =
+    fieldError ??
+    (form.reason.trim() ? runValidators(form.reason, [minLength(3, "دلیل اعتراض")]) : undefined);
+
   return (
     <div style={{ display: "grid", gap: 8, maxWidth: 480 }}>
       <p style={{ margin: 0, fontSize: 12, color: "#6B7280" }}>
@@ -326,12 +336,30 @@ function ObjectionFormPanel({
         دلیل اعتراض <span style={{ color: "#B45309" }}>*</span>
         <textarea
           value={form.reason}
-          onChange={(e) => onChange("reason", e.target.value)}
+          onChange={(e) => {
+            onChange("reason", e.target.value);
+            onValidate?.(e.target.value);
+          }}
+          onBlur={() => onValidate?.(form.reason)}
           rows={3}
-          style={{ ...inputStyle, resize: "vertical" }}
+          style={{
+            ...inputStyle,
+            resize: "vertical",
+            borderColor: reasonErr ? "#DC2626" : "#E5E7EB",
+          }}
         />
+        {reasonErr && (
+          <div role="alert" style={fieldErrorStyle}>
+            {reasonErr}
+          </div>
+        )}
       </label>
-      <button type="button" style={btnPrimary} disabled={busy} onClick={onSubmit}>
+      <button
+        type="button"
+        style={btnPrimary}
+        disabled={busy || !!runValidators(form.reason, [required("دلیل اعتراض"), minLength(3, "دلیل اعتراض")])}
+        onClick={onSubmit}
+      >
         {busy ? "در حال ثبت…" : "ارسال اعتراض"}
       </button>
     </div>

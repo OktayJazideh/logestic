@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostData, apiPutData } from "../api";
+import { dateRequired, minLength, positiveNumber, required } from "../lib/validation";
 
 type RateCard = {
   id: number;
@@ -123,6 +125,7 @@ export default function RateCards() {
   const [scCommunity, setScCommunity] = useState("");
   const [scRateCardId, setScRateCardId] = useState("");
   const [scValidFrom, setScValidFrom] = useState(() => new Date().toISOString().slice(0, 10));
+  const { validateAll } = useFieldValidation();
 
   const load = useCallback(async () => {
     const q = new URLSearchParams({ mine_id: filterMine, date: filterDate, include_drafts: "1" });
@@ -171,11 +174,14 @@ export default function RateCards() {
 
   async function createDraft(e: React.FormEvent) {
     e.preventDefault();
-    const rateNum = Number(rate);
-    if (!rateNum || rateNum <= 0) {
-      setErr("نرخ باید عدد مثبت باشد.");
+    if (!validateAll({
+      rate: { value: rate, validators: [required("نرخ"), positiveNumber("نرخ")] },
+      effectiveFrom: { value: effectiveFrom, validators: [dateRequired("تاریخ اعتبار")] },
+    })) {
+      setErr("لطفاً فیلدهای فرم را اصلاح کنید.");
       return;
     }
+    const rateNum = Number(rate);
     setBusy("create");
     setErr(null);
     setMsg(null);
@@ -199,12 +205,18 @@ export default function RateCards() {
 
   async function createServiceContractDraft(e: React.FormEvent) {
     e.preventDefault();
-    const base = Number(scBaseRate);
-    const comm = Number(scCommunity);
-    if (!base || base <= 0 || !comm || comm <= 0) {
-      setErr("نرخ پایه و مبلغ جامعه باید عدد مثبت باشد.");
+    if (
+      !validateAll({
+        scBaseRate: { value: scBaseRate, validators: [required("نرخ پایه"), positiveNumber("نرخ پایه")] },
+        scCommunity: { value: scCommunity, validators: [required("مبلغ جامعه"), positiveNumber("مبلغ جامعه")] },
+        scValidFrom: { value: scValidFrom, validators: [dateRequired("اعتبار از")] },
+      })
+    ) {
+      setErr("لطفاً فیلدهای قرارداد را اصلاح کنید.");
       return;
     }
+    const base = Number(scBaseRate);
+    const comm = Number(scCommunity);
     setBusy("sc-create");
     setErr(null);
     setMsg(null);
@@ -260,8 +272,15 @@ export default function RateCards() {
     }
     const base = Number(nvBaseRate);
     const comm = Number(nvCommunity);
-    if (!nvAmendmentRef.trim() || !base || base <= 0 || !comm || comm <= 0) {
-      setErr("شماره الحاقیه، نرخ پایه و مبلغ جامعه الزامی است.");
+    if (
+      !validateAll({
+        nvAmendmentRef: { value: nvAmendmentRef, validators: [required("شماره الحاقیه"), minLength(2, "شماره الحاقیه")] },
+        nvBaseRate: { value: nvBaseRate, validators: [required("نرخ پایه"), positiveNumber("نرخ پایه")] },
+        nvCommunity: { value: nvCommunity, validators: [required("مبلغ جامعه"), positiveNumber("مبلغ جامعه")] },
+        nvValidFrom: { value: nvValidFrom, validators: [dateRequired("اعتبار از")] },
+      })
+    ) {
+      setErr("لطفاً فیلدهای نسخه جدید را اصلاح کنید.");
       return;
     }
     setBusy("sc-new-version");
@@ -386,7 +405,7 @@ export default function RateCards() {
         <p style={{ margin: "0 0 10px", fontSize: 12, color: "#374151" }}>
           کرایه عملیاتی از کارت نرخ لینک‌شده (یا نرخ پایه قرارداد)؛ سهم جامعه مستقل و ثابت به ازای هر تن.
         </p>
-        <form onSubmit={createServiceContractDraft} style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
+        <form noValidate onSubmit={createServiceContractDraft} style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
           <label style={labelStyle}>
             نرخ پایه (ریال/تن)
             <input value={scBaseRate} onChange={(e) => setScBaseRate(e.target.value)} style={inputStyle} placeholder="12000" />
@@ -455,6 +474,7 @@ export default function RateCards() {
 
           {showNewVersionForm && (
             <form
+              noValidate
               onSubmit={createNewContractVersion}
               style={{
                 marginBottom: 12,
@@ -610,7 +630,7 @@ export default function RateCards() {
 
       <section style={{ padding: 14, border: "1px solid #E5E7EB", borderRadius: 10 }}>
         <h2 style={{ margin: "0 0 10px", fontSize: 15, color: "#0E3B13" }}>افزودن نسخهٔ جدید (DRAFT)</h2>
-        <form onSubmit={createDraft} style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
+        <form noValidate onSubmit={createDraft} style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
           <label style={labelStyle}>
             معدن
             <select value={mineId} onChange={(e) => setMineId(e.target.value)} style={inputStyle}>
