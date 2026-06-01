@@ -1,9 +1,8 @@
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:4000/api";
+import { newIdempotencyKey } from "./lib/idempotencyKey";
 
-/** UUID v4 for Idempotency-Key on sensitive POST endpoints (IDEM-1). */
-export function newIdempotencyKey(): string {
-  return crypto.randomUUID();
-}
+export { newIdempotencyKey };
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:4000/api";
 
 export function getStoredToken(): string {
   return localStorage.getItem("auth_token") ?? "";
