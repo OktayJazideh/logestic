@@ -1,5 +1,6 @@
 import React from "react";
 import { useAuthMe } from "../hooks/useAuthMe";
+import { roleLabelFa } from "../lib/roleLabels";
 import { brand } from "../theme";
 
 type Props = {
@@ -36,8 +37,8 @@ export function PageFrame({ title, intro, expectedRoles, children }: Props) {
             color: brand.warn,
           }}
         >
-          برای دادهٔ زنده این بخش توکن با نقش مناسب لازم است. نقش فعلی شما:{" "}
-          <strong>{me?.role}</strong>
+          این بخش برای نقش دیگری طراحی شده. نقش فعلی شما:{" "}
+          <strong>{roleLabelFa(me?.role)}</strong>
           {expectedRoles?.length ? (
             <>
               {" "}

@@ -52,9 +52,7 @@ export function DemoLoginPanel({ app }: Props) {
         ورود دمو (UAT)
       </div>
       <p style={{ margin: "0 0 10px", fontSize: 11, color: brand.textMuted, lineHeight: 1.5 }}>
-        یک‌کلیک ورود بدون SMS — مستقیم به داشبورد. نیاز:{" "}
-        <code style={{ fontSize: 10 }}>db:seed</code> ·{" "}
-        <code style={{ fontSize: 10 }}>NODE_ENV=development</code>
+        یک‌کلیک ورود بدون پیامک — مستقیم به داشبورد. نیاز: دادهٔ اولیه (seed) و حالت توسعه روی سرور.
       </p>
       {err && (
         <div role="alert" style={{ marginBottom: 8, fontSize: 12, color: brand.danger }}>

@@ -119,6 +119,43 @@ async function ensureActiveHaulServiceContract(params: {
   return activated;
 }
 
+/** نمونه کارکرد پایان‌یافته برای صندوق مشاور ساعتی (UAT). */
+async function seedDemoHourlyEndedLog(params: {
+  mineId: number;
+  fleetOwnerUserId: number;
+  householdId: number;
+}) {
+  const owner = await prisma.fleet_owners.findFirst({
+    where: { user_id: BigInt(params.fleetOwnerUserId) },
+  });
+  if (!owner) return;
+  const vehicle = await prisma.vehicles.findFirst({
+    where: { owner_id: owner.id, cooperative_id: owner.cooperative_id },
+  });
+  if (!vehicle) return;
+
+  await prisma.hourly_work_logs.deleteMany({
+    where: { mine_id: BigInt(params.mineId), note: "seed-uat-consultant-inbox" },
+  });
+
+  const ended = new Date();
+  const started = new Date(ended.getTime() - 2 * 60 * 60 * 1000);
+  await prisma.hourly_work_logs.create({
+    data: {
+      mine_id: BigInt(params.mineId),
+      fleet_owner_id: owner.id,
+      vehicle_id: vehicle.id,
+      household_id: BigInt(params.householdId),
+      status: "ENDED",
+      started_at: started,
+      ended_at: ended,
+      raw_hours: 2.5,
+      hourly_rate_snapshot: 500_000,
+      note: "seed-uat-consultant-inbox",
+    },
+  });
+}
+
 async function seedApprovedFleetEntities(params: {
   cooperativeId: number;
   driverUserId: number;
@@ -264,7 +301,7 @@ async function main() {
   const hhA = await usersRepo.upsertUserByMobile("09000001001", "HOUSEHOLD", { is_active: true });
   const hhB = await usersRepo.upsertUserByMobile("09000001002", "HOUSEHOLD", { is_active: true });
 
-  await householdsRepo.upsertHousehold({
+  const householdTaftan = await householdsRepo.upsertHousehold({
     user_id: hhA.id,
     village_id: 1,
     cooperative_id: 1,
@@ -300,6 +337,12 @@ async function main() {
     rateCardId: taftanRates.activeOreRateCardId,
   });
 
+  await seedDemoHourlyEndedLog({
+    mineId: mineTaftan.id,
+    fleetOwnerUserId: fleetOwnerUser.id,
+    householdId: householdTaftan.id,
+  });
+
   // eslint-disable-next-line no-console
   console.log("Seed OK:", {
     mines: [mineTaftan.mine_code, mineB.mine_code],
@@ -312,6 +355,7 @@ async function main() {
       fixed_community_rial_per_unit: contract.fixed_community_amount_rial_per_unit,
     },
     pilot_fleet: "driver/fleet/vehicle APPROVED",
+    hourly_demo_ended: "1 row for consultant inbox",
   });
 }
 

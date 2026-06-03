@@ -3,6 +3,7 @@ import { PageFrame } from "../components/PageFrame";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData, apiPostData } from "../api";
 import { useAuthMe } from "../hooks/useAuthMe";
+import { hourlyStatusLabelFa } from "../lib/roleLabels";
 
 type HourlyLog = {
   id: number;
@@ -81,7 +82,7 @@ export default function ConsultantHourlyInbox() {
         header: "مدت (ساعت)",
         render: (l) => formatHours(l.duration_hours ?? l.raw_hours),
       },
-      { key: "status", header: "وضعیت", render: (l) => l.status },
+      { key: "status", header: "وضعیت", render: (l) => hourlyStatusLabelFa(l.status) },
       {
         key: "actions",
         header: "عملیات",
@@ -181,7 +182,7 @@ export default function ConsultantHourlyInbox() {
   return (
     <PageFrame
       title="صندوق کارکرد ساعتی"
-      intro="کارکردهای ENDED در انتظار تأیید/رد توسط مشاور."
+      intro="کارکردهای پایان‌یافته در انتظار تأیید یا رد توسط مشاور. اگر لیست خالی است، اپراتور معدن باید ابتدا شروع و پایان کارکرد را ثبت کند (یا دادهٔ نمونه seed را اجرا کنید)."
       expectedRoles={["CONSULTANT", "ADMIN"]}
     >
       {err && (
@@ -194,7 +195,7 @@ export default function ConsultantHourlyInbox() {
         columns={columns}
         rows={logs}
         rowKey={(l) => String(l.id)}
-        emptyMessage="کارکرد ENDEDی یافت نشد."
+        emptyMessage="کارکرد پایان‌یافته‌ای برای تأیید نیست. از نقش «اپراتور معدن» یک کارکرد ساعتی شروع و پایان دهید، یا روی سرور دستور db:seed را اجرا کنید."
         testId="consultant-hourly-table"
       />
 
