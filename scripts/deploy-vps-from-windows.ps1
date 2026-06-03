@@ -9,7 +9,7 @@ $ApiBase = "http://${VpsHost}:4000/api"
 
 Set-Location (Join-Path $PSScriptRoot "..")
 
-Write-Host "==> git pull (local)"
+Write-Host "==> git pull (local, proxy disabled)"
 git -c http.proxy= -c https.proxy= pull
 
 Write-Host "==> build backend (prisma generate + tsc)"
@@ -27,14 +27,14 @@ $sha = git rev-parse --short HEAD
 Write-Host "    web build SHA: $sha"
 Pop-Location
 
-Write-Host "==> upload backend dist + prisma (VPS cannot git pull — no github.com DNS)"
+Write-Host "==> upload backend dist + prisma (VPS has no github.com DNS)"
 scp -r apps/backend/dist "root@${VpsHost}:${RemoteRoot}/apps/backend/"
 scp -r apps/backend/prisma "root@${VpsHost}:${RemoteRoot}/apps/backend/"
 
 Write-Host "==> upload web dist"
 scp -r apps/web/dist "root@${VpsHost}:${RemoteRoot}/apps/web/"
 
-Write-Host "==> prisma generate + migrate + restart on VPS (do NOT npm run build — old src on server)"
+Write-Host "==> prisma generate + migrate + restart on VPS (skip npm run build on server)"
 $remoteCmd = "cd ${RemoteRoot}/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK"
 ssh "root@${VpsHost}" $remoteCmd
 
