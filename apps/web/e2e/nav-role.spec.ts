@@ -17,3 +17,14 @@ test("CONSULTANT nav has exactly one work item and no settlement leak", async ({
   const count = await page.locator("aside a").count();
   expect(count).toBe(1);
 });
+
+test("home shows only accessible sections (no locked cards)", async ({ page, request }) => {
+  await loginViaUi(page, "09000000007", request);
+  await page.goto("/panel");
+  await expect(page.getByTestId(/home-link-locked/)).toHaveCount(0);
+  const homeLinks = page.locator("[data-testid^='home-link-']");
+  await expect(homeLinks.first()).toBeVisible();
+  const count = await homeLinks.count();
+  expect(count).toBeGreaterThan(0);
+  expect(count).toBeLessThanOrEqual(6);
+});

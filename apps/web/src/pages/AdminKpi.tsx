@@ -11,7 +11,8 @@ import {
 } from "recharts";
 import { PageFrame } from "../components/PageFrame";
 import { JalaliDatePicker } from "../components/JalaliDatePicker";
-import { Button } from "../components/ui";
+import { Button, FilterBar, FilterField } from "../components/ui";
+import { FormField } from "../components/FormField";
 import { apiGetData, apiPostData } from "../api";
 import { formatJalaliDate, isoDaysAgo } from "../lib/jalaliDate";
 import { dateRange } from "../lib/validation";
@@ -139,26 +140,35 @@ export default function AdminKpi() {
       intro="راندمان ناوگان، تأخیر، نگهداری پرداخت و بهره‌وری وسیله — بازه تاریخ شمسی."
       expectedRoles={["ADMIN", "OPERATION_ADMIN"]}
     >
-      <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-        <JalaliDatePicker label="از تاریخ" value={from} onChange={setFrom} />
-        <JalaliDatePicker label="تا تاریخ" value={to} onChange={setTo} />
-        <label style={{ fontSize: 13 }}>
-          شناسه معدن
-          <input
-            type="text"
-            value={mineId}
-            onChange={(e) => setMineId(e.target.value)}
-            placeholder="همه"
-            style={{ ...inputStyle, width: 80 }}
-          />
-        </label>
-        <Button variant="secondary" onClick={() => void load()} disabled={busy}>
-          بروزرسانی
-        </Button>
-        <Button onClick={() => void recompute()} disabled={busy}>
-          محاسبهٔ مجدد
-        </Button>
-      </div>
+      <FilterBar>
+        <FilterField minWidth={180}>
+          <JalaliDatePicker label="از تاریخ" value={from} onChange={setFrom} />
+        </FilterField>
+        <FilterField minWidth={180}>
+          <JalaliDatePicker label="تا تاریخ" value={to} onChange={setTo} />
+        </FilterField>
+        <FilterField minWidth={120}>
+          <FormField label="شناسه معدن">
+            <input
+              type="text"
+              value={mineId}
+              onChange={(e) => setMineId(e.target.value)}
+              placeholder="همه"
+              style={{ ...inputStyle, width: 100 }}
+            />
+          </FormField>
+        </FilterField>
+        <FilterField minWidth="auto">
+          <Button variant="secondary" onClick={() => void load()} disabled={busy}>
+            بروزرسانی
+          </Button>
+        </FilterField>
+        <FilterField minWidth="auto">
+          <Button onClick={() => void recompute()} disabled={busy}>
+            محاسبهٔ مجدد
+          </Button>
+        </FilterField>
+      </FilterBar>
 
       {dashboard && (
         <p style={{ fontSize: 12, color: brand.textMuted, marginTop: 8 }}>

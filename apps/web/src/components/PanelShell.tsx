@@ -98,9 +98,8 @@ function PanelShellInner({ onLogout, nav, ctx }: InnerProps) {
             width: 260,
             flexShrink: 0,
             padding: space.md,
-            background: brand.panel,
-            borderLeft: `1px solid ${brand.border}`,
-            boxShadow: shadow.sm,
+            background: brand.sidebarBg,
+            borderLeft: `1px solid ${brand.primaryDark}`,
           }}
         >
           <div
@@ -108,7 +107,7 @@ function PanelShellInner({ onLogout, nav, ctx }: InnerProps) {
               marginBottom: space.md,
               fontWeight: 700,
               fontSize: fontSize.sm,
-              color: brand.textMuted,
+              color: brand.sidebarMuted,
               letterSpacing: "0.02em",
             }}
           >
@@ -126,11 +125,11 @@ function PanelShellInner({ onLogout, nav, ctx }: InnerProps) {
                   borderRadius: radius.md,
                   marginBottom: 6,
                   textDecoration: "none",
-                  color: isActive ? brand.primaryDark : brand.text,
-                  background: isActive ? brand.primaryLight : "transparent",
+                  color: isActive ? "#FFFFFF" : brand.sidebarText,
+                  background: isActive ? brand.sidebarActive : "transparent",
                   fontWeight: isActive ? 700 : 500,
                   fontSize: fontSize.base,
-                  borderRight: isActive ? `3px solid ${brand.primary}` : "3px solid transparent",
+                  borderRight: isActive ? `3px solid ${brand.primaryMuted}` : "3px solid transparent",
                   transition: "background 0.15s ease",
                 })}
               >

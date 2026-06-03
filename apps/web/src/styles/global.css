@@ -7,10 +7,10 @@
 }
 
 :root {
-  --brand-bg: #f5f4f0;
+  --brand-bg: #f7f8fa;
   --brand-panel: #ffffff;
-  --brand-panel-muted: #f0ede6;
-  --brand-border: #e2ddd4;
+  --brand-panel-muted: #f1f3f5;
+  --brand-border: #e4e7ec;
   --brand-primary: #1e3a2f;
   --brand-primary-dark: #152921;
   --brand-primary-light: #e6efea;
@@ -40,6 +40,7 @@ body {
   background: var(--brand-bg);
   color: var(--brand-text);
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "kern";
 }
 
 button,

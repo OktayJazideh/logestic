@@ -1,5 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { PageFrame } from "../components/PageFrame";
 import {
   FinanceLoadDetailModal,
@@ -9,23 +19,23 @@ import { API_BASE, apiGetData, apiPostData, getStoredToken } from "../api";
 import {
   financeDisplayLabels,
   PLATFORM_LEGAL_TERMS_FA,
-  type DisplayLabel,
   type FinanceDisplayLabels,
 } from "../lib/platformLegal";
 import { JalaliMonthPicker } from "../components/JalaliMonthPicker";
 import { formatMoney } from "../lib/formatMoney";
 import { todayGregorianYm } from "../lib/jalaliDate";
+import { Alert, Button, FilterBar, FilterField, StatCard } from "../components/ui";
+import { FormField } from "../components/FormField";
 import {
+  alertStyle,
   brand,
-  btnPrimary as themeBtnPrimary,
   btnSecondary,
   cardStyle as themeCard,
   inputStyle,
-  radius,
   sectionStyle,
-  shadow,
   space,
   tableCellPadding,
+  tableThStyle,
 } from "../theme";
 
 type FinanceCards = {
@@ -59,48 +69,8 @@ type FinanceSummary = {
   terms_fa?: string;
 };
 
-declare global {
-  interface Window {
-    Chart?: new (
-      ctx: CanvasRenderingContext2D,
-      config: Record<string, unknown>,
-    ) => { destroy: () => void };
-  }
-}
-
-const CHART_CDN = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js";
-
-const financeCard: React.CSSProperties = {
-  ...themeCard,
-  flex: "1 1 160px",
-  padding: space.md,
-};
-
-const sectionCardOperational: React.CSSProperties = {
-  ...financeCard,
-  flex: "1 1 240px",
-  background: brand.successBg,
-  borderColor: brand.successBorder,
-};
-
-const sectionCardPlatform: React.CSSProperties = {
-  ...financeCard,
-  flex: "1 1 240px",
-  background: brand.warnBg,
-  borderColor: brand.warnBorder,
-};
-
-const sectionCardCommunity: React.CSSProperties = {
-  ...financeCard,
-  flex: "1 1 240px",
-  background: brand.panelMuted,
-  borderColor: brand.border,
-};
-
 const btn = btnSecondary;
-const btnPrimary = themeBtnPrimary;
-
-const th: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: tableCellPadding };
+const th = tableThStyle;
 const td: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: tableCellPadding };
 
 function formatTons(n: number) {
@@ -111,28 +81,6 @@ function entityLabel(t: IbanRow["entity_type"]) {
   if (t === "fleet_owner") return "مالک ناوگان";
   if (t === "household") return "خانوار";
   return "تعاونی";
-}
-
-function labelEn(d: DisplayLabel) {
-  return d.en;
-}
-
-function loadChartJs(): Promise<void> {
-  if (window.Chart) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${CHART_CDN}"]`);
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      if (window.Chart) resolve();
-      return;
-    }
-    const s = document.createElement("script");
-    s.src = CHART_CDN;
-    s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("chart_js_load_failed"));
-    document.head.appendChild(s);
-  });
 }
 
 export default function AdminFinance() {
@@ -147,8 +95,6 @@ export default function AdminFinance() {
   const [busy, setBusy] = useState(false);
   const [revealed, setRevealed] = useState<Record<string, string>>({});
   const [reasonDraft, setReasonDraft] = useState<Record<string, string>>({});
-  const chartRef = useRef<HTMLCanvasElement | null>(null);
-  const chartInstance = useRef<{ destroy: () => void } | null>(null);
 
   const periodQuery = useCallback(() => {
     const q = new URLSearchParams({ year: String(year), month: String(month) });
@@ -188,48 +134,15 @@ export default function AdminFinance() {
   const displayLabels =
     summary?.display_labels ?? summary?.cards.display_labels ?? financeDisplayLabels();
 
-  useEffect(() => {
-    if (!summary?.chart.length || !chartRef.current) return;
-    let cancelled = false;
-    const L = displayLabels;
-
-    void loadChartJs()
-      .then(() => {
-        if (cancelled || !chartRef.current || !window.Chart) return;
-        chartInstance.current?.destroy();
-        const labels = summary.chart.map((p) => p.label);
-        chartInstance.current = new window.Chart!(chartRef.current.getContext("2d")!, {
-          type: "bar",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: L.operational_settlement.fa,
-                data: summary.chart.map((p) => p.operational_total_rial),
-                backgroundColor: brand.primary,
-              },
-              {
-                label: L.restricted_community_fund.fa,
-                data: summary.chart.map((p) => p.community_pool_contributions_rial),
-                backgroundColor: "#0369A1",
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { position: "bottom" } },
-            scales: { y: { beginAtZero: true } },
-          },
-        });
-      })
-      .catch(() => setError("بارگذاری Chart.js از CDN ناموفق بود."));
-
-    return () => {
-      cancelled = true;
-      chartInstance.current?.destroy();
-      chartInstance.current = null;
-    };
-  }, [summary?.chart, displayLabels]);
+  const chartData = useMemo(
+    () =>
+      summary?.chart.map((p) => ({
+        label: p.label,
+        operational: p.operational_total_rial,
+        community: p.community_pool_contributions_rial,
+      })) ?? [],
+    [summary?.chart],
+  );
 
   async function revealIban(row: IbanRow) {
     const key = `${row.entity_type}:${row.entity_id}`;
@@ -284,64 +197,43 @@ export default function AdminFinance() {
       expectedRoles={["ADMIN"]}
       intro="پلتفرم: زیرساخت ثبت، تسویه و شفافیت — نه کارفرمای عملیات. سه جریان مالی مجزا (تسویه عملیاتی، کارمزد خدمات پلتفرم، صندوق محدود جامعه)."
     >
-      {error && (
-        <div
-          role="alert"
-          style={{
-            marginBottom: 12,
-            padding: 12,
-            borderRadius: 10,
-            border: "1px solid #FCA5A5",
-            background: "#FEF2F2",
-            color: "#991B1B",
-            fontSize: 13,
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <Alert variant="danger">{error}</Alert>}
 
-      <section style={{ marginBottom: 20 }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
-          <JalaliMonthPicker
-            label="دوره (شمسی)"
-            year={year}
-            month={month}
-            onChange={(y, m) => {
-              setYear(y);
-              setMonth(m);
-            }}
-          />
-          <label style={{ fontSize: 13 }}>
-            معدن (اختیاری)
-            <input
-              value={mineId}
-              onChange={(e) => setMineId(e.target.value)}
-              placeholder="mine_id"
-              style={{ display: "block", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: `1px solid ${brand.border}`, width: 100 }}
+      <section style={{ ...sectionStyle, marginBottom: space.lg }}>
+        <FilterBar>
+          <FilterField minWidth={200}>
+            <JalaliMonthPicker
+              label="دوره (شمسی)"
+              year={year}
+              month={month}
+              showPeriodHint={false}
+              onChange={(y, m) => {
+                setYear(y);
+                setMonth(m);
+              }}
             />
-          </label>
-          <button type="button" style={btnPrimary} disabled={busy} onClick={() => void load()}>
-            بروزرسانی
-          </button>
-        </div>
+          </FilterField>
+          <FilterField minWidth={140}>
+            <FormField label="معدن (اختیاری)">
+              <input
+                value={mineId}
+                onChange={(e) => setMineId(e.target.value)}
+                placeholder="mine_id"
+                style={{ ...inputStyle, width: 120 }}
+              />
+            </FormField>
+          </FilterField>
+          <FilterField minWidth="auto">
+            <Button disabled={busy} onClick={() => void load()}>
+              بروزرسانی
+            </Button>
+          </FilterField>
+        </FilterBar>
       </section>
 
       {summary && (
         <>
-          <p
-            dir="rtl"
-            style={{
-              margin: "0 0 20px",
-              padding: 12,
-              borderRadius: 10,
-              border: "1px solid #D1D5DB",
-              background: "#F9FAFB",
-              fontSize: 13,
-              color: "#374151",
-              lineHeight: 1.7,
-            }}
-          >
+          <p dir="rtl" style={alertStyle("info")}>
             {termsFa}
           </p>
 
@@ -359,8 +251,18 @@ export default function AdminFinance() {
 
           <section style={{ marginBottom: 24 }}>
             <h2 style={{ fontSize: 16, color: brand.primaryDark }}>۵. نمودار سه ماه اخیر</h2>
-            <div style={{ maxWidth: 720, padding: 12, border: `1px solid ${brand.border}`, borderRadius: 10 }}>
-              <canvas ref={chartRef} height={120} />
+            <div style={{ ...themeCard, maxWidth: 720, padding: space.md, height: 280 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={brand.border} />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v: number) => formatMoney(v)} />
+                  <Legend />
+                  <Bar dataKey="operational" name={displayLabels.operational_settlement.fa} fill={brand.primary} />
+                  <Bar dataKey="community" name={displayLabels.restricted_community_fund.fa} fill={brand.accent} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </section>
 
@@ -374,7 +276,7 @@ export default function AdminFinance() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
-                  <tr style={{ background: "#F3F6F1" }}>
+                  <tr>
                     <th style={th}>نوع</th>
                     <th style={th}>نام</th>
                     <th style={th}>IBAN</th>
@@ -395,11 +297,11 @@ export default function AdminFinance() {
                         </td>
                         <td style={td}>
                           {row.iban_valid === null ? (
-                            <span style={{ color: "#6B7280" }}>—</span>
+                            <span style={{ color: brand.textMuted }}>—</span>
                           ) : row.iban_valid ? (
-                            <span style={{ color: "#16A34A" }}>معتبر</span>
+                            <span style={{ color: brand.success }}>معتبر</span>
                           ) : (
-                            <span style={{ color: "#DC2626" }}>نامعتبر</span>
+                            <span style={{ color: brand.danger }}>نامعتبر</span>
                           )}
                         </td>
                         <td style={td}>
@@ -441,19 +343,10 @@ export default function AdminFinance() {
   );
 }
 
-function SectionHeading({
-  titleFa,
-  titleEn,
-}: {
-  titleFa: string;
-  titleEn: string;
-}) {
+function SectionHeading({ titleFa, titleEn }: { titleFa: string; titleEn: string }) {
   return (
-    <h2 style={{ fontSize: 16, color: brand.primaryDark, marginTop: 0, marginBottom: 12 }}>
+    <h2 style={{ fontSize: 16, color: brand.primaryDark, marginTop: 0, marginBottom: 12 }} title={titleEn}>
       {titleFa}
-      <span style={{ fontSize: 12, color: "#6B7280", fontWeight: 400, marginRight: 8 }} dir="ltr">
-        ({titleEn})
-      </span>
     </h2>
   );
 }
@@ -472,17 +365,12 @@ function PlatformLegalSections({
           titleFa={`۱. ${labels.operational_settlement.fa}`}
           titleEn={labels.operational_settlement.en}
         />
-        <div style={sectionCardOperational}>
-          <div style={{ fontSize: 22, fontWeight: 700, color: "#14532D" }}>
-            {formatMoney(cards.operational_total_rial)}
-          </div>
-          <div style={{ fontSize: 12, color: "#166534", marginTop: 8 }}>
-            {labels.owner_share.fa}: {formatMoney(cards.owner_share)}
-          </div>
-          <div style={{ fontSize: 11, color: "#6B7280", marginTop: 6 }}>
-            مسیر عملیاتی داخلی تعاونی — پلتفرم پرداخت‌کننده کرایه نیست
-          </div>
-        </div>
+        <StatCard
+          accent="success"
+          label={labels.operational_settlement.fa}
+          value={formatMoney(cards.operational_total_rial)}
+          hint={`${labels.owner_share.fa}: ${formatMoney(cards.owner_share)} — مسیر عملیاتی داخلی تعاونی`}
+        />
       </section>
 
       <section style={{ marginBottom: 20 }}>
@@ -490,14 +378,12 @@ function PlatformLegalSections({
           titleFa={`۲. ${labels.platform_service_fee.fa}`}
           titleEn={labels.platform_service_fee.en}
         />
-        <div style={sectionCardPlatform}>
-          <div style={{ fontSize: 22, fontWeight: 700, color: "#92400E" }}>
-            {formatMoney(cards.platform_share)}
-          </div>
-          <div style={{ fontSize: 11, color: "#6B7280", marginTop: 6 }} dir="ltr">
-            fund_type: PLATFORM_REVENUE
-          </div>
-        </div>
+        <StatCard
+          accent="warn"
+          label={labels.platform_service_fee.fa}
+          value={formatMoney(cards.platform_share)}
+          hint="درآمد خدمات پلتفرم — جدا از تسویه عملیاتی"
+        />
       </section>
 
       <section style={{ marginBottom: 0 }}>
@@ -506,21 +392,17 @@ function PlatformLegalSections({
           titleEn={labels.restricted_community_fund.en}
         />
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          <div style={sectionCardCommunity}>
-            <div style={{ fontSize: 12, color: "#1E3A2F" }}>مشارکت دوره (تن × نرخ)</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: "#1E3A8A", marginTop: 6 }}>
-              {formatMoney(cards.community_pool_contributions_rial)}
-            </div>
-          </div>
-          <div style={sectionCardCommunity}>
-            <div style={{ fontSize: 12, color: "#1E3A2F" }}>موجودی صندوق دوره</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: "#1E3A8A", marginTop: 6 }}>
-              {formatMoney(cards.community_pool)}
-            </div>
-            <div style={{ fontSize: 11, color: "#6B7280", marginTop: 6 }} dir="ltr">
-              fund_type: COMMUNITY_RESTRICTED — not platform revenue
-            </div>
-          </div>
+          <StatCard
+            accent="primary"
+            label="مشارکت دوره (تن × نرخ)"
+            value={formatMoney(cards.community_pool_contributions_rial)}
+          />
+          <StatCard
+            accent="neutral"
+            label="موجودی صندوق دوره"
+            value={formatMoney(cards.community_pool)}
+            hint={labels.restricted_community_fund.fa}
+          />
         </div>
       </section>
     </div>
@@ -535,29 +417,19 @@ function SupplementaryCards({
   labels: FinanceDisplayLabels;
 }) {
   const items = [
-    { label: labels.owner_share.fa, sub: labelEn(labels.owner_share), value: formatMoney(cards.owner_share) },
-    {
-      label: labels.platform_service_fee.fa,
-      sub: labelEn(labels.platform_service_fee),
-      value: formatMoney(cards.platform_share),
-    },
+    { label: labels.owner_share.fa, value: formatMoney(cards.owner_share), accent: "success" as const },
+    { label: labels.platform_service_fee.fa, value: formatMoney(cards.platform_share), accent: "warn" as const },
     {
       label: labels.restricted_community_fund.fa + " (موجودی)",
-      sub: labelEn(labels.restricted_community_fund),
       value: formatMoney(cards.community_pool),
+      accent: "primary" as const,
     },
-    { label: "ماموریت VERIFIED", sub: "verified_missions_count", value: String(cards.verified_missions_count) },
+    { label: "ماموریت VERIFIED", value: String(cards.verified_missions_count), accent: "neutral" as const },
   ];
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
       {items.map((item) => (
-        <div key={item.label} style={financeCard}>
-          <div style={{ fontSize: 12, color: "#6B7280" }}>{item.label}</div>
-          <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 2 }} dir="ltr">
-            {item.sub}
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: brand.primaryDark, marginTop: 6 }}>{item.value}</div>
-        </div>
+        <StatCard key={item.label} label={item.label} value={item.value} accent={item.accent} />
       ))}
     </div>
   );
@@ -573,13 +445,13 @@ function MissionsTable({
   onDetail: (row: FinanceMissionRow) => void;
 }) {
   if (rows.length === 0) {
-    return <p style={{ color: "#6B7280", fontSize: 13 }}>ماموریت VERIFIED در این دوره یافت نشد.</p>;
+    return <p style={{ color: brand.textMuted, fontSize: 13 }}>ماموریت VERIFIED در این دوره یافت نشد.</p>;
   }
   return (
     <div style={{ overflowX: "auto" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
         <thead>
-          <tr style={{ background: "#F3F6F1" }}>
+          <tr>
             <th style={th}>کد بار</th>
             <th style={th}>ماموریت</th>
             <th style={th}>{labels.operational_settlement.fa} (تومان)</th>
@@ -599,7 +471,7 @@ function MissionsTable({
               <td style={td}>{formatMoney(row.operational_total_rial)}</td>
               <td style={td} title="مستقل از کرایه عملیاتی">
                 {formatMoney(row.community_contribution_rial)}
-                <span style={{ color: "#6B7280", fontSize: 12 }}>
+                <span style={{ color: brand.textMuted, fontSize: 12 }}>
                   {" "}
                   / {formatTons(row.verified_net_tons)} تن
                 </span>

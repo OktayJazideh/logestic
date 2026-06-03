@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class MineralTheme {
   static const String fontFamily = 'Vazirmatn';
 
-  static const Color bg = Color(0xFFF5F4F0);
+  static const Color bg = Color(0xFFF7F8FA);
   static const Color panel = Color(0xFFFFFFFF);
   static const Color panelMuted = Color(0xFFF0EDE6);
   static const Color border = Color(0xFFE2DDD4);

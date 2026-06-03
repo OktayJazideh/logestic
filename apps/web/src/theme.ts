@@ -5,10 +5,10 @@ export const brand = {
   fontFamily: '"Vazirmatn", Tahoma, sans-serif',
   fontMono: 'ui-monospace, "Cascadia Code", Consolas, monospace',
 
-  bg: "#F5F4F0",
+  bg: "#F7F8FA",
   panel: "#FFFFFF",
-  panelMuted: "#F0EDE6",
-  border: "#E2DDD4",
+  panelMuted: "#F1F3F5",
+  border: "#E4E7EC",
   borderDark: "#C4BCB0",
 
   primary: "#1E3A2F",
@@ -36,9 +36,14 @@ export const brand = {
   warnBorder: "#DDD0A8",
 
   /** سطوح جدول و بخش‌ها */
-  surfaceTableHead: "#F0EDE6",
-  surfaceRowHover: "#FAFAF8",
-  surfaceRowStripe: "#F8F7F4",
+  surfaceTableHead: "#F1F3F5",
+  surfaceRowHover: "#FAFBFC",
+  surfaceRowStripe: "#F7F8FA",
+
+  sidebarBg: "#152921",
+  sidebarText: "#E8EEEB",
+  sidebarMuted: "#9BB5A8",
+  sidebarActive: "#1E3A2F",
 } as const;
 
 export const space = {
@@ -89,6 +94,20 @@ export const cardStyle: React.CSSProperties = {
   border: `1px solid ${brand.border}`,
   borderRadius: radius.lg,
   boxShadow: shadow.sm,
+};
+
+export const filterBarStyle: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "flex-end",
+  gap: space.md,
+};
+
+export const statCardStyle: React.CSSProperties = {
+  ...cardStyle,
+  flex: "1 1 180px",
+  padding: space.md,
+  marginBottom: 0,
 };
 
 export const sectionStyle: React.CSSProperties = {

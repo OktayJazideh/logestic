@@ -13,6 +13,8 @@ type Props = {
   onChange: (year: number, month: number) => void;
   label?: string;
   disabled?: boolean;
+  /** در نوار فیلتر hint زیر input باعث ناهم‌ترازی می‌شود */
+  showPeriodHint?: boolean;
   style?: React.CSSProperties;
   "data-testid"?: string;
 };
@@ -36,6 +38,7 @@ export function JalaliMonthPicker({
   onChange,
   label,
   disabled,
+  showPeriodHint = true,
   style,
   "data-testid": testId,
 }: Props) {
@@ -86,9 +89,11 @@ export function JalaliMonthPicker({
         calendarPosition="bottom-right"
         arrow={false}
       />
-      <span style={{ display: "block", fontSize: fontSize.xs, color: brand.textMuted, marginTop: 6 }}>
-        دوره میلادی: {periodLabel}
-      </span>
+      {showPeriodHint && (
+        <span style={{ display: "block", fontSize: fontSize.xs, color: brand.textMuted, marginTop: 6 }}>
+          دوره شمسی: {periodLabel}
+        </span>
+      )}
     </div>
   );
 }

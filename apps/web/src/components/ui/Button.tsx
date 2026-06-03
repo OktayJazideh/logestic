@@ -15,10 +15,10 @@ const variants: Record<Variant, React.CSSProperties> = {
   danger: btnDanger,
 };
 
-export function Button({ variant = "primary", fullWidth, style, disabled, children, ...rest }: Props) {
+export function Button({ variant = "primary", fullWidth, style, disabled, children, type = "button", ...rest }: Props) {
   return (
     <button
-      type="button"
+      type={type}
       disabled={disabled}
       style={{
         ...variants[variant],

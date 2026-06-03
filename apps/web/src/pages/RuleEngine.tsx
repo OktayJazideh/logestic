@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
 import { JalaliDatePicker } from "../components/JalaliDatePicker";
-import { fieldErrorStyle } from "../components/FormField";
+import { FormField, fieldErrorStyle } from "../components/FormField";
 import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostData } from "../api";
 import { formatJalaliDate } from "../lib/jalaliDate";
 import { labelFa, RULE_SCOPE_FA, RULE_STATUS_FA } from "../lib/uiLabels";
 import { dateRequired, positiveInt, positiveNumber, required } from "../lib/validation";
+import { Alert, Button, FilterBar, FilterField, FormRow, Section, Select } from "../components/ui";
+import { brand, selectStyle, tableTdStyle, tableThStyle } from "../theme";
 
 type FinanceRule = {
   id: number;
@@ -19,45 +21,6 @@ type FinanceRule = {
   effective_to?: string;
   version: number;
   status: "ACTIVE" | "ARCHIVED";
-};
-
-const th: React.CSSProperties = { padding: "8px 10px", borderBottom: "1px solid #E5E7EB" };
-const td: React.CSSProperties = { padding: "8px 10px", borderBottom: "1px solid #E5E7EB" };
-const alertStyle: React.CSSProperties = {
-  marginBottom: 12,
-  padding: 12,
-  borderRadius: 10,
-  border: "1px solid #FCA5A5",
-  background: "#FEF2F2",
-  color: "#991B1B",
-  fontSize: 13,
-};
-const okStyle: React.CSSProperties = {
-  marginBottom: 12,
-  padding: 12,
-  borderRadius: 10,
-  border: "1px solid #A7F3D0",
-  background: "#ECFDF5",
-  color: "#065F46",
-  fontSize: 13,
-};
-const labelStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#374151" };
-const inputStyle: React.CSSProperties = {
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #D1D5DB",
-  fontSize: 13,
-  minWidth: 120,
-};
-const btnStyle: React.CSSProperties = {
-  padding: "8px 16px",
-  borderRadius: 8,
-  border: "none",
-  background: "#1B5E20",
-  color: "#fff",
-  fontWeight: 700,
-  cursor: "pointer",
-  fontSize: 13,
 };
 
 function formatValue(v: unknown): string {
@@ -138,91 +101,90 @@ export default function RuleEnginePage() {
       title="قوانین مالی"
       intro="قوانین نسخه‌دار: سهم مالک، آستانه باسکول، دوره تسویه — فقط مدیر سیستم."
     >
-      {err && <div style={alertStyle}>{err}</div>}
-      {msg && <div style={okStyle}>{msg}</div>}
+      {err && <Alert variant="danger">{err}</Alert>}
+      {msg && <Alert variant="success">{msg}</Alert>}
 
-      <form
+      <FormRow
+        as="form"
         noValidate
         onSubmit={submit}
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 12,
-          marginBottom: 20,
-          padding: 14,
-          border: "1px solid #E5E7EB",
-          borderRadius: 10,
-          background: "#F9FAFB",
-        }}
+        actions={
+          <Button type="submit" disabled={busy}>
+            {busy ? "…" : "فعال‌سازی نسخه جدید"}
+          </Button>
+        }
       >
-        <label style={labelStyle}>
-          کلید
-          <select value={key} onChange={(e) => setKey(e.target.value)} style={inputStyle}>
-            {(knownKeys.length ? knownKeys : [key]).map((k) => (
-              <option key={k} value={k}>
-                {k}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label style={labelStyle}>
-          مقدار <span style={{ color: "#DC2626" }}>*</span>
-          <input
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-              validateField("value", e.target.value, [required("مقدار"), positiveNumber("مقدار")]);
-            }}
-            onBlur={() => validateField("value", value, [required("مقدار"), positiveNumber("مقدار")])}
-            style={inputStyle}
-          />
-          {getError("value") && <span style={fieldErrorStyle}>{getError("value")}</span>}
-        </label>
-        <label style={labelStyle}>
-          محدوده
-          <select
-            value={scopeType}
-            onChange={(e) => setScopeType(e.target.value as typeof scopeType)}
-            style={inputStyle}
-          >
-            <option value="GLOBAL">{labelFa(RULE_SCOPE_FA, "GLOBAL")}</option>
-            <option value="MINE">{labelFa(RULE_SCOPE_FA, "MINE")}</option>
-            <option value="COOPERATIVE">{labelFa(RULE_SCOPE_FA, "COOPERATIVE")}</option>
-          </select>
-        </label>
-        {scopeType === "MINE" && (
-          <label style={labelStyle}>
-            شناسه معدن <span style={{ color: "#DC2626" }}>*</span>
+        <FilterField minWidth={160}>
+          <FormField label="کلید" htmlFor="rule-key">
+            <Select id="rule-key" value={key} onChange={(e) => setKey(e.target.value)} style={selectStyle}>
+              {(knownKeys.length ? knownKeys : [key]).map((k) => (
+                <option key={k} value={k}>
+                  {k}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+        </FilterField>
+        <FilterField minWidth={120}>
+          <FormField label="مقدار" required error={getError("value")}>
             <input
-              value={mineId}
+              value={value}
               onChange={(e) => {
-                setMineId(e.target.value);
-                validateField("mineId", e.target.value, [positiveInt("mine_id")]);
+                setValue(e.target.value);
+                validateField("value", e.target.value, [required("مقدار"), positiveNumber("مقدار")]);
               }}
-              onBlur={() => validateField("mineId", mineId, [positiveInt("mine_id")])}
-              style={inputStyle}
+              onBlur={() => validateField("value", value, [required("مقدار"), positiveNumber("مقدار")])}
+              style={selectStyle}
             />
-            {getError("mineId") && <span style={fieldErrorStyle}>{getError("mineId")}</span>}
-          </label>
+          </FormField>
+        </FilterField>
+        <FilterField minWidth={140}>
+          <FormField label="محدوده" htmlFor="rule-scope">
+            <Select
+              id="rule-scope"
+              value={scopeType}
+              onChange={(e) => setScopeType(e.target.value as typeof scopeType)}
+              style={selectStyle}
+            >
+              <option value="GLOBAL">{labelFa(RULE_SCOPE_FA, "GLOBAL")}</option>
+              <option value="MINE">{labelFa(RULE_SCOPE_FA, "MINE")}</option>
+              <option value="COOPERATIVE">{labelFa(RULE_SCOPE_FA, "COOPERATIVE")}</option>
+            </Select>
+          </FormField>
+        </FilterField>
+        {scopeType === "MINE" && (
+          <FilterField minWidth={120}>
+            <FormField label="شناسه معدن" required error={getError("mineId")}>
+              <input
+                value={mineId}
+                onChange={(e) => {
+                  setMineId(e.target.value);
+                  validateField("mineId", e.target.value, [positiveInt("mine_id")]);
+                }}
+                onBlur={() => validateField("mineId", mineId, [positiveInt("mine_id")])}
+                style={selectStyle}
+              />
+            </FormField>
+          </FilterField>
         )}
         {scopeType === "COOPERATIVE" && (
-          <label style={labelStyle}>
-            شناسه تعاونی <span style={{ color: "#DC2626" }}>*</span>
-            <input
-              value={coopId}
-              onChange={(e) => {
-                setCoopId(e.target.value);
-                validateField("coopId", e.target.value, [positiveInt("cooperative_id")]);
-              }}
-              onBlur={() => validateField("coopId", coopId, [positiveInt("cooperative_id")])}
-              style={inputStyle}
-            />
-            {getError("coopId") && <span style={fieldErrorStyle}>{getError("coopId")}</span>}
-          </label>
+          <FilterField minWidth={120}>
+            <FormField label="شناسه تعاونی" required error={getError("coopId")}>
+              <input
+                value={coopId}
+                onChange={(e) => {
+                  setCoopId(e.target.value);
+                  validateField("coopId", e.target.value, [positiveInt("cooperative_id")]);
+                }}
+                onBlur={() => validateField("coopId", coopId, [positiveInt("cooperative_id")])}
+                style={selectStyle}
+              />
+            </FormField>
+          </FilterField>
         )}
-        <div>
+        <FilterField minWidth={180}>
           <JalaliDatePicker
-            label="اعتبار از *"
+            label="اعتبار از"
             value={effectiveFrom}
             onChange={(v) => {
               setEffectiveFrom(v);
@@ -230,58 +192,65 @@ export default function RuleEnginePage() {
             }}
           />
           {getError("effectiveFrom") && <span style={fieldErrorStyle}>{getError("effectiveFrom")}</span>}
-        </div>
-        <div style={{ alignSelf: "flex-end" }}>
-          <button type="submit" disabled={busy} style={btnStyle}>
-            {busy ? "…" : "فعال‌سازی نسخه جدید"}
-          </button>
-        </div>
-      </form>
+        </FilterField>
+      </FormRow>
 
-      <div style={{ marginBottom: 10, display: "flex", gap: 8, alignItems: "center" }}>
-        <span style={{ fontWeight: 700 }}>فیلتر وضعیت:</span>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)} style={inputStyle}>
-          <option value="">همه</option>
-          <option value="ACTIVE">{labelFa(RULE_STATUS_FA, "ACTIVE")}</option>
-          <option value="ARCHIVED">{labelFa(RULE_STATUS_FA, "ARCHIVED")}</option>
-        </select>
-        <button type="button" onClick={() => load()} style={{ ...btnStyle, background: "#374151" }}>
-          بروزرسانی
-        </button>
-      </div>
+      <Section title="فهرست قوانین">
+        <FilterBar style={{ marginBottom: 16 }}>
+          <FilterField minWidth={160}>
+            <FormField label="فیلتر وضعیت" htmlFor="rule-filter-status">
+              <Select
+                id="rule-filter-status"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
+                style={selectStyle}
+              >
+                <option value="">همه</option>
+                <option value="ACTIVE">{labelFa(RULE_STATUS_FA, "ACTIVE")}</option>
+                <option value="ARCHIVED">{labelFa(RULE_STATUS_FA, "ARCHIVED")}</option>
+              </Select>
+            </FormField>
+          </FilterField>
+          <FilterField minWidth="auto">
+            <Button variant="secondary" onClick={() => void load()}>
+              بروزرسانی
+            </Button>
+          </FilterField>
+        </FilterBar>
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: "#F3F4F6", textAlign: "right" }}>
-              <th style={th}>کلید</th>
-              <th style={th}>مقدار</th>
-              <th style={th}>محدوده</th>
-              <th style={th}>نسخه</th>
-              <th style={th}>وضعیت</th>
-              <th style={th}>از</th>
-              <th style={th}>تا</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rules.map((r) => (
-              <tr key={r.id}>
-                <td style={td}>{r.key}</td>
-                <td style={td}>{formatValue(r.value)}</td>
-                <td style={td}>
-                  {labelFa(RULE_SCOPE_FA, r.scope_type)}
-                  {r.mine_id != null ? ` · معدن ${r.mine_id.toLocaleString("fa-IR")}` : ""}
-                  {r.cooperative_id != null ? ` · تعاونی ${r.cooperative_id.toLocaleString("fa-IR")}` : ""}
-                </td>
-                <td style={td}>{r.version.toLocaleString("fa-IR")}</td>
-                <td style={td}>{labelFa(RULE_STATUS_FA, r.status)}</td>
-                <td style={td}>{formatJalaliDate(r.effective_from)}</td>
-                <td style={td}>{r.effective_to ? formatJalaliDate(r.effective_to) : "—"}</td>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={tableThStyle}>کلید</th>
+                <th style={tableThStyle}>مقدار</th>
+                <th style={tableThStyle}>محدوده</th>
+                <th style={tableThStyle}>نسخه</th>
+                <th style={tableThStyle}>وضعیت</th>
+                <th style={tableThStyle}>از</th>
+                <th style={tableThStyle}>تا</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {rules.map((r) => (
+                <tr key={r.id}>
+                  <td style={tableTdStyle}>{r.key}</td>
+                  <td style={tableTdStyle}>{formatValue(r.value)}</td>
+                  <td style={tableTdStyle}>
+                    {labelFa(RULE_SCOPE_FA, r.scope_type)}
+                    {r.mine_id != null ? ` · معدن ${r.mine_id.toLocaleString("fa-IR")}` : ""}
+                    {r.cooperative_id != null ? ` · تعاونی ${r.cooperative_id.toLocaleString("fa-IR")}` : ""}
+                  </td>
+                  <td style={tableTdStyle}>{r.version.toLocaleString("fa-IR")}</td>
+                  <td style={tableTdStyle}>{labelFa(RULE_STATUS_FA, r.status)}</td>
+                  <td style={tableTdStyle}>{formatJalaliDate(r.effective_from)}</td>
+                  <td style={tableTdStyle}>{r.effective_to ? formatJalaliDate(r.effective_to) : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
     </PageFrame>
   );
 }

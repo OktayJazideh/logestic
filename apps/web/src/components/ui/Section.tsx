@@ -1,5 +1,5 @@
 import React from "react";
-import { sectionStyle } from "../../theme";
+import { brand, sectionStyle } from "../../theme";
 
 type Props = {
   title?: React.ReactNode;
@@ -11,7 +11,7 @@ export function Section({ title, children, style }: Props) {
   return (
     <section style={{ ...sectionStyle, ...style }}>
       {title && (
-        <h2 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: "inherit" }}>{title}</h2>
+        <h2 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: brand.primaryDark }}>{title}</h2>
       )}
       {children}
     </section>

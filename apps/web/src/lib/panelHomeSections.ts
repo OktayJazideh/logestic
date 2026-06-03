@@ -9,7 +9,7 @@ export type PanelHomeSection = {
   permissions?: string[];
 };
 
-/** همه کارت‌های خانه — همیشه نمایش داده می‌شوند؛ دسترسی جداگانه مشخص می‌شود */
+/** کاتالوگ کارت‌های خانه — در UI فقط موارد با canAccess نمایش داده می‌شوند */
 export const PANEL_HOME_SECTIONS: PanelHomeSection[] = [
   {
     to: "/panel/ops",
