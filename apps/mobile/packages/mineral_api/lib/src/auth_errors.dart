@@ -19,6 +19,12 @@ String authErrorMessage(Object error) {
         return 'کد وارد شده نامعتبر یا منقضی شده است.';
       case 'rate_limited':
         return 'درخواست‌های زیاد. لطفاً چند دقیقه بعد دوباره تلاش کنید.';
+      case 'user_not_registered':
+        return authUserNotRegisteredMessage;
+      case 'user_inactive':
+        return authUserInactiveMessage;
+      case 'sms_send_failed':
+        return 'ارسال پیامک با خطا مواجه شد. چند دقیقه بعد دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.';
     }
     return error.message;
   }

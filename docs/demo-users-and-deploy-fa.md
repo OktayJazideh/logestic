@@ -152,13 +152,21 @@ sudo -u logestic npm -w @app/backend run db:seed
 NODE_ENV=production
 PORT=4000
 DATABASE_URL=postgresql://USER:PASS@127.0.0.1:5432/mineral_mvp
-SMS_PROVIDER=mock
+SMS_PROVIDER=kavenegar
+SMS_API_KEY=کلید_از_پنل_کاوه‌نگار
+SMS_SENDER_LINE=2000660110
 PUBLIC_URL=https://api.example.ir
-PLATFORM_NAME=Logestic
+PLATFORM_NAME=Hamsahman
 DISPATCH_MODE=manual
 ```
 
-> اول staging با `SMS_PROVIDER=mock` و OTP از لاگ/dev proxy؛ بعد SMS واقعی.
+> **کاوه‌نگار:** خط آزمایشی `2000660110` فقط بعد از فعال‌سازی **سطح دسترسی API** در پنل (حساب من → خطوط) پیامک می‌فرستد. خطای `427` یعنی API برای این خط فعال نیست.
+>
+> تست زنده: `npm -w @app/backend run test:sms-prod1 -- --live` (با env بالا)
+>
+> **امنیت:** کلید API را فقط در env سرور بگذارید، نه در git.
+
+> اول staging می‌توانید `SMS_PROVIDER=mock` بگذارید؛ برای OTP واقعی روی گوشی `kavenegar` + کلید.
 
 Web build-time (`apps/web/.env.production`):
 

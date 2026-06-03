@@ -4,3 +4,6 @@ export const AUTH_USER_NOT_REGISTERED_MESSAGE =
 
 export const AUTH_USER_INACTIVE_MESSAGE =
   "حساب کاربری شما غیرفعال است. لطفاً با واحد مربوط تماس بگیرید.";
+
+export const AUTH_SMS_SEND_FAILED_MESSAGE =
+  "ارسال پیامک با خطا مواجه شد. چند دقیقه بعد دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.";

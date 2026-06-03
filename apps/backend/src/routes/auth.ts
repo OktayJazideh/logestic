@@ -5,7 +5,17 @@ import { ApiError } from "../http/errors";
 import { failure, success } from "../http/apiResponse";
 import { appContext } from "../appContext";
 import { resolveAuthContext } from "../lib/authContext";
-import { AUTH_USER_INACTIVE_MESSAGE, AUTH_USER_NOT_REGISTERED_MESSAGE } from "../lib/authMessages";
+import { AUTH_SMS_SEND_FAILED_MESSAGE, AUTH_USER_INACTIVE_MESSAGE, AUTH_USER_NOT_REGISTERED_MESSAGE } from "../lib/authMessages";
+import { isSmsDeliveryError } from "../lib/smsDeliveryError";
+
+function smsFailureMessage(err: unknown): string {
+  const cause = err instanceof Error ? err.cause : undefined;
+  const detail = cause instanceof Error ? cause.message : String(cause ?? (err instanceof Error ? err.message : ""));
+  if (/kavenegar_427_/.test(detail)) {
+    return "خط ارسال پیامک در پنل کاوه‌نگار برای API فعال نیست. از «حساب من → خطوط» سطح دسترسی وب‌سرویس خط 2000660110 را فعال کنید.";
+  }
+  return AUTH_SMS_SEND_FAILED_MESSAGE;
+}
 import { env } from "../config/env";
 
 const router = Router();
@@ -38,47 +48,61 @@ router.post("/request-otp", async (req, res, next) => {
   }
 
   const { mobile_number } = body.data;
-  const result = await appContext.authService.requestOtp(mobile_number);
-  if (!result.allowed) {
-    if ("reason" in result) {
-      if (result.reason === "not_registered") {
+  try {
+    const result = await appContext.authService.requestOtp(mobile_number);
+    if (!result.allowed) {
+      if ("reason" in result) {
+        if (result.reason === "not_registered") {
+          return next(
+            new ApiError({
+              statusCode: 403,
+              code: "user_not_registered",
+              message: AUTH_USER_NOT_REGISTERED_MESSAGE,
+              requestId,
+            }),
+          );
+        }
         return next(
           new ApiError({
             statusCode: 403,
-            code: "user_not_registered",
-            message: AUTH_USER_NOT_REGISTERED_MESSAGE,
+            code: "user_inactive",
+            message: AUTH_USER_INACTIVE_MESSAGE,
             requestId,
           }),
         );
       }
       return next(
         new ApiError({
-          statusCode: 403,
-          code: "user_inactive",
-          message: AUTH_USER_INACTIVE_MESSAGE,
+          statusCode: 429,
+          code: "rate_limited",
+          message: "Too many OTP requests. Try later.",
+          details: { retryAfterSeconds: result.retryAfterSeconds },
           requestId,
         }),
       );
     }
-    return next(
-      new ApiError({
-        statusCode: 429,
-        code: "rate_limited",
-        message: "Too many OTP requests. Try later.",
-        details: { retryAfterSeconds: result.retryAfterSeconds },
-        requestId,
-      }),
-    );
-  }
 
-  return res.json(
-    success(
-      {
-        expires_in_seconds: result.expiresInSeconds,
-      },
-      requestId,
-    ),
-  );
+    return res.json(
+      success(
+        {
+          expires_in_seconds: result.expiresInSeconds,
+        },
+        requestId,
+      ),
+    );
+  } catch (err) {
+    if (isSmsDeliveryError(err)) {
+      return next(
+        new ApiError({
+          statusCode: 503,
+          code: "sms_send_failed",
+          message: smsFailureMessage(err),
+          requestId,
+        }),
+      );
+    }
+    return next(err);
+  }
 });
 
 router.post("/verify-otp", async (req, res, next) => {

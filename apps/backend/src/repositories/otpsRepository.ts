@@ -1,5 +1,7 @@
 import crypto from "crypto";
 import { prisma } from "../db/prisma";
+import { smsProviderIsStub } from "../lib/smsProvider";
+import { SmsDeliveryError } from "../lib/smsDeliveryError";
 import { sendOtp } from "../services/notificationService";
 
 export type OtpRequestResult =
@@ -63,10 +65,20 @@ export class OtpsRepository {
     });
 
     try {
-      await sendOtp(mobile_number, otp);
+      const delivery = await sendOtp(mobile_number, otp);
+      if (!delivery.ok) {
+        throw new SmsDeliveryError("SMS provider returned failure");
+      }
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("[otp:sms] delivery failed", err);
+      await prisma.otps.deleteMany({ where: { mobile_number } }).catch(() => undefined);
+      if (smsProviderIsStub()) {
+        // eslint-disable-next-line no-console
+        console.error("[otp:sms] mock delivery failed (continuing)", err);
+      } else {
+        throw err instanceof SmsDeliveryError
+          ? err
+          : new SmsDeliveryError("Kavenegar SMS send failed", err);
+      }
     }
 
     return { allowed: true, expiresInSeconds: Math.floor(this.opts.otpTtlMs / 1000) };
