@@ -30,6 +30,7 @@ export async function assertMobileAvailable(
   mobile: string,
   excludeUserId?: number,
   requestId?: string,
+  excludeProvisioningRequestId?: number,
 ): Promise<void> {
   const existing = await provisioningRepo.findUserByMobileIncludingDeleted(mobile);
   if (existing) {
@@ -44,7 +45,7 @@ export async function assertMobileAvailable(
       });
     }
   }
-  const pendingMobile = await provisioningRepo.findPendingByMobile(mobile);
+  const pendingMobile = await provisioningRepo.findPendingByMobile(mobile, excludeProvisioningRequestId);
   if (pendingMobile) {
     throw new ApiError({
       statusCode: 409,
@@ -60,12 +61,17 @@ export async function assertProvisioningIdentityAvailable(
   nationalId: string,
   excludeUserId?: number,
   requestId?: string,
+  excludeProvisioningRequestId?: number,
 ): Promise<{ mobile: string; national_id: string }> {
   const mobileNorm = validateMobile(mobile, requestId);
-  await assertMobileAvailable(mobileNorm, excludeUserId, requestId);
+  await assertMobileAvailable(mobileNorm, excludeUserId, requestId, excludeProvisioningRequestId);
   const national_id = await assertNationalIdFreeForUserAccount(nationalId, excludeUserId, undefined, requestId);
 
-  const pending = await provisioningRepo.findPendingByMobileOrNationalId(mobileNorm, national_id);
+  const pending = await provisioningRepo.findPendingByMobileOrNationalId(
+    mobileNorm,
+    national_id,
+    excludeProvisioningRequestId,
+  );
   if (pending) {
     const code = pending.mobile_number === mobileNorm ? "mobile_pending" : "national_id_pending";
     throw new ApiError({
@@ -212,6 +218,7 @@ export async function createUserDirect(input: {
   full_name?: string;
   is_active?: boolean;
   requestId?: string;
+  excludeProvisioningRequestId?: number;
 }) {
   if (isCoopScopedRole(input.role) && input.cooperative_id == null) {
     throw new ApiError({
@@ -227,6 +234,7 @@ export async function createUserDirect(input: {
     input.national_id,
     undefined,
     input.requestId,
+    input.excludeProvisioningRequestId,
   );
 
   const existing = await provisioningRepo.findUserByMobileIncludingDeleted(identity.mobile);
@@ -286,7 +294,13 @@ export async function approveProvisioningRequest(
     });
   }
 
-  await assertProvisioningIdentityAvailable(req.mobile_number, req.national_id, undefined, httpRequestId);
+  await assertProvisioningIdentityAvailable(
+    req.mobile_number,
+    req.national_id,
+    undefined,
+    httpRequestId,
+    requestId,
+  );
 
   const user = await createUserDirect({
     mobile_number: req.mobile_number,
@@ -296,6 +310,7 @@ export async function approveProvisioningRequest(
     full_name: req.full_name,
     is_active: true,
     requestId: httpRequestId,
+    excludeProvisioningRequestId: requestId,
   });
 
   if (!user) {

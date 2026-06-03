@@ -151,19 +151,28 @@ export async function listProvisioningRequestsAdmin(opts?: {
 export async function findPendingByMobileOrNationalId(
   mobile: string,
   nationalId: string,
+  excludeRequestId?: number,
 ): Promise<ProvisioningRequestRow | null> {
   const row = await prisma.user_provisioning_requests.findFirst({
     where: {
       status: "PENDING",
       OR: [{ mobile_number: mobile }, { national_id: nationalId }],
+      ...(excludeRequestId != null ? { NOT: { id: toBig(excludeRequestId) } } : {}),
     },
   });
   return row ? mapRow(row) : null;
 }
 
-export async function findPendingByMobile(mobile: string): Promise<ProvisioningRequestRow | null> {
+export async function findPendingByMobile(
+  mobile: string,
+  excludeRequestId?: number,
+): Promise<ProvisioningRequestRow | null> {
   const row = await prisma.user_provisioning_requests.findFirst({
-    where: { status: "PENDING", mobile_number: mobile },
+    where: {
+      status: "PENDING",
+      mobile_number: mobile,
+      ...(excludeRequestId != null ? { NOT: { id: toBig(excludeRequestId) } } : {}),
+    },
   });
   return row ? mapRow(row) : null;
 }

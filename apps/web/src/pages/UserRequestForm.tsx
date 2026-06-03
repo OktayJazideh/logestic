@@ -19,7 +19,20 @@ type RequestRow = {
   mobile_number: string;
   national_id: string;
   full_name?: string;
+  rejection_reason?: string;
   created_at: string;
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: "در انتظار تأیید",
+  REJECTED: "رد شده",
+  APPROVED: "تأیید شده",
+};
+
+const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+  PENDING: { bg: "#FEF3C7", color: "#92400E" },
+  REJECTED: { bg: "#FEE2E2", color: "#991B1B" },
+  APPROVED: { bg: "#DCFCE7", color: "#166534" },
 };
 
 const COOP_ROLES = ["COOP_ADMIN", "COOP_OPERATOR", "HOUSEHOLD"] as const;
@@ -165,11 +178,41 @@ export default function UserRequestForm() {
           <p style={{ margin: 0, color: "#6B7280" }}>هنوز درخواستی ثبت نشده است.</p>
         </Card>
       ) : (
-        requests.map((r) => (
-          <Card key={r.id} style={{ marginBottom: 8, fontSize: 13 }}>
-            <Badge>{r.status}</Badge> {r.target_role} — {r.mobile_number} — {r.national_id}
-          </Card>
-        ))
+        requests.map((r) => {
+          const statusStyle = STATUS_COLORS[r.status] ?? STATUS_COLORS.PENDING;
+          return (
+            <Card key={r.id} style={{ marginBottom: 8, fontSize: 13 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                <span
+                  style={{
+                    padding: "2px 8px",
+                    borderRadius: 6,
+                    fontSize: 12,
+                    background: statusStyle.bg,
+                    color: statusStyle.color,
+                  }}
+                >
+                  {STATUS_LABELS[r.status] ?? r.status}
+                </span>
+                <Badge>{r.target_role}</Badge>
+                <span>{r.mobile_number}</span>
+                <span>{r.national_id}</span>
+                {r.full_name && <span>{r.full_name}</span>}
+              </div>
+              {r.status === "REJECTED" && r.rejection_reason && (
+                <div style={{ color: "#991B1B", marginTop: 4 }}>
+                  <strong>دلیل رد:</strong> {r.rejection_reason}
+                </div>
+              )}
+              {r.status === "PENDING" && (
+                <div style={{ color: "#6B7280", marginTop: 4 }}>در انتظار تأیید مدیر سیستم</div>
+              )}
+              {r.status === "APPROVED" && (
+                <div style={{ color: "#166534", marginTop: 4 }}>تأیید شد — کاربر می‌تواند با OTP وارد شود.</div>
+              )}
+            </Card>
+          );
+        })
       )}
     </PageFrame>
   );

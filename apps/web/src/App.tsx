@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RequirePermission } from "./components/RequirePermission";
+import { PanelNotFound } from "./components/PanelNotFound";
 import { PanelLayout } from "./components/PanelShell";
 import LoginPage from "./pages/LoginPage";
 import WorkspaceSelectPage from "./pages/WorkspaceSelectPage";
@@ -282,6 +283,7 @@ export default function App() {
             </G>
           }
         />
+        <Route path="*" element={<PanelNotFound />} />
       </Route>
       <Route path="*" element={<Navigate to="/panel" replace />} />
     </Routes>
