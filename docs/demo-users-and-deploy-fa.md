@@ -158,14 +158,9 @@ SMS_SENDER_LINE=2000660110
 PUBLIC_URL=https://api.example.ir
 PLATFORM_NAME=Hamsahman
 DISPATCH_MODE=manual
-BANK_ADAPTER=mock
 ```
 
 > **کاوه‌نگار:** خط آزمایشی `2000660110` فقط بعد از فعال‌سازی **سطح دسترسی API** در پنل (حساب من → خطوط) پیامک می‌فرستد. خطای `427` یعنی API برای این خط فعال نیست.
->
-> **اشتباه رایج:** کلید API را در `BANK_ADAPTER` نگذارید — فقط `SMS_API_KEY`.
->
-> راهنمای کامل pull + deploy: [deploy-vps-kavenegar-fa.md](deploy-vps-kavenegar-fa.md)
 >
 > تست زنده: `npm -w @app/backend run test:sms-prod1 -- --live` (با env بالا)
 >
