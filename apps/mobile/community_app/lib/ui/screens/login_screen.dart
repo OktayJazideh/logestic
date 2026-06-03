@@ -7,6 +7,7 @@ import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/community_api_client.dart';
 import '../../core/community_roles.dart';
+import '../../core/operator_gate.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -140,27 +141,31 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorText = null;
     });
     try {
-      await widget.api.requestOtp(persona.mobile);
-      final code = await widget.api.fetchDevOtp(persona.mobile);
-      if (code == null || code.length != 6) {
-        setState(() => _errorText = 'OTP دمو در دسترس نیست. سرور development + db:seed؟');
-        return;
-      }
-      final v = await widget.api.verifyOtp(mobileNumber: persona.mobile, otpCode: code);
-      if (!isCommunityRole(v.role)) {
-        setState(() => _errorText = 'این اپ مخصوص نقش‌های تعاونی است (${v.role}).');
-        return;
-      }
-      await widget.sessionStore.saveSession(
-        AuthSession(accessToken: v.accessToken, role: v.role, mobileNumber: persona.mobile),
+      final result = await performDemoLogin(
+        api: widget.api,
+        persona: persona,
+        sessionStore: widget.sessionStore,
       );
+      if (!isCommunityRole(result.role)) {
+        setState(() => _errorText = 'این اپ مخصوص نقش‌های تعاونی است (${result.role}).');
+        return;
+      }
       if (!mounted) return;
+      if (result.workspaceSelected) {
+        await navigateAfterWorkspace(
+          context: context,
+          api: widget.api,
+          token: result.accessToken,
+          role: normalizeCommunityRole(result.role),
+        );
+        return;
+      }
       Navigator.pushReplacementNamed(
         context,
         '/workspace-select',
         arguments: {
-          'token': v.accessToken,
-          'role': normalizeCommunityRole(v.role),
+          'token': result.accessToken,
+          'role': normalizeCommunityRole(result.role),
         },
       );
     } catch (e) {

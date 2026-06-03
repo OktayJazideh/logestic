@@ -25,6 +25,8 @@ class DemoLoginPanel extends StatelessWidget {
     final personas = demoPersonasForApp(app);
     if (personas.isEmpty) return const SizedBox.shrink();
 
+    final primary = primaryDemoPersonaForApp(app);
+
     return Container(
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(16),
@@ -42,11 +44,38 @@ class DemoLoginPanel extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'نیاز: db:seed · SMS mock · NODE_ENV=development',
+            'یک‌کلیک ورود بدون پیامک — مستقیم به داشبورد. نیاز: db:seed · NODE_ENV=development',
             style: TextStyle(fontSize: 11, color: MineralTheme.muted, height: 1.4),
           ),
-          const SizedBox(height: 10),
-          ...personas.map(
+          if (primary != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton.icon(
+                onPressed: busy ? null : () => onDemoLogin(primary),
+                icon: const Icon(Icons.dashboard_outlined, size: 18),
+                label: Text(
+                  app == 'driver'
+                      ? 'ورود دمو راننده → داشبورد'
+                      : 'ورود دمو خانوار → داشبورد',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MineralTheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+          ],
+          if (personas.length > 1) ...[
+            const SizedBox(height: 10),
+            const Text(
+              'سایر نقش‌های دمو',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: MineralTheme.muted),
+            ),
+          ],
+          const SizedBox(height: 8),
+          ...personas.where((p) => p.id != primary?.id).map(
             (p) => Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: OutlinedButton(
@@ -60,7 +89,7 @@ class DemoLoginPanel extends StatelessWidget {
                   children: [
                     Text(p.roleLabel, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                     Text(p.mobile, style: const TextStyle(fontSize: 11, color: MineralTheme.muted)),
-                    Text(p.workspaceHint, style: const TextStyle(fontSize: 10, color: MineralTheme.muted)),
+                    Text(p.flowHint, style: const TextStyle(fontSize: 10, color: MineralTheme.muted)),
                   ],
                 ),
               ),

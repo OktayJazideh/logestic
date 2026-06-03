@@ -148,6 +148,23 @@ class MineralApiClient {
     );
   }
 
+  /// Dev/UAT only — one-click login (matches web demoLogin). 404 when NODE_ENV=production.
+  Future<AuthVerifyResponse> devLogin(String mobileNumber) async {
+    final res = await send(
+      _http.post(
+        Uri.parse('$baseUrl/api/auth/__dev/login'),
+        headers: {'content-type': 'application/json'},
+        body: jsonEncode({'mobile_number': mobileNumber}),
+      ),
+    );
+    final body = await decodeResponse(res);
+    return AuthVerifyResponse(
+      accessToken: body['data']['access_token'] as String,
+      role: body['data']['role'] as String,
+      requestId: body['requestId'] as String?,
+    );
+  }
+
   /// Dev/UAT only — backend returns 404 when NODE_ENV=production.
   Future<String?> fetchDevOtp(String mobileNumber) async {
     try {

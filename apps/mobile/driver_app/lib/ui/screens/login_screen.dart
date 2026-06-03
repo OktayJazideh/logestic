@@ -152,25 +152,20 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorText = null;
     });
     try {
-      await widget.api.requestOtp(persona.mobile);
-      final code = await widget.api.fetchDevOtp(persona.mobile);
-      if (code == null || code.length != 6) {
-        setState(() => _errorText = 'OTP دمو در دسترس نیست. سرور development + db:seed؟');
-        return;
-      }
-      final v = await widget.api.verifyOtp(mobileNumber: persona.mobile, otpCode: code);
-      if (v.role != 'DRIVER') {
-        setState(() => _errorText = 'این اپ مخصوص راننده است (${v.role}).');
-        return;
-      }
-      await widget.sessionStore.saveSession(
-        AuthSession(accessToken: v.accessToken, role: v.role, mobileNumber: persona.mobile),
+      final result = await performDemoLogin(
+        api: widget.api,
+        persona: persona,
+        sessionStore: widget.sessionStore,
       );
+      if (result.role != 'DRIVER') {
+        setState(() => _errorText = 'این اپ مخصوص راننده است (${result.role}).');
+        return;
+      }
       if (!mounted) return;
       await navigateAfterDriverAuth(
         context: context,
         api: widget.api,
-        token: v.accessToken,
+        token: result.accessToken,
         sessionStore: widget.sessionStore,
       );
     } catch (e) {

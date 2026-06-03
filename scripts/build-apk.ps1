@@ -1,19 +1,15 @@
-# Build release APK for driver_app or community_app.
-#
-# Prerequisites (one-time on Windows):
-#   1. Flutter SDK (C:\src\flutter or FLUTTER_ROOT)
-#   2. Android Studio OR Android SDK + JDK 17
-#   3. ANDROID_HOME pointing at SDK (e.g. %LOCALAPPDATA%\Android\Sdk)
+# Build release APKs for driver_app and community_app; copy to web public for login downloads.
 #
 # Usage (from repo root):
-#   .\scripts\build-apk.ps1 -ApiBaseUrl "https://api.example.ir"
-#   .\scripts\build-apk.ps1 -App community_app -ApiBaseUrl "https://api.example.ir"
+#   .\scripts\build-apk.ps1 -ApiBaseUrl "http://185.36.145.164:4000"
+#   .\scripts\build-apk.ps1 -App community_app -ApiBaseUrl "http://185.36.145.164:4000"
 #
 param(
-    [ValidateSet("driver_app", "community_app")]
-    [string]$App = "driver_app",
+    [ValidateSet("driver_app", "community_app", "both")]
+    [string]$App = "both",
     [Parameter(Mandatory = $true)]
-    [string]$ApiBaseUrl
+    [string]$ApiBaseUrl,
+    [switch]$NoDemoLogin
 )
 
 $ErrorActionPreference = "Stop"
@@ -26,32 +22,60 @@ if (-not $env:ANDROID_HOME -and -not $env:ANDROID_SDK_ROOT) {
     }
 }
 
-$env:LOGESTIC_FLUTTER_PROJECT = $App
+$downloadDir = Join-Path $RepoRoot "apps\web\public\downloads"
+New-Item -ItemType Directory -Force -Path $downloadDir | Out-Null
 
-Write-Host "Building $App APK with API_BASE_URL=$ApiBaseUrl"
-if ($env:ANDROID_HOME) {
-    Write-Host "ANDROID_HOME=$($env:ANDROID_HOME)"
-} else {
-    Write-Warning "ANDROID_HOME not set. Install Android Studio or set ANDROID_HOME to your SDK path."
+$demoDefine = if ($NoDemoLogin) { @() } else { @("--dart-define=ENABLE_DEMO_LOGIN=true") }
+
+function Build-OneApk {
+    param([string]$Project)
+
+    $env:LOGESTIC_FLUTTER_PROJECT = $Project
+    Write-Host ""
+    Write-Host "==> Building $Project (API_BASE_URL=$ApiBaseUrl)" -ForegroundColor Cyan
+
+    & "$RepoRoot\scripts\run-flutter.ps1" pub get
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    $buildArgs = @(
+        "build", "apk", "--release",
+        "--dart-define=API_BASE_URL=$ApiBaseUrl"
+    ) + $demoDefine
+
+    & "$RepoRoot\scripts\run-flutter.ps1" @buildArgs
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    $src = Join-Path $RepoRoot "apps\mobile\$Project\build\app\outputs\flutter-apk\app-release.apk"
+    if (-not (Test-Path $src)) {
+        Write-Error "Build finished but APK not found at $src"
+    }
+
+    $destName = if ($Project -eq "driver_app") { "logestic-driver.apk" } else { "logestic-community.apk" }
+    $dest = Join-Path $downloadDir $destName
+    Copy-Item -Force $src $dest
+    Write-Host "APK copied:" -ForegroundColor Green
+    Write-Host "  $dest"
 }
 
 Push-Location $RepoRoot
 try {
-    & "$RepoRoot\scripts\run-flutter.ps1" pub get
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-    & "$RepoRoot\scripts\run-flutter.ps1" build apk --release `
-        "--dart-define=API_BASE_URL=$ApiBaseUrl"
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-    $apk = Join-Path $RepoRoot "apps\mobile\$App\build\app\outputs\flutter-apk\app-release.apk"
-    if (Test-Path $apk) {
-        Write-Host ""
-        Write-Host "APK ready:" -ForegroundColor Green
-        Write-Host "  $apk"
+    if ($env:ANDROID_HOME) {
+        Write-Host "ANDROID_HOME=$($env:ANDROID_HOME)"
     } else {
-        Write-Error "Build finished but APK not found at $apk"
+        Write-Warning "ANDROID_HOME not set. Install Android Studio or set ANDROID_HOME to your SDK path."
     }
+
+    if ($App -eq "both") {
+        Build-OneApk "driver_app"
+        Build-OneApk "community_app"
+    } else {
+        Build-OneApk $App
+    }
+
+    Write-Host ""
+    Write-Host "Download URLs (after web build/deploy):" -ForegroundColor Green
+    Write-Host "  /downloads/logestic-driver.apk"
+    Write-Host "  /downloads/logestic-community.apk"
 } finally {
     Pop-Location
 }

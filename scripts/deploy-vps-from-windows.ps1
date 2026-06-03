@@ -18,7 +18,13 @@ npx prisma generate
 npm run build
 Pop-Location
 
-Write-Host "==> build web (demo + API)"
+Write-Host "==> build web (demo + API + mobile APK links in public/downloads)"
+if (Get-Command flutter -ErrorAction SilentlyContinue) {
+    Write-Host "    building mobile APKs (demo login enabled)..."
+    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApiBase -App both
+} else {
+    Write-Warning "Flutter not on PATH — skip APK build. Run .\scripts\build-apk.ps1 manually if login downloads are missing."
+}
 Push-Location apps/web
 $env:VITE_API_BASE = $ApiBase
 $env:VITE_ENABLE_DEMO_LOGIN = "true"

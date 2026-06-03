@@ -1,0 +1,2 @@
+# Release APKs copied here by scripts/build-apk.ps1 — not committed (see .gitignore).
+*.apk

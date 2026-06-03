@@ -12,6 +12,19 @@ import { brandNames } from "../brand";
 import { Alert, Button, Input } from "../components/ui";
 import { brand, cardStyle, inputStyle, radius, shadow, space } from "../theme";
 
+const MOBILE_DOWNLOADS = [
+  {
+    href: "/downloads/logestic-driver.apk",
+    label: "دانلود اپ راننده",
+    hint: "Android · OTP + ورود دمو",
+  },
+  {
+    href: "/downloads/logestic-community.apk",
+    label: "دانلود اپ تعاونی",
+    hint: "Android · خانوار و تعاونی",
+  },
+] as const;
+
 const RESEND_COOLDOWN_SEC = 60;
 
 type VerifyDetails = { reason?: string; attemptsLeft?: number };
@@ -263,6 +276,7 @@ export default function LoginPage() {
               {busy ? "در حال ارسال…" : "دریافت کد"}
             </Button>
             <DemoLoginPanel app="web" />
+            <MobileDownloadLinks />
           </form>
         ) : (
           <form
@@ -344,4 +358,42 @@ function LoginShell({ children }: { children: React.ReactNode }) {
 
 function LoginCard({ children }: { children: React.ReactNode }) {
   return <div style={loginCardStyle}>{children}</div>;
+}
+
+function MobileDownloadLinks() {
+  return (
+    <div
+      style={{
+        marginTop: 20,
+        paddingTop: 16,
+        borderTop: `1px solid ${brand.border}`,
+      }}
+    >
+      <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, color: brand.primaryDark, textAlign: "center" }}>
+        اپ‌های موبایل
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {MOBILE_DOWNLOADS.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            download
+            style={{
+              display: "block",
+              padding: "10px 12px",
+              borderRadius: 8,
+              border: `1px solid ${brand.border}`,
+              background: brand.panelMuted,
+              textDecoration: "none",
+              color: brand.text,
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 700 }}>{item.label}</div>
+            <div style={{ fontSize: 11, color: brand.textMuted, marginTop: 2 }}>{item.hint}</div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
 }
