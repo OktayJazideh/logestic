@@ -14,7 +14,8 @@ describe("auth OTP integration", () => {
   });
 
   it.runIf(() => serverUp)("request → verify → me (registered user)", async () => {
-    const mobile = "09000000003";
+    // Use a seed mobile not used by loginAs() in other integration tests (avoids OTP rate limit).
+    const mobile = "09000000006";
 
     const req = await http("/api/auth/request-otp", {
       method: "POST",
@@ -43,7 +44,7 @@ describe("auth OTP integration", () => {
     expect(me.status).toBe(200);
     expect(me.json.success).toBe(true);
     expect(me.json.data.mobile_number).toBe(mobile);
-    expect(me.json.data.role).toBe("DRIVER");
+    expect(me.json.data.role).toBe("CONSULTANT");
   });
 
   it.runIf(() => serverUp)("rejects unregistered mobile on request-otp", async () => {
