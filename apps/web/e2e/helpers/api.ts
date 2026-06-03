@@ -2,6 +2,27 @@ import type { APIRequestContext } from "@playwright/test";
 
 export const apiBase = process.env.API_BASE_URL ?? "http://localhost:4000";
 
+export async function registerDevUser(
+  request: APIRequestContext,
+  adminToken: string,
+  mobile: string,
+  opts?: { role?: string; cooperativeId?: number },
+): Promise<void> {
+  const r = await request.post(`${apiBase}/api/__dev/users/register`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    data: {
+      mobile_number: mobile,
+      role: opts?.role ?? "HOUSEHOLD",
+      cooperative_id: opts?.cooperativeId,
+      is_active: true,
+    },
+  });
+  const json = (await r.json()) as { success?: boolean };
+  if (!r.ok() || !json.success) {
+    throw new Error(`dev user register failed for ${mobile}: ${JSON.stringify(json)}`);
+  }
+}
+
 export async function loginApi(request: APIRequestContext, mobile: string): Promise<string> {
   await request.post(`${apiBase}/api/auth/request-otp`, {
     data: { mobile_number: mobile },

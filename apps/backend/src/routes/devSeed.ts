@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
 import { appContext } from "../appContext";
-import { success } from "../http/apiResponse";
+import { env } from "../config/env";
+import { success, failure } from "../http/apiResponse";
 import { requireRoles } from "../middleware/rbac";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { resolveAuthContext } from "../lib/authContext";
@@ -9,6 +10,7 @@ import { ACTIVE_MISSION_STATUSES } from "../lib/missionFsm";
 import { prisma } from "../db/prisma";
 import * as workspaceRepo from "../repositories/workspaceMembershipsRepository";
 import { toNum } from "../repositories/id";
+import { UserRoles, type UserRole } from "../types/userRole";
 
 const router = Router();
 
@@ -271,5 +273,40 @@ router.post(
     }
   },
 );
+
+/** E2E: pre-register a mobile before OTP login (dev/test only). */
+router.post("/__dev/users/register", requireAuth, requireRoles(["ADMIN"]), async (req, res, next) => {
+  const requestId = (req as { requestId?: string }).requestId;
+  if (env.NODE_ENV === "production") {
+    return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
+  }
+  try {
+    const body = z
+      .object({
+        mobile_number: z.string().regex(/^09\d{9}$/),
+        role: z.enum(UserRoles).optional().default("HOUSEHOLD"),
+        cooperative_id: z.number().int().positive().optional(),
+        is_active: z.boolean().optional().default(true),
+      })
+      .safeParse(req.body);
+    if (!body.success) {
+      return res.status(400).json({
+        success: false,
+        error: { code: "invalid_request", message: "Invalid input", details: body.error.flatten(), requestId },
+      });
+    }
+    const user = await appContext.userStore.upsertUserByMobile(
+      body.data.mobile_number,
+      body.data.role as UserRole,
+      {
+        cooperative_id: body.data.cooperative_id,
+        is_active: body.data.is_active,
+      },
+    );
+    return res.json(success({ user }, requestId));
+  } catch (e) {
+    next(e);
+  }
+});
 
 export const devSeedRouter = router;

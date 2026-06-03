@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { expect, test } from "@playwright/test";
-import { apiBase, loginApi, selectWorkspace } from "./helpers/api";
+import { apiBase, loginApi, registerDevUser, selectWorkspace } from "./helpers/api";
 
 const MINE_A = 1;
 const COOP_A = 1;
@@ -11,12 +11,15 @@ test.beforeAll(() => {
 
 async function createPendingHousehold(
   request: import("@playwright/test").APIRequestContext,
+  adminToken: string,
   villageId: number,
   suffix: string,
 ) {
   const digits = suffix.replace(/\D/g, "").slice(-7);
   const mobile = `0904${String(villageId)}${digits}`.slice(0, 11);
-  await request.post(`${apiBase}/api/auth/request-otp`, { data: { mobile_number: mobile } });
+  await registerDevUser(request, adminToken, mobile, { role: "HOUSEHOLD", cooperativeId: COOP_A });
+  const otpReq = await request.post(`${apiBase}/api/auth/request-otp`, { data: { mobile_number: mobile } });
+  expect(otpReq.ok()).toBeTruthy();
   const otpRes = await request.get(`${apiBase}/api/auth/__dev/otp?mobile_number=${mobile}`);
   const otp = ((await otpRes.json()) as { data?: { otp?: string } }).data?.otp;
   expect(otp).toBeTruthy();
@@ -41,8 +44,9 @@ async function createPendingHousehold(
 
 test("KYC inbox: filter village → row count decreases", async ({ page, request }) => {
   const suffix = String(Date.now());
-  await createPendingHousehold(request, 1, `${suffix}-v1`);
-  await createPendingHousehold(request, 2, `${suffix}-v2`);
+  const adminToken = await loginApi(request, "09000000000");
+  await createPendingHousehold(request, adminToken, 1, `${suffix}-v1`);
+  await createPendingHousehold(request, adminToken, 2, `${suffix}-v2`);
 
   const coopToken = await loginApi(request, "09000000111");
   await selectWorkspace(request, coopToken, MINE_A, {
