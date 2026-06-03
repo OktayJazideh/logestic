@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
-import { ShamsiDateField } from "../components/ShamsiDateField";
+import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { fieldErrorStyle } from "../components/FormField";
 import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostData } from "../api";
@@ -221,7 +221,7 @@ export default function RuleEnginePage() {
           </label>
         )}
         <div>
-          <ShamsiDateField
+          <JalaliDatePicker
             label="اعتبار از *"
             value={effectiveFrom}
             onChange={(v) => {

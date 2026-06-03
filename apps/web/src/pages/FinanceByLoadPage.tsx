@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageFrame } from "../components/PageFrame";
-import { ShamsiDateField } from "../components/ShamsiDateField";
+import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData } from "../api";
 import { financeDisplayLabels } from "../lib/platformLegal";
@@ -244,14 +244,14 @@ export default function FinanceByLoadPage() {
 
       <section style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
-          <ShamsiDateField label="از تاریخ" value={from} onChange={setFrom} data-testid="finance-by-load-from" />
-          <ShamsiDateField label="تا تاریخ" value={to} onChange={setTo} data-testid="finance-by-load-to" />
+          <JalaliDatePicker label="از تاریخ" value={from} onChange={setFrom} data-testid="finance-by-load-from" />
+          <JalaliDatePicker label="تا تاریخ" value={to} onChange={setTo} data-testid="finance-by-load-to" />
           <label style={{ fontSize: 13 }}>
             معدن
             <input
               value={mineId}
               onChange={(e) => setMineId(e.target.value)}
-              placeholder="mine_id"
+              placeholder="شناسه معدن"
               style={{ ...inputStyle, width: 80 }}
             />
           </label>

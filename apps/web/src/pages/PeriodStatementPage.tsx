@@ -103,9 +103,9 @@ export default function PeriodStatementPage() {
   }
 
   return (
-    <PageFrame title="صورت وضعیت دوره (INVOICE-DRAFT-1)">
+    <PageFrame title="صورت وضعیت دوره">
       <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 16 }}>
-        جریان: پیش‌نویس → بررسی → تأیید دوطرفه (تعاونی + عملیات معدن) → قفل مالی. پس از قفل، معدن فقط به IBAN
+        جریان: پیش‌نویس → بررسی → تأیید دوطرفه (تعاونی + عملیات معدن) → قفل مالی. پس از قفل، معدن فقط به شبای
         رسمی تعاونی واریز می‌کند.
       </p>
 
@@ -197,7 +197,7 @@ export default function PeriodStatementPage() {
 
           {statement.cooperative_payable_iban && (
             <p style={{ marginTop: 8, fontFamily: "monospace" }}>
-              IBAN تعاونی (پس از قفل): {statement.cooperative_payable_iban}
+              شبای تعاونی (پس از قفل): {statement.cooperative_payable_iban}
             </p>
           )}
 

@@ -1,6 +1,16 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { PageFrame } from "../components/PageFrame";
-import { ShamsiDateField } from "../components/ShamsiDateField";
+import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { apiGetData, apiPostData } from "../api";
 import { formatJalaliDate } from "../lib/jalaliDate";
 import { dateRange } from "../lib/validation";
@@ -23,17 +33,6 @@ type KpiDashboard = {
   latest: KpiPoint | null;
   raw_count: number;
 };
-
-declare global {
-  interface Window {
-    Chart?: new (
-      ctx: CanvasRenderingContext2D,
-      config: Record<string, unknown>,
-    ) => { destroy: () => void };
-  }
-}
-
-const CHART_CDN = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js";
 
 const btn: React.CSSProperties = {
   padding: "8px 14px",
@@ -67,23 +66,12 @@ const inputStyle: React.CSSProperties = {
   border: "1px solid #D1D5DB",
 };
 
-function loadChartJs(): Promise<void> {
-  if (window.Chart) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${CHART_CDN}"]`);
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      if (window.Chart) resolve();
-      return;
-    }
-    const s = document.createElement("script");
-    s.src = CHART_CDN;
-    s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("chart_js_load_failed"));
-    document.head.appendChild(s);
-  });
-}
+const CHART_SERIES: Array<{ key: string; label: string; color: string }> = [
+  { key: "fleet", label: "راندمان ناوگان", color: "#1B5E20" },
+  { key: "delay", label: "درصد تأخیر", color: "#B45309" },
+  { key: "hold", label: "درصد نگهداری پرداخت", color: "#7C3AED" },
+  { key: "util", label: "بهره‌وری وسیله", color: "#0369A1" },
+];
 
 function pct(n: number | undefined) {
   if (n == null) return "—";
@@ -112,9 +100,6 @@ export default function AdminKpi() {
   const [dashboard, setDashboard] = useState<KpiDashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const chartRef = useRef<HTMLCanvasElement | null>(null);
-  const chartInstance = useRef<{ destroy: () => void } | null>(null);
-
   const load = useCallback(async () => {
     const rangeErr = dateRange(from, to);
     if (rangeErr) {
@@ -164,59 +149,17 @@ export default function AdminKpi() {
     void load();
   }, [load]);
 
-  useEffect(() => {
-    if (!dashboard?.series.length || !chartRef.current) return;
-    let cancelled = false;
-
-    void loadChartJs()
-      .then(() => {
-        if (cancelled || !chartRef.current || !window.Chart) return;
-        chartInstance.current?.destroy();
-        const labels = dashboard.series.map((p) => formatJalaliDate(p.date));
-        chartInstance.current = new window.Chart!(chartRef.current.getContext("2d")!, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "راندمان ناوگان",
-                data: dashboard.series.map((p) => (p.fleet_efficiency ?? 0) * 100),
-                borderColor: "#1B5E20",
-                tension: 0.2,
-              },
-              {
-                label: "درصد تأخیر",
-                data: dashboard.series.map((p) => (p.delay_pct ?? 0) * 100),
-                borderColor: "#B45309",
-                tension: 0.2,
-              },
-              {
-                label: "درصد نگهداری پرداخت",
-                data: dashboard.series.map((p) => (p.hold_pct ?? 0) * 100),
-                borderColor: "#7C3AED",
-                tension: 0.2,
-              },
-              {
-                label: "بهره‌وری وسیله",
-                data: dashboard.series.map((p) => (p.vehicle_utilization ?? 0) * 100),
-                borderColor: "#0369A1",
-                tension: 0.2,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true, max: 100, ticks: { callback: (v: string | number) => `${v}%` } } },
-          },
-        });
-      })
-      .catch(() => setError("بارگذاری Chart.js ناموفق بود"));
-
-    return () => {
-      cancelled = true;
-      chartInstance.current?.destroy();
-    };
-  }, [dashboard]);
+  const chartData = useMemo(
+    () =>
+      dashboard?.series.map((p) => ({
+        date: formatJalaliDate(p.date),
+        fleet: (p.fleet_efficiency ?? 0) * 100,
+        delay: (p.delay_pct ?? 0) * 100,
+        hold: (p.hold_pct ?? 0) * 100,
+        util: (p.vehicle_utilization ?? 0) * 100,
+      })) ?? [],
+    [dashboard],
+  );
 
   const latest = dashboard?.latest;
 
@@ -227,8 +170,8 @@ export default function AdminKpi() {
       expectedRoles={["ADMIN", "OPERATION_ADMIN"]}
     >
       <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-        <ShamsiDateField label="از تاریخ" value={from} onChange={setFrom} />
-        <ShamsiDateField label="تا تاریخ" value={to} onChange={setTo} />
+        <JalaliDatePicker label="از تاریخ" value={from} onChange={setFrom} />
+        <JalaliDatePicker label="تا تاریخ" value={to} onChange={setTo} />
         <label style={{ fontSize: 13 }}>
           شناسه معدن
           <input
@@ -270,9 +213,22 @@ export default function AdminKpi() {
         </div>
       )}
 
-      <div style={{ marginTop: 24, maxHeight: 360 }}>
-        <canvas ref={chartRef} />
-      </div>
+      {chartData.length > 0 && (
+        <div style={{ marginTop: 24, minHeight: 320 }}>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}٪`} />
+              <Tooltip formatter={(v: number, name: string) => [`${v.toLocaleString("fa-IR")}٪`, CHART_SERIES.find((s) => s.key === name)?.label ?? name]} />
+              <Legend formatter={(v) => CHART_SERIES.find((s) => s.key === v)?.label ?? v} />
+              {CHART_SERIES.map((s) => (
+                <Line key={s.key} type="monotone" dataKey={s.key} name={s.key} stroke={s.color} strokeWidth={2} dot />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </PageFrame>
   );
 }

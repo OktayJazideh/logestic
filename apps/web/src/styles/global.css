@@ -32,3 +32,14 @@ textarea {
 a {
   color: #1e3a2f;
 }
+
+/* تقویم جلالی (react-multi-date-picker) */
+.rmdp-wrapper {
+  direction: rtl;
+  font-family: "Vazirmatn", Tahoma, sans-serif;
+}
+
+.jalali-date-input {
+  width: 100%;
+  box-sizing: border-box;
+}

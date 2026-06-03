@@ -150,17 +150,17 @@ export default function OpsDashboard() {
       {dash && (
         <>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 20 }} data-testid="ops-kpi-row">
-            <KpiCard label="مأموریت ایجادشده امروز" value={String(dash.missions_today.created)} />
-            <KpiCard label="مأموریت تأییدشده امروز" value={String(dash.missions_today.verified)} />
-            <KpiCard label="مأموریت در جریان" value={String(dash.missions_today.in_progress)} />
-            <KpiCard label="تیکت معطل باسکول" value={String(dash.weighbridge_pending)} />
+            <KpiCard label="مأموریت ایجادشده امروز" value={dash.missions_today.created.toLocaleString("fa-IR")} />
+            <KpiCard label="مأموریت تأییدشده امروز" value={dash.missions_today.verified.toLocaleString("fa-IR")} />
+            <KpiCard label="مأموریت در جریان" value={dash.missions_today.in_progress.toLocaleString("fa-IR")} />
+            <KpiCard label="تیکت معطل باسکول" value={dash.weighbridge_pending.toLocaleString("fa-IR")} />
             <KpiCard
               label="مجموع سهم دوره جاری"
               value={formatRial(dash.pool_current_rial)}
               hint={`دوره: ${formatPeriodKeyYm(dash.pool_period_key)}`}
             />
-            <KpiCard label="پرداخت در نگهداری" value={String(dash.holds_active)} />
-            <KpiCard label="نیاز در انتظار تخصیص" value={String(dash.needs_pending_dispatch)} />
+            <KpiCard label="پرداخت در نگهداری" value={dash.holds_active.toLocaleString("fa-IR")} />
+            <KpiCard label="نیاز در انتظار تخصیص" value={dash.needs_pending_dispatch.toLocaleString("fa-IR")} />
           </div>
 
           <div style={{ marginBottom: 20 }} data-testid="ops-quick-links">
@@ -203,12 +203,12 @@ export default function OpsDashboard() {
                 <Tooltip
                   formatter={(v: number, name: string) => [
                     v.toLocaleString("fa-IR"),
-                    name === "created" ? "ایجاد" : "تأیید",
+                    name === "ایجاد" || name === "created" ? "ایجاد" : "تأیید",
                   ]}
                 />
-                <Legend formatter={(v) => (v === "created" ? "ایجاد" : "تأیید")} />
-                <Line type="monotone" dataKey="created" name="created" stroke={brand.accent} strokeWidth={2} dot />
-                <Line type="monotone" dataKey="verified" name="verified" stroke={brand.primary} strokeWidth={2} dot />
+                <Legend formatter={(v) => (v === "ایجاد" || v === "created" ? "ایجاد" : "تأیید")} />
+                <Line type="monotone" dataKey="created" name="ایجاد" stroke={brand.accent} strokeWidth={2} dot />
+                <Line type="monotone" dataKey="verified" name="تأیید" stroke={brand.primary} strokeWidth={2} dot />
               </LineChart>
             </ResponsiveContainer>
           </div>

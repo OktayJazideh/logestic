@@ -173,7 +173,7 @@ export default function SettlementPage() {
 
   async function registerMinePayment() {
     if (!selectedStatementId) {
-      setErr("یک صورت وضعیت LOCKED انتخاب کنید.");
+      setErr("یک صورت وضعیت قفل‌شده انتخاب کنید.");
       return;
     }
     if (minePaymentRef.length < 8) {
@@ -222,7 +222,7 @@ export default function SettlementPage() {
       a.download = `mine-payment-statement-${selectedStatementId}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      setMsg("فایل پرداخت معدن → تعاونی دانلود شد (فقط IBAN تعاونی).");
+      setMsg("فایل پرداخت معدن → تعاونی دانلود شد (فقط شبای تعاونی).");
     } catch (e) {
       setErr(String(e));
     } finally {
@@ -263,7 +263,7 @@ export default function SettlementPage() {
       a.download = `internal-settlement-batch-${selectedId}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      setMsg("Excel تسویه داخلی دانلود شد (مالک/خانوار/Community — نه معدن).");
+      setMsg("فایل اکسل تسویه داخلی دانلود شد (مالک/خانوار/صندوق جامعه — نه معدن).");
     } catch (e) {
       setErr(`خروجی Excel: ${String(e)}`);
     } finally {
@@ -288,14 +288,14 @@ export default function SettlementPage() {
         <h3 style={{ fontSize: 15, marginTop: 0 }}>راهنمای ۳ مرحله‌ای پرداخت</h3>
         <ol style={{ margin: 0, paddingInlineStart: 20, fontSize: 13, lineHeight: 1.8 }}>
           <li>
-            <strong>صورت وضعیت Lock</strong> — معدن فقط به IBAN رسمی تعاونی واریز می‌کند (تب «پرداخت معدن به
+            <strong>قفل صورت وضعیت</strong> — معدن فقط به شبای رسمی تعاونی واریز می‌کند (تب «پرداخت معدن به
             تعاونی»).
           </li>
           <li>
-            <strong>ثبت واریز معدن</strong> — پس از واریز بانکی، mine_payment_reference را ثبت کنید.
+            <strong>ثبت واریز معدن</strong> — پس از واریز بانکی، شماره پیگیری واریز را ثبت کنید.
           </li>
           <li>
-            <strong>تسویه داخلی</strong> — تعاونی/پلتفرم به مالک، خانوار و Community پرداخت می‌کند (تب «تسویه
+            <strong>تسویه داخلی</strong> — تعاونی/پلتفرم به مالک، خانوار و صندوق جامعه پرداخت می‌کند (تب «تسویه
             داخلی»).
           </li>
         </ol>
@@ -312,10 +312,9 @@ export default function SettlementPage() {
 
       {tab === "mine" && (
         <section style={{ marginBottom: 20, padding: 14, background: "#F9FAFB", borderRadius: 10 }}>
-          <h3 style={{ fontSize: 15, marginTop: 0 }}>صورت وضعیت‌های LOCKED — واریز معدن</h3>
+          <h3 style={{ fontSize: 15, marginTop: 0 }}>صورت وضعیت‌های قفل‌شده — واریز معدن</h3>
           <p style={{ fontSize: 12, color: "#6B7280" }}>
-            Export این بخش فقط <strong>IBAN تعاونی</strong> دارد (payee_type=MINE_TO_COOP). معدن به مالک مستقیم
-            واریز نمی‌کند.
+            خروجی این بخش فقط <strong>شبای تعاونی</strong> دارد. معدن به مالک مستقیم واریز نمی‌کند.
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 12 }}>
             <label>
@@ -350,10 +349,10 @@ export default function SettlementPage() {
             <thead>
               <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
                 <th style={th}>انتخاب</th>
-                <th style={th}>ID</th>
+                <th style={th}>شناسه</th>
                 <th style={th}>دوره</th>
                 <th style={th}>مبلغ</th>
-                <th style={th}>IBAN تعاونی</th>
+                <th style={th}>شبای تعاونی</th>
                 <th style={th}>واریز معدن</th>
               </tr>
             </thead>
@@ -361,7 +360,7 @@ export default function SettlementPage() {
               {lockedStatements.length === 0 && (
                 <tr>
                   <td colSpan={6} style={{ ...td, textAlign: "center", color: "#6B7280" }}>
-                    صورت وضعیت LOCKED برای این دوره یافت نشد
+                    صورت وضعیت قفل‌شده برای این دوره یافت نشد
                   </td>
                 </tr>
               )}
@@ -375,7 +374,7 @@ export default function SettlementPage() {
                     <input type="radio" checked={selectedStatementId === s.id} readOnly />
                   </td>
                   <td style={td}>{s.id}</td>
-                  <td style={td}>{s.period_key}</td>
+                  <td style={td}>{formatPeriodKeyYm(s.period_key)}</td>
                   <td style={td}>{formatMoney(s.payable_rial)}</td>
                   <td style={{ ...td, fontFamily: "monospace", fontSize: 11 }}>{s.cooperative_payable_iban ?? "—"}</td>
                   <td style={td}>
@@ -411,7 +410,7 @@ export default function SettlementPage() {
               disabled={busy || !selectedStatementId}
               onClick={() => void exportMinePayment()}
             >
-              Export Excel (معدن → تعاونی)
+              خروجی اکسل (معدن → تعاونی)
             </button>
           </div>
         </section>
@@ -420,7 +419,7 @@ export default function SettlementPage() {
       {tab === "internal" && (
         <>
           <section style={{ marginBottom: 20, padding: 14, background: "#F9FAFB", borderRadius: 10 }}>
-            <h3 style={{ fontSize: 15, marginTop: 0 }}>۱. بستن ماه (Monthly Close)</h3>
+            <h3 style={{ fontSize: 15, marginTop: 0 }}>۱. بستن ماه</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
               <label>
                 معدن
@@ -442,7 +441,7 @@ export default function SettlementPage() {
                 />
               </label>
               <button type="button" style={btnPrimary} disabled={busy} onClick={() => void monthlyClose()}>
-                Close
+                بستن ماه
               </button>
             </div>
           </section>
@@ -450,11 +449,12 @@ export default function SettlementPage() {
           <section style={{ marginBottom: 20, padding: 14, background: "#F9FAFB", borderRadius: 10 }}>
             <h3 style={{ fontSize: 15, marginTop: 0 }}>۲. تسویه داخلی — batch انتخاب‌شده</h3>
             <p style={{ fontSize: 12, color: "#6B7280" }}>
-              پرداخت‌کننده: تعاونی/پلتفرم — نه معدن. payee_type: INTERNAL_FLEET_OWNER | INTERNAL_HOUSEHOLD |
-              INTERNAL_COMMUNITY. قبل از Lock، واریز معدن باید ثبت شده باشد.
+              پرداخت‌کننده: تعاونی/پلتفرم — نه معدن. ذی‌نفعان: مالک ناوگان، خانوار، صندوق جامعه. قبل از قفل، واریز
+              معدن باید ثبت شده باشد.
             </p>
             <p style={{ fontSize: 12, color: "#6B7280" }}>
-              CALCULATED → Lock (پس از mine paid) → READY → Send-to-Bank → IN_BANK_QUEUE → Mark-Paid → SETTLED
+              جریان: محاسبه‌شده → قفل (پس از واریز معدن) → آماده → ارسال به بانک → در صف بانک → علامت پرداخت‌شده →
+              تسویه‌شده
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
               <button
@@ -463,7 +463,7 @@ export default function SettlementPage() {
                 disabled={busy || !selectedId}
                 onClick={() => void runAction("قفل", `/admin/settlement/${selectedId}/lock`)}
               >
-                Lock
+                قفل
               </button>
               <button
                 type="button"
@@ -471,10 +471,10 @@ export default function SettlementPage() {
                 disabled={busy || !selectedId}
                 onClick={() => void runAction("ارسال به بانک (داخلی)", `/admin/settlement/${selectedId}/send-to-bank`)}
               >
-                Send-to-Bank (داخلی)
+                ارسال به بانک (داخلی)
               </button>
               <button type="button" style={btn} disabled={busy || !selectedId} onClick={() => void exportInternalExcel()}>
-                Export Excel (تسویه داخلی)
+                خروجی اکسل (تسویه داخلی)
               </button>
             </div>
 
@@ -527,7 +527,7 @@ export default function SettlementPage() {
             <thead>
               <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
                 <th style={th}>انتخاب</th>
-                <th style={th}>ID</th>
+                <th style={th}>شناسه</th>
                 <th style={th}>وضعیت</th>
                 <th style={th}>دوره</th>
               </tr>

@@ -157,7 +157,7 @@ export default function WeighbridgePage() {
     setDetail((prev) => (prev ? { ...prev, ...r.data.ticket } : prev));
     setActionMsg(
       r.data.anomaly
-        ? "وزن ثبت شد — اختلاف ≥۵٪: تیکت در PENDING_HOLD قرار گرفت."
+        ? "وزن ثبت شد — اختلاف ≥۵٪: تیکت در انتظار نگهداری قرار گرفت."
         : "وزن ثبت شد.",
     );
     await refreshAll();

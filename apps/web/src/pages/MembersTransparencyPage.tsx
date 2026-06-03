@@ -210,7 +210,7 @@ export default function MembersTransparencyPage() {
         <>
           <h3 style={h3}>بررسی اعتراض‌ها</h3>
           <p style={{ color: "#6B7280", fontSize: 12, marginTop: 0 }}>
-            فقط اعتراض‌های باز (PENDING). گزارش‌دهنده از session (موبایل/شناسه کاربر) — هر اقدام با دلیل در
+            فقط اعتراض‌های باز (در انتظار). گزارش‌دهنده از session (موبایل/شناسه کاربر) — هر اقدام با دلیل در
             audit ثبت می‌شود.
           </p>
           {openObjections.length === 0 && (

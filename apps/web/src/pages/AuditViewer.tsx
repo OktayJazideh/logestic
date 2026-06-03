@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
-import { ShamsiDateField } from "../components/ShamsiDateField";
+import { JalaliDatePicker } from "../components/JalaliDatePicker";
+import { labelFa, ENTITY_TYPE_FA, AUDIT_ACTION_FA } from "../lib/uiLabels";
 import { JsonDiffView } from "../components/JsonDiffView";
 import { apiGetData } from "../api";
 import { formatJalaliDateTime } from "../lib/jalaliDate";
-import { labelFa, ENTITY_TYPE_FA } from "../lib/uiLabels";
 import { dateRange, positiveInt } from "../lib/validation";
 
 type AuditLogItem = {
@@ -159,8 +159,8 @@ export default function AuditViewer() {
           alignItems: "flex-end",
         }}
       >
-        <ShamsiDateField label="از تاریخ" value={from} onChange={setFrom} />
-        <ShamsiDateField label="تا تاریخ" value={to} onChange={setTo} />
+        <JalaliDatePicker label="از تاریخ" value={from} onChange={setFrom} />
+        <JalaliDatePicker label="تا تاریخ" value={to} onChange={setTo} />
         <label style={{ fontSize: 12, color: "#374151" }}>
           نوع موجودیت
           <select
@@ -225,7 +225,7 @@ export default function AuditViewer() {
                   <td style={td}>
                     {labelFa(ENTITY_TYPE_FA, log.entity_type)} / {log.entity_id}
                   </td>
-                  <td style={td}>{log.action}</td>
+                  <td style={td}>{labelFa(AUDIT_ACTION_FA, log.action)}</td>
                   <td style={td}>{log.performed_by_user_id ?? "—"}</td>
                   <td style={td}>{log.reason ?? "—"}</td>
                   <td style={td}>
@@ -234,7 +234,7 @@ export default function AuditViewer() {
                       style={btnStyle}
                       onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
                     >
-                      {expandedId === log.id ? "بستن" : "نمایش diff"}
+                      {expandedId === log.id ? "بستن" : "نمایش تفاوت"}
                     </button>
                   </td>
                 </tr>

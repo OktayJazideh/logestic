@@ -144,3 +144,24 @@ export const COMMUNITY_POOL_STATUS_FA: Record<string, string> = {
   SNAPSHOT_LOCKED: "اسنپ‌شات قفل",
   DISTRIBUTED: "توزیع‌شده",
 };
+
+export const AUDIT_ACTION_FA: Record<string, string> = {
+  CREATE: "ایجاد",
+  UPDATE: "ویرایش",
+  DELETE: "حذف",
+  APPROVE: "تأیید",
+  REJECT: "رد",
+  LOCK: "قفل",
+  UNLOCK: "باز کردن قفل",
+  SIGN: "امضا",
+  ACTIVATE: "فعال‌سازی",
+  ARCHIVE: "بایگانی",
+  LOGIN: "ورود",
+  LOGOUT: "خروج",
+};
+
+export const CONTRACT_DISPLAY_STATUS_FA: Record<string, string> = {
+  ACTIVE: "فعال",
+  DRAFT: "پیش‌نویس",
+  EXPIRED: "منقضی",
+};

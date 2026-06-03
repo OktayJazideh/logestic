@@ -160,7 +160,7 @@ export default function EmployerInbox() {
       expectedRoles={["EMPLOYER", "OPERATION_ADMIN", "ADMIN"]}
       intro={
         <p style={{ margin: 0 }}>
-          لیست نیازهای ثبت‌شده و وضعیت هر مورد. نیازهای PENDING را می‌توانید با ذکر دلیل لغو کنید.
+          لیست نیازهای ثبت‌شده و وضعیت هر مورد. نیازهای «در انتظار» را می‌توانید با ذکر دلیل لغو کنید.
           {canDispatch ? (
             <>
               {" "}
@@ -212,7 +212,7 @@ export default function EmployerInbox() {
               <th style={th}>تاریخ</th>
               <th style={th}>یادداشت</th>
               {canDispatch && <th style={th}>عملیات</th>}
-              <th style={th}>لغو (PENDING)</th>
+              <th style={th}>لغو (در انتظار)</th>
             </tr>
           </thead>
           <tbody>

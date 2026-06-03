@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
-import { ShamsiDateField } from "../components/ShamsiDateField";
+import { JalaliDatePicker } from "../components/JalaliDatePicker";
+import { labelFa, MATERIAL_TYPE_FA, OPERATION_TYPE_FA, RATE_CARD_STATUS_FA } from "../lib/uiLabels";
 import { useFieldValidation } from "../hooks/useFieldValidation";
 import { formatJalaliDate } from "../lib/jalaliDate";
-import { labelFa, MATERIAL_TYPE_FA, OPERATION_TYPE_FA, RATE_CARD_STATUS_FA } from "../lib/uiLabels";
 import { apiGetData, apiPostData, apiPutData } from "../api";
 import { dateRequired, minLength, positiveNumber, required } from "../lib/validation";
 
@@ -270,7 +270,7 @@ export default function RateCards() {
     const active =
       activeContract && activeContract !== "none" ? activeContract : contractVersions.find((c) => contractDisplayStatus(c) === "ACTIVE");
     if (!active) {
-      setErr("قرارداد ACTIVE برای الحاقیه یافت نشد.");
+      setErr("قرارداد فعال برای الحاقیه یافت نشد.");
       return;
     }
     const base = Number(nvBaseRate);
@@ -359,8 +359,8 @@ export default function RateCards() {
       expectedRoles={["ADMIN", "OPERATION_ADMIN", "COOP_ADMIN"]}
       intro={
         <p style={{ margin: 0 }}>
-          نرخ‌های معتبر بر اساس تاریخ؛ ایجاد نسخهٔ جدید به‌صورت DRAFT و فعال‌سازی، نسخهٔ ACTIVE قبلی را
-          ARCHIVED می‌کند. تسویهٔ تنی و ساعتی از همین جدول خوانده می‌شود. سهم جامعه از{" "}
+          نرخ‌های معتبر بر اساس تاریخ؛ نسخهٔ جدید ابتدا پیش‌نویس است و با فعال‌سازی، نسخهٔ فعال قبلی بایگانی
+          می‌شود. تسویهٔ تنی و ساعتی از همین جدول خوانده می‌شود. سهم جامعه از{" "}
           <strong>قرارداد خدمت</strong> (مبلغ ثابت به ازای هر واحد) — مستقل از کرایه عملیاتی.
         </p>
       }
@@ -370,7 +370,8 @@ export default function RateCards() {
 
       {activeContract && activeContract !== "none" && (
         <div style={{ ...okStyle, marginBottom: 12 }}>
-          قرارداد خدمت فعال (HAUL_TONNAGE): نسخه {activeContract.contract_version} — جامعه{" "}
+          قرارداد خدمت فعال ({labelFa(OPERATION_TYPE_FA, "HAUL_TONNAGE")}): نسخه{" "}
+          {activeContract.contract_version.toLocaleString("fa-IR")} — جامعه{" "}
           {activeContract.fixed_community_amount_rial_per_unit.toLocaleString("fa-IR")} ریال/
           {activeContract.unit === "TON" ? "تن" : activeContract.unit}
         </div>
@@ -393,7 +394,7 @@ export default function RateCards() {
               <option value="2">تعاونی ۲</option>
             </select>
           </label>
-          <ShamsiDateField label="تاریخ" value={filterDate} onChange={setFilterDate} />
+          <JalaliDatePicker label="تاریخ" value={filterDate} onChange={setFilterDate} />
           <button type="button" onClick={load} style={btnStyle}>
             بروزرسانی
           </button>
@@ -401,7 +402,9 @@ export default function RateCards() {
       </section>
 
       <section style={{ marginBottom: 20, padding: 14, border: "1px solid #D1FAE5", borderRadius: 10, background: "#F0FDF4" }}>
-        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: "#0E3B13" }}>قرارداد خدمت (HAUL_TONNAGE)</h2>
+        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: "#0E3B13" }}>
+          قرارداد خدمت ({labelFa(OPERATION_TYPE_FA, "HAUL_TONNAGE")})
+        </h2>
         <p style={{ margin: "0 0 10px", fontSize: 12, color: "#374151" }}>
           کرایه عملیاتی از کارت نرخ لینک‌شده (یا نرخ پایه قرارداد)؛ سهم جامعه مستقل و ثابت به ازای هر تن.
         </p>
@@ -415,7 +418,7 @@ export default function RateCards() {
             <input value={scCommunity} onChange={(e) => setScCommunity(e.target.value)} style={inputStyle} placeholder="500000" />
           </label>
           <label style={labelStyle}>
-            کارت نرخ ACTIVE (اختیاری)
+            کارت نرخ فعال (اختیاری)
             <select value={scRateCardId} onChange={(e) => setScRateCardId(e.target.value)} style={inputStyle}>
               <option value="">— بدون لینک —</option>
               {cards
@@ -427,7 +430,7 @@ export default function RateCards() {
                 ))}
             </select>
           </label>
-          <ShamsiDateField label="اعتبار از" value={scValidFrom} onChange={setScValidFrom} />
+          <JalaliDatePicker label="اعتبار از" value={scValidFrom} onChange={setScValidFrom} />
           <button type="submit" disabled={busy === "sc-create"} style={btnStyle}>
             ایجاد پیش‌نویس قرارداد
           </button>
@@ -449,7 +452,9 @@ export default function RateCards() {
 
         <div style={{ marginTop: 16 }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 10 }}>
-            <h3 style={{ margin: 0, fontSize: 14, color: "#0E3B13" }}>نسخه‌های قرارداد (HAUL_TONNAGE)</h3>
+            <h3 style={{ margin: 0, fontSize: 14, color: "#0E3B13" }}>
+              نسخه‌های قرارداد ({labelFa(OPERATION_TYPE_FA, "HAUL_TONNAGE")})
+            </h3>
             {contractVersions.some((c) => contractDisplayStatus(c) === "ACTIVE") && !draftContractId && (
               <button
                 type="button"
@@ -489,7 +494,7 @@ export default function RateCards() {
                 شماره الحاقیه
                 <input value={nvAmendmentRef} onChange={(e) => setNvAmendmentRef(e.target.value)} style={inputStyle} placeholder="AMEND-1405-03" />
               </label>
-              <ShamsiDateField label="اعتبار از" value={nvValidFrom} onChange={setNvValidFrom} />
+              <JalaliDatePicker label="اعتبار از" value={nvValidFrom} onChange={setNvValidFrom} />
               <label style={labelStyle}>
                 نرخ پایه (ریال/تن)
                 <input value={nvBaseRate} onChange={(e) => setNvBaseRate(e.target.value)} style={inputStyle} />
@@ -578,7 +583,7 @@ export default function RateCards() {
           {cards.length === 0 && (
             <tr>
               <td colSpan={9} style={{ padding: 12, color: "#6B7280" }}>
-                برای این معدن/تاریخ نرخ ACTIVE معتبری نیست.
+                برای این معدن/تاریخ نرخ فعال معتبری نیست.
               </td>
             </tr>
           )}
@@ -623,7 +628,7 @@ export default function RateCards() {
       </table>
 
       <section style={{ padding: 14, border: "1px solid #E5E7EB", borderRadius: 10 }}>
-        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: "#0E3B13" }}>افزودن نسخهٔ جدید (DRAFT)</h2>
+        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: "#0E3B13" }}>افزودن نسخهٔ جدید (پیش‌نویس)</h2>
         <form noValidate onSubmit={createDraft} style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
           <label style={labelStyle}>
             معدن
@@ -658,7 +663,7 @@ export default function RateCards() {
             نرخ
             <input value={rate} onChange={(e) => setRate(e.target.value)} style={inputStyle} placeholder="12000" />
           </label>
-          <ShamsiDateField label="اعتبار از" value={effectiveFrom} onChange={setEffectiveFrom} />
+          <JalaliDatePicker label="اعتبار از" value={effectiveFrom} onChange={setEffectiveFrom} />
           <button type="submit" disabled={busy === "create"} style={btnStyle}>
             ایجاد پیش‌نویس
           </button>

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
-import { ShamsiDateField } from "../components/ShamsiDateField";
+import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData, apiPostData } from "../api";
 import { formatJalaliDate } from "../lib/jalaliDate";
@@ -471,7 +471,7 @@ export default function KycInbox() {
               ))}
             </select>
           </label>
-          <ShamsiDateField
+          <JalaliDatePicker
             label="از تاریخ"
             value={fromDate}
             onChange={(v) => {
@@ -480,7 +480,7 @@ export default function KycInbox() {
             }}
             data-testid="kyc-inbox-from-date"
           />
-          <ShamsiDateField
+          <JalaliDatePicker
             label="تا تاریخ"
             value={toDate}
             onChange={(v) => {
