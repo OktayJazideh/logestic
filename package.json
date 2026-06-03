@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "npm -w @app/backend run dev",
     "dev:web": "npm -w @app/web run dev",
-    "build": "npm -ws run build",
+    "build": "npm -w @app/backend run build && npm -w @app/web run build",
+    "build:backend": "npm -w @app/backend run build",
+    "build:web": "npm -w @app/web run build",
     "lint": "npm -ws run lint",
     "test": "npm -w @app/backend run test",
     "test:infra-regression": "npm -w @app/backend run test:infra-regression",
