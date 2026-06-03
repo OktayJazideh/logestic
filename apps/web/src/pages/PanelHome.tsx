@@ -1,24 +1,21 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { PageFrame } from "../components/PageFrame";
+import { Alert, Badge, Card } from "../components/ui";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { allHomeSectionsWithAccess } from "../lib/panelHomeSections";
 import { roleLabelFa } from "../lib/roleLabels";
 import { PLATFORM_LEGAL_TERMS_FA } from "../lib/platformLegal";
-import { brand } from "../theme";
+import { brand, radius, space } from "../theme";
 
 const HSA_GUIDE_ROLES = new Set(["OPERATION_ADMIN", "COOP_ADMIN"]);
 
-function cardStyle(accessible: boolean): React.CSSProperties {
+function sectionLinkStyle(accessible: boolean): React.CSSProperties {
   return {
     display: "block",
-    padding: 14,
-    borderRadius: 10,
-    border: `1px solid ${accessible ? brand.primary : "#E5E7EB"}`,
-    background: accessible ? "#F0FDF4" : "#F9FAFB",
     textDecoration: "none",
-    color: "#111827",
-    marginBottom: 10,
+    color: brand.text,
+    marginBottom: space.sm,
     opacity: accessible ? 1 : 0.92,
     cursor: accessible ? "pointer" : "default",
   };
@@ -34,22 +31,13 @@ export default function PanelHome() {
   return (
     <PageFrame
       title="خانه"
-      intro="همه بخش‌های سیستم اینجا فهرست شده‌اند. روی هر کارت که برای نقش شما سبز است کلیک کنید تا وارد همان بخش شوید."
+      intro="همه بخش‌های سیستم اینجا فهرست شده‌اند. روی هر کارت که برای نقش شما باز است کلیک کنید."
     >
-      <div
-        style={{
-          marginBottom: 16,
-          padding: 12,
-          borderRadius: 10,
-          border: "1px solid #D1D5DB",
-          background: "#FFFFFF",
-        }}
-      >
-        <div style={{ fontWeight: 700, marginBottom: 6, color: "#111827" }}>خلاصه حساب</div>
-        {!hasToken && <div style={{ fontSize: 14, color: "#6B7280" }}>وارد نشده‌اید.</div>}
-        {hasToken && error && <div style={{ fontSize: 14, color: "#B45309" }}>{error}</div>}
+      <Card title="خلاصه حساب" padding={space.lg}>
+        {!hasToken && <div style={{ fontSize: 14, color: brand.textMuted }}>وارد نشده‌اید.</div>}
+        {hasToken && error && <Alert variant="warn">{error}</Alert>}
         {hasToken && me && (
-          <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.8 }}>
+          <div style={{ fontSize: 14, color: brand.text, lineHeight: 1.8 }}>
             <div>
               نقش شما: <strong>{roleLabelFa(me.role)}</strong>
             </div>
@@ -59,38 +47,23 @@ export default function PanelHome() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
-      {blockedHint && (
-        <div
-          role="status"
-          style={{
-            marginBottom: 12,
-            padding: 10,
-            borderRadius: 8,
-            background: "#FFFBEB",
-            border: "1px solid #FDE68A",
-            fontSize: 13,
-            color: "#92400E",
-          }}
-        >
-          {blockedHint}
-        </div>
-      )}
+      {blockedHint && <Alert variant="warn">{blockedHint}</Alert>}
 
       {showHsaGuide && (
         <details
           data-testid="hsa-human-role-guide"
           dir="rtl"
           style={{
-            marginBottom: 16,
-            padding: "10px 14px",
-            borderRadius: 10,
-            border: "1px solid #BFDBFE",
-            background: "#F3F1EB",
+            marginBottom: space.lg,
+            padding: space.md,
+            borderRadius: radius.lg,
+            border: `1px solid ${brand.border}`,
+            background: brand.panelMuted,
           }}
         >
-          <summary style={{ cursor: "pointer", fontWeight: 700, color: "#1E3A8A", listStylePosition: "inside" }}>
+          <summary style={{ cursor: "pointer", fontWeight: 700, color: brand.primaryDark, listStylePosition: "inside" }}>
             راهنمای کارهایی که باید خودتان انجام دهید
           </summary>
           <ul
@@ -99,7 +72,7 @@ export default function PanelHome() {
               paddingInlineStart: 20,
               fontSize: 13,
               lineHeight: 1.85,
-              color: "#1E40AF",
+              color: brand.text,
             }}
           >
             <li>محاسبه سهم و صورت وضعیت خودکار است؛ شما بررسی، تأیید و قفل را انجام می‌دهید.</li>
@@ -109,78 +82,83 @@ export default function PanelHome() {
         </details>
       )}
 
-      <div style={{ fontWeight: 700, marginBottom: 10, color: "#111827" }}>بخش‌های پنل</div>
+      <div style={{ fontWeight: 700, marginBottom: space.md, color: brand.primaryDark, fontSize: 16 }}>
+        بخش‌های پنل
+      </div>
 
-      {sections.map((s) => {
-        const inner = (
-          <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-              <div style={{ fontWeight: 700 }}>{s.title}</div>
-              <span
-                style={{
-                  fontSize: 10,
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                  background: s.canAccess ? "#DCFCE7" : "#F3F4F6",
-                  color: s.canAccess ? "#166534" : "#6B7280",
-                  flexShrink: 0,
-                }}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+          gap: space.md,
+        }}
+      >
+        {sections.map((s) => {
+          const inner = (
+            <Card
+              padding={space.md}
+              style={{
+                marginBottom: 0,
+                height: "100%",
+                borderColor: s.canAccess ? brand.primaryMuted : brand.border,
+                background: s.canAccess ? brand.primaryLight : brand.panel,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: brand.primaryDark }}>{s.title}</div>
+                <Badge tone={s.canAccess ? "success" : "neutral"}>{s.canAccess ? "باز" : "بدون دسترسی"}</Badge>
+              </div>
+              <div style={{ fontSize: 13, color: brand.textMuted, marginTop: 8, lineHeight: 1.6 }}>{s.description}</div>
+            </Card>
+          );
+
+          if (s.canAccess) {
+            return (
+              <Link
+                key={s.to}
+                to={s.to}
+                style={sectionLinkStyle(true)}
+                data-testid={`home-link-${s.to.replace(/\//g, "-")}`}
+                onClick={() => setBlockedHint(null)}
               >
-                {s.canAccess ? "باز" : "بدون دسترسی"}
-              </span>
-            </div>
-            <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>{s.description}</div>
-          </>
-        );
+                {inner}
+              </Link>
+            );
+          }
 
-        if (s.canAccess) {
           return (
-            <Link
+            <div
               key={s.to}
-              to={s.to}
-              style={cardStyle(true)}
-              data-testid={`home-link-${s.to.replace(/\//g, "-")}`}
-              onClick={() => setBlockedHint(null)}
+              role="button"
+              tabIndex={0}
+              style={sectionLinkStyle(false)}
+              data-testid={`home-link-locked-${s.to.replace(/\//g, "-")}`}
+              onClick={() =>
+                setBlockedHint(
+                  `«${s.title}» برای نقش ${roleLabelFa(me?.role)} فعال نیست. از منوی کنار یا بخش‌های باز استفاده کنید.`,
+                )
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setBlockedHint(`«${s.title}» برای نقش ${roleLabelFa(me?.role)} فعال نیست.`);
+                }
+              }}
             >
               {inner}
-            </Link>
+            </div>
           );
-        }
-
-        return (
-          <div
-            key={s.to}
-            role="button"
-            tabIndex={0}
-            style={cardStyle(false)}
-            data-testid={`home-link-locked-${s.to.replace(/\//g, "-")}`}
-            onClick={() =>
-              setBlockedHint(
-                `«${s.title}» برای نقش ${roleLabelFa(me?.role)} فعال نیست. از منوی کنار یا بخش‌های سبز استفاده کنید.`,
-              )
-            }
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setBlockedHint(
-                  `«${s.title}» برای نقش ${roleLabelFa(me?.role)} فعال نیست.`,
-                );
-              }
-            }}
-          >
-            {inner}
-          </div>
-        );
-      })}
+        })}
+      </div>
 
       <footer
         dir="rtl"
         style={{
-          marginTop: 24,
-          paddingTop: 16,
-          borderTop: "1px solid #E5E7EB",
+          marginTop: space.xl,
+          paddingTop: space.lg,
+          borderTop: `1px solid ${brand.border}`,
           fontSize: 12,
-          color: "#6B7280",
+          color: brand.textMuted,
           lineHeight: 1.7,
         }}
       >

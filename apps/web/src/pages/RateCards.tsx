@@ -6,6 +6,18 @@ import { useFieldValidation } from "../hooks/useFieldValidation";
 import { formatJalaliDate } from "../lib/jalaliDate";
 import { apiGetData, apiPostData, apiPutData } from "../api";
 import { dateRequired, minLength, positiveNumber, required } from "../lib/validation";
+import { Button } from "../components/ui";
+import {
+  alertStyle,
+  brand,
+  btnPrimary,
+  btnSecondary,
+  inputStyle as themeInput,
+  sectionStyle,
+  space,
+  tableThStyle,
+  tableTdStyle,
+} from "../theme";
 
 type RateCard = {
   id: number;
@@ -35,51 +47,20 @@ type ServiceContract = {
   rate_card_id?: number;
 };
 
-const th: React.CSSProperties = { padding: "8px 10px", borderBottom: "1px solid #E5E7EB" };
-const td: React.CSSProperties = { padding: "8px 10px", borderBottom: "1px solid #E5E7EB" };
-const alertStyle: React.CSSProperties = {
-  marginBottom: 12,
-  padding: 12,
-  borderRadius: 10,
-  border: "1px solid #FCA5A5",
-  background: "#FEF2F2",
-  color: "#991B1B",
-  fontSize: 13,
-};
-const okStyle: React.CSSProperties = {
-  marginBottom: 12,
-  padding: 12,
-  borderRadius: 10,
-  border: "1px solid #A7F3D0",
-  background: "#ECFDF5",
-  color: "#065F46",
-  fontSize: 13,
-};
-const labelStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#374151" };
-const inputStyle: React.CSSProperties = {
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #D1D5DB",
-  fontSize: 13,
-  minWidth: 100,
-};
-const btnStyle: React.CSSProperties = {
-  padding: "8px 16px",
-  borderRadius: 8,
-  border: "none",
-  background: "#1B5E20",
-  color: "#fff",
-  fontWeight: 700,
-  cursor: "pointer",
-  fontSize: 13,
-};
-const btnSmallStyle: React.CSSProperties = { ...btnStyle, padding: "4px 10px", fontSize: 12 };
+const th = tableThStyle;
+const td = tableTdStyle;
+const errAlert = alertStyle("danger");
+const okStyle = alertStyle("success");
+const labelStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: brand.textMuted };
+const inputStyle: React.CSSProperties = { ...themeInput, minWidth: 100 };
+const btnStyle = btnPrimary;
+const btnSmallStyle: React.CSSProperties = { ...btnPrimary, padding: "6px 12px", fontSize: 12 };
 
 function contractBadgeStyle(display: string): React.CSSProperties {
   const map: Record<string, { bg: string; color: string }> = {
-    ACTIVE: { bg: "#ECFDF5", color: "#065F46" },
-    DRAFT: { bg: "#F3F1EB", color: "#1E3A2F" },
-    EXPIRED: { bg: "#F3F4F6", color: "#6B7280" },
+    ACTIVE: { bg: brand.successBg, color: brand.success },
+    DRAFT: { bg: brand.panelMuted, color: brand.primaryDark },
+    EXPIRED: { bg: brand.surfaceTableHead, color: brand.textMuted },
   };
   const c = map[display] ?? map.EXPIRED;
   return {
@@ -365,7 +346,7 @@ export default function RateCards() {
         </p>
       }
     >
-      {err && <div style={alertStyle}>{err}</div>}
+      {err && <div style={errAlert}>{err}</div>}
       {msg && <div style={okStyle}>{msg}</div>}
 
       {activeContract && activeContract !== "none" && (
@@ -377,8 +358,8 @@ export default function RateCards() {
         </div>
       )}
 
-      <section style={{ marginBottom: 20, padding: 14, border: "1px solid #E5E7EB", borderRadius: 10 }}>
-        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: "#0E3B13" }}>فیلتر نرخ‌های معتبر</h2>
+      <section style={{ ...sectionStyle, marginBottom: space.lg }}>
+        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: brand.primaryDark }}>فیلتر نرخ‌های معتبر</h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
           <label style={labelStyle}>
             معدن
@@ -401,11 +382,11 @@ export default function RateCards() {
         </div>
       </section>
 
-      <section style={{ marginBottom: 20, padding: 14, border: "1px solid #D1FAE5", borderRadius: 10, background: "#F0FDF4" }}>
-        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: "#0E3B13" }}>
+      <section style={{ ...sectionStyle, marginBottom: space.lg, background: brand.successBg, border: `1px solid ${brand.successBorder}` }}>
+        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: brand.primaryDark }}>
           قرارداد خدمت ({labelFa(OPERATION_TYPE_FA, "HAUL_TONNAGE")})
         </h2>
-        <p style={{ margin: "0 0 10px", fontSize: 12, color: "#374151" }}>
+        <p style={{ margin: "0 0 10px", fontSize: 12, color: brand.textMuted }}>
           کرایه عملیاتی از کارت نرخ لینک‌شده (یا نرخ پایه قرارداد)؛ سهم جامعه مستقل و ثابت به ازای هر تن.
         </p>
         <form noValidate onSubmit={createServiceContractDraft} style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
@@ -437,7 +418,7 @@ export default function RateCards() {
         </form>
         {draftContractId != null && (
           <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-            <span style={{ fontSize: 12, color: "#374151" }}>پیش‌نویس #{draftContractId}</span>
+            <span style={{ fontSize: 12, color: brand.textMuted }}>پیش‌نویس #{draftContractId}</span>
             <button type="button" disabled={busy === "sc-sign-mine"} onClick={() => signContract("mine")} style={btnSmallStyle}>
               امضای معدن
             </button>
@@ -452,7 +433,7 @@ export default function RateCards() {
 
         <div style={{ marginTop: 16 }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 10 }}>
-            <h3 style={{ margin: 0, fontSize: 14, color: "#0E3B13" }}>
+            <h3 style={{ margin: 0, fontSize: 14, color: brand.primaryDark }}>
               نسخه‌های قرارداد ({labelFa(OPERATION_TYPE_FA, "HAUL_TONNAGE")})
             </h3>
             {contractVersions.some((c) => contractDisplayStatus(c) === "ACTIVE") && !draftContractId && (
@@ -481,7 +462,7 @@ export default function RateCards() {
               style={{
                 marginBottom: 12,
                 padding: 12,
-                border: "1px solid #D1FAE5",
+                border: `1px solid ${brand.successBorder}`,
                 borderRadius: 8,
                 background: "#fff",
                 display: "flex",
@@ -524,7 +505,7 @@ export default function RateCards() {
 
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
-              <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
+              <tr style={{ background: brand.surfaceTableHead, textAlign: "right" as const }}>
                 <th style={th}>نسخه</th>
                 <th style={th}>الحاقیه</th>
                 <th style={th}>نرخ پایه</th>
@@ -538,7 +519,7 @@ export default function RateCards() {
             <tbody>
               {contractVersions.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ padding: 12, color: "#6B7280" }}>
+                  <td colSpan={8} style={{ padding: 12, color: brand.textMuted }}>
                     هنوز قراردادی برای این معدن/تعاونی ثبت نشده.
                   </td>
                 </tr>
@@ -567,7 +548,7 @@ export default function RateCards() {
 
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 24 }}>
         <thead>
-          <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
+          <tr style={{ background: brand.surfaceTableHead, textAlign: "right" as const }}>
             <th style={th}>شناسه</th>
             <th style={th}>معدن</th>
             <th style={th}>نوع</th>
@@ -582,7 +563,7 @@ export default function RateCards() {
         <tbody>
           {cards.length === 0 && (
             <tr>
-              <td colSpan={9} style={{ padding: 12, color: "#6B7280" }}>
+              <td colSpan={9} style={{ padding: 12, color: brand.textMuted }}>
                 برای این معدن/تاریخ نرخ فعال معتبری نیست.
               </td>
             </tr>
@@ -603,8 +584,8 @@ export default function RateCards() {
                     borderRadius: 6,
                     fontSize: 11,
                     fontWeight: 700,
-                    background: c.status === "ACTIVE" ? "#ECFDF5" : c.status === "DRAFT" ? "#F3F1EB" : "#F3F4F6",
-                    color: c.status === "ACTIVE" ? "#065F46" : c.status === "DRAFT" ? "#1E3A2F" : "#6B7280",
+                    background: c.status === "ACTIVE" ? brand.successBg : c.status === "DRAFT" ? brand.panelMuted : brand.surfaceTableHead,
+                    color: c.status === "ACTIVE" ? brand.success : c.status === "DRAFT" ? brand.primaryDark : brand.textMuted,
                   }}
                 >
                   {labelFa(RATE_CARD_STATUS_FA, c.status)}
@@ -627,8 +608,8 @@ export default function RateCards() {
         </tbody>
       </table>
 
-      <section style={{ padding: 14, border: "1px solid #E5E7EB", borderRadius: 10 }}>
-        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: "#0E3B13" }}>افزودن نسخهٔ جدید (پیش‌نویس)</h2>
+      <section style={sectionStyle}>
+        <h2 style={{ margin: "0 0 10px", fontSize: 15, color: brand.primaryDark }}>افزودن نسخهٔ جدید (پیش‌نویس)</h2>
         <form noValidate onSubmit={createDraft} style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
           <label style={labelStyle}>
             معدن

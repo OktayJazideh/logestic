@@ -9,7 +9,8 @@ import { DemoLoginPanel } from "../components/DemoLoginPanel";
 import { isDemoLoginEnabled } from "../demo/demoUsers";
 import { loginErrorMessage } from "../lib/authMessages";
 import { brandNames } from "../brand";
-import { brand, btnPrimary, btnSecondary } from "../theme";
+import { Alert, Button, Input } from "../components/ui";
+import { brand, cardStyle, inputStyle, radius, shadow, space } from "../theme";
 
 const RESEND_COOLDOWN_SEC = 60;
 
@@ -47,44 +48,14 @@ const pageStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-const cardStyle: React.CSSProperties = {
+const loginCardStyle: React.CSSProperties = {
+  ...cardStyle,
   width: "100%",
-  maxWidth: 400,
-  background: brand.panel,
-  border: `1px solid ${brand.border}`,
-  borderRadius: 8,
-  padding: 24,
+  maxWidth: 420,
+  padding: space.xl,
+  borderRadius: radius.xl,
+  boxShadow: shadow.lg,
   boxSizing: "border-box",
-};
-
-const alertStyle: React.CSSProperties = {
-  marginBottom: 16,
-  padding: "10px 12px",
-  borderRadius: 6,
-  background: brand.dangerBg,
-  border: `1px solid ${brand.dangerBorder}`,
-  color: brand.danger,
-  fontSize: 13,
-  lineHeight: 1.5,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: 6,
-  border: `1px solid ${brand.border}`,
-  fontSize: 15,
-  boxSizing: "border-box",
-  fontFamily: brand.fontFamily,
-};
-
-const btnPrimaryStyle: React.CSSProperties = {
-  ...btnPrimary,
-  width: "100%",
-};
-
-const btnGhost: React.CSSProperties = {
-  ...btnSecondary,
 };
 
 export default function LoginPage() {
@@ -196,7 +167,7 @@ export default function LoginPage() {
     return (
       <LoginShell>
         <LoginCard>
-          <p style={{ margin: 0, color: "#6B7280", fontSize: 14 }}>در حال بررسی نشست…</p>
+          <p style={{ margin: 0, color: brand.textMuted, fontSize: 14 }}>در حال بررسی نشست…</p>
         </LoginCard>
       </LoginShell>
     );
@@ -217,17 +188,13 @@ export default function LoginPage() {
         <p style={{ margin: "0 0 16px", fontSize: 13, color: brand.textMuted, textAlign: "center" }}>
           {brandNames.tagline} — ورود با موبایل
         </p>
-        <p style={{ margin: "0 0 20px", fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>
+        <p style={{ margin: "0 0 20px", fontSize: 13, color: brand.textMuted, lineHeight: 1.6 }}>
           {step === 1
             ? "شماره موبایل خود را وارد کنید تا کد یک‌بارمصرف ارسال شود."
             : `کد ارسال‌شده به ${mobile} را وارد کنید.`}
         </p>
 
-        {error && (
-          <div role="alert" style={alertStyle}>
-            {error}
-          </div>
-        )}
+        {error && <Alert variant="danger">{error}</Alert>}
 
         {step === 1 ? (
           <form
@@ -244,7 +211,7 @@ export default function LoginPage() {
               hint="۹ تا ۱۵ رقم، مثلاً 09121234567"
               htmlFor="login-mobile"
             >
-              <input
+              <Input
                 id="login-mobile"
                 data-testid="login-mobile"
                 type="tel"
@@ -252,6 +219,7 @@ export default function LoginPage() {
                 autoComplete="tel"
                 placeholder="09121234567"
                 value={mobile}
+                hasError={!!mobileError}
                 onChange={(e) => {
                   setMobile(e.target.value.replace(/\D/g, "").slice(0, 15));
                   if (mobileError) validateField("mobile", e.target.value.replace(/\D/g, "").slice(0, 15), mobileValidators);
@@ -286,14 +254,14 @@ export default function LoginPage() {
               />
               مرا بخاطر داشته باش
             </label>
-            <button
+            <Button
               data-testid="login-request-otp"
               type="submit"
+              fullWidth
               disabled={busy || !mobileValid}
-              style={{ ...btnPrimaryStyle, opacity: busy || !mobileValid ? 0.65 : 1 }}
             >
               {busy ? "در حال ارسال…" : "دریافت کد"}
-            </button>
+            </Button>
             <DemoLoginPanel app="web" />
           </form>
         ) : (
@@ -305,7 +273,7 @@ export default function LoginPage() {
             }}
           >
             <FormField label="کد ۶ رقمی" required error={otpError} htmlFor="login-otp">
-              <input
+              <Input
                 id="login-otp"
                 data-testid="login-otp"
                 type="text"
@@ -314,6 +282,7 @@ export default function LoginPage() {
                 maxLength={6}
                 placeholder="------"
                 value={otp}
+                hasError={!!otpError}
                 onChange={(e) => {
                   const v = e.target.value.replace(/\D/g, "").slice(0, 6);
                   setOtp(v);
@@ -325,25 +294,21 @@ export default function LoginPage() {
                 style={fieldBorderStyle({ ...inputStyle, letterSpacing: 6, textAlign: "center" }, otpError)}
               />
             </FormField>
-            <button
-              data-testid="login-verify"
-              type="submit"
-              disabled={busy || !otpValid}
-              style={{ ...btnPrimaryStyle, opacity: busy || !otpValid ? 0.65 : 1 }}
-            >
+            <Button data-testid="login-verify" type="submit" fullWidth disabled={busy || !otpValid}>
               {busy ? "در حال ورود…" : "ورود"}
-            </button>
+            </Button>
 
             <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-              <button
+              <Button
+                variant="secondary"
                 type="button"
                 disabled={busy || resendSec > 0 || !mobileValid}
                 onClick={() => void requestOtp()}
-                style={btnGhost}
               >
                 {resendSec > 0 ? `ارسال مجدد (${resendSec}ث)` : "ارسال مجدد کد"}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 type="button"
                 disabled={busy}
                 onClick={() => {
@@ -353,10 +318,9 @@ export default function LoginPage() {
                   setResendSec(0);
                   clearErrors();
                 }}
-                style={btnGhost}
               >
                 تغییر شماره
-              </button>
+              </Button>
             </div>
           </form>
         )}
@@ -379,5 +343,5 @@ function LoginShell({ children }: { children: React.ReactNode }) {
 }
 
 function LoginCard({ children }: { children: React.ReactNode }) {
-  return <div style={cardStyle}>{children}</div>;
+  return <div style={loginCardStyle}>{children}</div>;
 }

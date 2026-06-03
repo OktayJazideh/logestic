@@ -10,6 +10,17 @@ import {
   SETTLEMENT_BATCH_STATUS_FA,
   STATEMENT_STATUS_FA,
 } from "../lib/uiLabels";
+import { Button } from "../components/ui";
+import {
+  brand,
+  btnPrimary,
+  btnSecondary,
+  inputStyle as themeInput,
+  radius,
+  sectionStyle,
+  space,
+  tableCellPadding,
+} from "../theme";
 
 type Batch = {
   id: number;
@@ -40,41 +51,24 @@ type PeriodStatement = {
 
 type Tab = "mine" | "internal";
 
-const btn: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 8,
-  border: "1px solid #D1D5DB",
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 13,
-};
-
-const btnPrimary: React.CSSProperties = {
-  ...btn,
-  background: "#0F3D17",
-  color: "#fff",
-  borderColor: "#0F3D17",
-};
-
 const inputStyle: React.CSSProperties = {
-  padding: "8px 10px",
-  border: "1px solid #E5E7EB",
-  borderRadius: 8,
+  ...themeInput,
   marginInlineStart: 6,
   display: "block",
   marginTop: 4,
 };
 
-const th: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px" };
-const td: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px" };
+const th: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: tableCellPadding };
+const td: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: tableCellPadding };
 
 const tabBtn = (active: boolean): React.CSSProperties => ({
-  ...btn,
-  background: active ? "#0F3D17" : "#fff",
-  color: active ? "#fff" : "#374151",
-  borderColor: active ? "#0F3D17" : "#D1D5DB",
+  ...(active ? btnPrimary : btnSecondary),
   fontWeight: active ? 600 : 400,
+  fontSize: 13,
+  padding: "8px 14px",
 });
+
+const btn = btnSecondary;
 
 export default function SettlementPage() {
   const nowYm = todayGregorianYm();
@@ -312,9 +306,9 @@ export default function SettlementPage() {
       </div>
 
       {tab === "mine" && (
-        <section style={{ marginBottom: 20, padding: 14, background: "#F9FAFB", borderRadius: 10 }}>
+        <section style={{ ...sectionStyle, marginBottom: space.lg }}>
           <h3 style={{ fontSize: 15, marginTop: 0 }}>صورت وضعیت‌های قفل‌شده — واریز معدن</h3>
-          <p style={{ fontSize: 12, color: "#6B7280" }}>
+          <p style={{ fontSize: 12, color: brand.textMuted }}>
             خروجی این بخش فقط <strong>شبای تعاونی</strong> دارد. معدن به مالک مستقیم واریز نمی‌کند.
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 12 }}>
@@ -342,7 +336,7 @@ export default function SettlementPage() {
 
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, marginBottom: 12 }}>
             <thead>
-              <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
+              <tr style={{ background: brand.surfaceTableHead, textAlign: "right" as const }}>
                 <th style={th}>انتخاب</th>
                 <th style={th}>شناسه</th>
                 <th style={th}>دوره</th>
@@ -354,7 +348,7 @@ export default function SettlementPage() {
             <tbody>
               {lockedStatements.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ ...td, textAlign: "center", color: "#6B7280" }}>
+                  <td colSpan={6} style={{ ...td, textAlign: "center", color: brand.textMuted }}>
                     صورت وضعیت قفل‌شده برای این دوره یافت نشد
                   </td>
                 </tr>
@@ -362,7 +356,7 @@ export default function SettlementPage() {
               {lockedStatements.map((s) => (
                 <tr
                   key={s.id}
-                  style={{ background: selectedStatementId === s.id ? "#ECFDF5" : undefined, cursor: "pointer" }}
+                  style={{ background: selectedStatementId === s.id ? brand.successBg : undefined, cursor: "pointer" }}
                   onClick={() => setSelectedStatementId(s.id)}
                 >
                   <td style={td}>
@@ -374,7 +368,7 @@ export default function SettlementPage() {
                   <td style={{ ...td, fontFamily: "monospace", fontSize: 11 }}>{s.cooperative_payable_iban ?? "—"}</td>
                   <td style={td}>
                     {s.mine_paid ? (
-                      <span style={{ color: "#059669" }}>✓ {s.mine_payment_reference}</span>
+                      <span style={{ color: brand.success }}>✓ {s.mine_payment_reference}</span>
                     ) : (
                       <span style={{ color: "#B45309" }}>در انتظار</span>
                     )}
@@ -413,7 +407,7 @@ export default function SettlementPage() {
 
       {tab === "internal" && (
         <>
-          <section style={{ marginBottom: 20, padding: 14, background: "#F9FAFB", borderRadius: 10 }}>
+          <section style={{ ...sectionStyle, marginBottom: space.lg }}>
             <h3 style={{ fontSize: 15, marginTop: 0 }}>۱. بستن ماه</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
               <label>
@@ -435,13 +429,13 @@ export default function SettlementPage() {
             </div>
           </section>
 
-          <section style={{ marginBottom: 20, padding: 14, background: "#F9FAFB", borderRadius: 10 }}>
+          <section style={{ ...sectionStyle, marginBottom: space.lg }}>
             <h3 style={{ fontSize: 15, marginTop: 0 }}>۲. تسویه داخلی — batch انتخاب‌شده</h3>
-            <p style={{ fontSize: 12, color: "#6B7280" }}>
+            <p style={{ fontSize: 12, color: brand.textMuted }}>
               پرداخت‌کننده: تعاونی/پلتفرم — نه معدن. ذی‌نفعان: مالک ناوگان، خانوار، صندوق جامعه. قبل از قفل، واریز
               معدن باید ثبت شده باشد.
             </p>
-            <p style={{ fontSize: 12, color: "#6B7280" }}>
+            <p style={{ fontSize: 12, color: brand.textMuted }}>
               جریان: محاسبه‌شده → قفل (پس از واریز معدن) → آماده → ارسال به بانک → در صف بانک → علامت پرداخت‌شده →
               تسویه‌شده
             </p>
@@ -514,7 +508,7 @@ export default function SettlementPage() {
           <h3 style={{ fontSize: 15 }}>Batchها</h3>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, marginBottom: 16 }}>
             <thead>
-              <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
+              <tr style={{ background: brand.surfaceTableHead, textAlign: "right" as const }}>
                 <th style={th}>انتخاب</th>
                 <th style={th}>شناسه</th>
                 <th style={th}>وضعیت</th>
@@ -525,7 +519,7 @@ export default function SettlementPage() {
               {batches.map((b) => (
                 <tr
                   key={b.id}
-                  style={{ background: selectedId === b.id ? "#ECFDF5" : undefined, cursor: "pointer" }}
+                  style={{ background: selectedId === b.id ? brand.successBg : undefined, cursor: "pointer" }}
                   onClick={() => setSelectedId(b.id)}
                 >
                   <td style={td}>
@@ -545,7 +539,7 @@ export default function SettlementPage() {
           <h3 style={{ fontSize: 15 }}>صندوق جامعه</h3>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
             <thead>
-              <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
+              <tr style={{ background: brand.surfaceTableHead, textAlign: "right" as const }}>
                 <th style={th}>دوره</th>
                 <th style={th}>جمع</th>
                 <th style={th}>وضعیت</th>

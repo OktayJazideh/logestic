@@ -1,39 +1,80 @@
 import type React from "react";
 
-/** Formal «old money» palette — solid colors, no gradients. Wireframe-aligned. */
+/** همسهمان — پالت رسمی معدنی، بدون گرادیان */
 export const brand = {
   fontFamily: '"Vazirmatn", Tahoma, sans-serif',
   fontMono: 'ui-monospace, "Cascadia Code", Consolas, monospace',
 
-  bg: "#F7F6F2",
+  bg: "#F5F4F0",
   panel: "#FFFFFF",
-  panelMuted: "#F3F1EB",
-  border: "#D8D4CC",
-  borderDark: "#B8B0A4",
+  panelMuted: "#F0EDE6",
+  border: "#E2DDD4",
+  borderDark: "#C4BCB0",
 
   primary: "#1E3A2F",
   primaryDark: "#152921",
-  primaryLight: "#E8EDE9",
+  primaryLight: "#E6EFEA",
+  primaryMuted: "#D4E4DC",
 
   accent: "#6B5B4F",
-  accentLight: "#F0EBE3",
+  accentLight: "#F2EDE6",
 
-  text: "#1C1C1C",
-  textMuted: "#5C5C5C",
-  textSoft: "#8A847A",
+  text: "#1A1A1A",
+  textMuted: "#5A5650",
+  textSoft: "#8A8478",
 
   danger: "#7F1D1D",
-  dangerBg: "#FAF0F0",
-  dangerBorder: "#D4A5A5",
+  dangerBg: "#FBF4F4",
+  dangerBorder: "#E8C4C4",
 
   success: "#2F4F3E",
-  successBg: "#EEF3EF",
-  successBorder: "#A8C4B0",
+  successBg: "#F0F6F2",
+  successBorder: "#B8D4C4",
 
   warn: "#6B5A2E",
-  warnBg: "#FAF8F3",
-  warnBorder: "#C4B896",
+  warnBg: "#FBF9F4",
+  warnBorder: "#DDD0A8",
+
+  /** سطوح جدول و بخش‌ها */
+  surfaceTableHead: "#F0EDE6",
+  surfaceRowHover: "#FAFAF8",
+  surfaceRowStripe: "#F8F7F4",
 } as const;
+
+export const space = {
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 24,
+  xl: 32,
+} as const;
+
+export const radius = {
+  sm: 8,
+  md: 12,
+  lg: 14,
+  xl: 16,
+} as const;
+
+export const shadow = {
+  sm: "0 1px 2px rgba(21, 41, 33, 0.06)",
+  md: "0 4px 12px rgba(21, 41, 33, 0.08)",
+  lg: "0 8px 24px rgba(21, 41, 33, 0.1)",
+} as const;
+
+export const fontSize = {
+  xs: 12,
+  sm: 13,
+  base: 14,
+  md: 15,
+  lg: 18,
+  xl: 22,
+  title: 24,
+} as const;
+
+export const inputHeight = 44;
+
+export const tableCellPadding = "12px 14px";
 
 export const pageStyle: React.CSSProperties = {
   minHeight: "100vh",
@@ -46,29 +87,128 @@ export const pageStyle: React.CSSProperties = {
 export const cardStyle: React.CSSProperties = {
   background: brand.panel,
   border: `1px solid ${brand.border}`,
-  borderRadius: 8,
+  borderRadius: radius.lg,
+  boxShadow: shadow.sm,
+};
+
+export const sectionStyle: React.CSSProperties = {
+  marginBottom: space.lg,
+  padding: space.lg,
+  borderRadius: radius.lg,
+  border: `1px solid ${brand.border}`,
+  background: brand.panel,
+  boxShadow: shadow.sm,
+};
+
+export const inputStyle: React.CSSProperties = {
+  width: "100%",
+  minHeight: inputHeight,
+  padding: "10px 14px",
+  borderRadius: radius.md,
+  border: `1px solid ${brand.border}`,
+  fontSize: fontSize.md,
+  boxSizing: "border-box",
+  fontFamily: brand.fontFamily,
+  background: brand.panel,
+  color: brand.text,
+};
+
+export const selectStyle: React.CSSProperties = {
+  ...inputStyle,
+  cursor: "pointer",
+};
+
+export const tableThStyle: React.CSSProperties = {
+  padding: tableCellPadding,
+  borderBottom: `2px solid ${brand.border}`,
+  background: brand.surfaceTableHead,
+  fontWeight: 700,
+  fontSize: fontSize.sm,
+  color: brand.primaryDark,
+  textAlign: "right" as const,
+  whiteSpace: "nowrap" as const,
+};
+
+export const tableTdStyle: React.CSSProperties = {
+  padding: tableCellPadding,
+  borderBottom: `1px solid ${brand.border}`,
+  fontSize: fontSize.base,
+  verticalAlign: "top" as const,
+};
+
+export type AlertVariant = "info" | "success" | "warn" | "danger";
+
+export function alertStyle(variant: AlertVariant): React.CSSProperties {
+  const map: Record<AlertVariant, React.CSSProperties> = {
+    info: {
+      background: brand.primaryLight,
+      border: `1px solid ${brand.primaryMuted}`,
+      color: brand.primaryDark,
+    },
+    success: {
+      background: brand.successBg,
+      border: `1px solid ${brand.successBorder}`,
+      color: brand.success,
+    },
+    warn: {
+      background: brand.warnBg,
+      border: `1px solid ${brand.warnBorder}`,
+      color: brand.warn,
+    },
+    danger: {
+      background: brand.dangerBg,
+      border: `1px solid ${brand.dangerBorder}`,
+      color: brand.danger,
+    },
+  };
+  return {
+    marginBottom: space.md,
+    padding: `${space.sm}px ${space.md}px`,
+    borderRadius: radius.md,
+    fontSize: fontSize.base,
+    lineHeight: 1.6,
+    ...map[variant],
+  };
+}
+
+export const btnBase: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+  padding: "11px 20px",
+  borderRadius: radius.md,
+  fontSize: fontSize.base,
+  fontWeight: 600,
+  cursor: "pointer",
+  fontFamily: brand.fontFamily,
+  transition: "background 0.15s ease, border-color 0.15s ease",
 };
 
 export const btnPrimary: React.CSSProperties = {
-  padding: "10px 16px",
-  borderRadius: 6,
+  ...btnBase,
   border: `1px solid ${brand.primaryDark}`,
   background: brand.primary,
   color: "#FFFFFF",
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: "pointer",
-  fontFamily: brand.fontFamily,
 };
 
 export const btnSecondary: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 6,
+  ...btnBase,
   border: `1px solid ${brand.border}`,
-  background: brand.panelMuted,
+  background: brand.panel,
   color: brand.text,
-  fontSize: 13,
-  fontWeight: 600,
-  cursor: "pointer",
-  fontFamily: brand.fontFamily,
+};
+
+export const btnGhost: React.CSSProperties = {
+  ...btnBase,
+  border: "1px solid transparent",
+  background: "transparent",
+  color: brand.primary,
+};
+
+export const btnDanger: React.CSSProperties = {
+  ...btnBase,
+  border: `1px solid ${brand.dangerBorder}`,
+  background: brand.dangerBg,
+  color: brand.danger,
 };

@@ -4,8 +4,7 @@ import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { formatPeriodKeyYm } from "../lib/jalaliDate";
-import { brand } from "../theme";
-import "react-multi-date-picker/styles/colors/green.css";
+import { brand, fontSize, inputStyle, radius } from "../theme";
 
 type Props = {
   /** سال و ماه میلادی (۱–۱۲) برای API */
@@ -47,7 +46,16 @@ export function JalaliMonthPicker({
   return (
     <div style={style} data-testid={testId}>
       {label && (
-        <label htmlFor={id} style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+        <label
+          htmlFor={id}
+          style={{
+            display: "block",
+            fontSize: fontSize.sm,
+            fontWeight: 600,
+            marginBottom: 8,
+            color: brand.primaryDark,
+          }}
+        >
           {label}
         </label>
       )}
@@ -70,19 +78,15 @@ export function JalaliMonthPicker({
         containerStyle={{ width: "100%" }}
         inputClass="jalali-date-input"
         style={{
+          ...inputStyle,
           width: "100%",
           minWidth: 160,
-          padding: "8px 10px",
-          borderRadius: 6,
-          border: `1px solid ${brand.border}`,
-          fontFamily: brand.fontFamily,
-          fontSize: 14,
-          background: brand.panel,
+          borderRadius: radius.md,
         }}
         calendarPosition="bottom-right"
         arrow={false}
       />
-      <span style={{ display: "block", fontSize: 11, color: brand.textMuted, marginTop: 4 }}>
+      <span style={{ display: "block", fontSize: fontSize.xs, color: brand.textMuted, marginTop: 6 }}>
         دوره میلادی: {periodLabel}
       </span>
     </div>

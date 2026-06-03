@@ -1,4 +1,5 @@
 import React from "react";
+import { brand, fontSize, radius, tableTdStyle, tableThStyle } from "../theme";
 
 export type DataTableColumn<T> = {
   key: string;
@@ -44,15 +45,22 @@ export function DataTable<T>({
   const allSelected = allKeys.length > 0 && allKeys.every((k) => selectedKeys?.has(k));
 
   return (
-    <div style={{ overflowX: "auto" }}>
+    <div
+      style={{
+        overflowX: "auto",
+        border: `1px solid ${brand.border}`,
+        borderRadius: radius.lg,
+        background: brand.panel,
+      }}
+    >
       <table
         data-testid={testId}
-        style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
+        style={{ width: "100%", borderCollapse: "collapse", fontSize: fontSize.base }}
       >
         <thead>
-          <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
+          <tr>
             {selectable && (
-              <th style={thStyle}>
+              <th style={tableThStyle}>
                 <input
                   type="checkbox"
                   aria-label="انتخاب همه"
@@ -62,7 +70,7 @@ export function DataTable<T>({
               </th>
             )}
             {columns.map((col) => (
-              <th key={col.key} style={{ ...thStyle, width: col.width }}>
+              <th key={col.key} style={{ ...tableThStyle, width: col.width }}>
                 {col.sortable && onSort ? (
                   <button
                     type="button"
@@ -83,22 +91,28 @@ export function DataTable<T>({
         <tbody>
           {rows.length === 0 && (
             <tr>
-              <td colSpan={columns.length + (selectable ? 1 : 0)} style={{ ...tdStyle, color: "#6B7280" }}>
+              <td
+                colSpan={columns.length + (selectable ? 1 : 0)}
+                style={{ ...tableTdStyle, color: brand.textMuted, textAlign: "center", padding: 24 }}
+              >
                 {emptyMessage}
               </td>
             </tr>
           )}
-          {rows.map((row) => {
+          {rows.map((row, i) => {
             const key = rowKey(row);
             return (
               <tr
                 key={key}
                 data-testid={`${testId ?? "data-table"}-row-${key}`}
-                style={rowStyle?.(row)}
+                style={{
+                  background: i % 2 === 1 ? brand.surfaceRowStripe : brand.panel,
+                  ...rowStyle?.(row),
+                }}
                 title={rowTitle?.(row)}
               >
                 {selectable && (
-                  <td style={tdStyle}>
+                  <td style={tableTdStyle}>
                     <input
                       type="checkbox"
                       aria-label={`انتخاب ${key}`}
@@ -108,7 +122,7 @@ export function DataTable<T>({
                   </td>
                 )}
                 {columns.map((col) => (
-                  <td key={col.key} style={tdStyle}>
+                  <td key={col.key} style={tableTdStyle}>
                     {col.render(row)}
                   </td>
                 ))}
@@ -120,18 +134,6 @@ export function DataTable<T>({
     </div>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  border: "1px solid #E5E7EB",
-  padding: "8px 10px",
-  whiteSpace: "nowrap",
-};
-
-const tdStyle: React.CSSProperties = {
-  border: "1px solid #E5E7EB",
-  padding: "8px 10px",
-  verticalAlign: "top",
-};
 
 const sortBtnStyle: React.CSSProperties = {
   background: "none",

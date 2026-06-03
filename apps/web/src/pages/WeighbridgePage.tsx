@@ -7,6 +7,17 @@ import { useFieldValidation } from "../hooks/useFieldValidation";
 import { fieldErrorStyle } from "../components/FormField";
 import { minLength, positiveNumber, required, runValidators } from "../lib/validation";
 import { labelFa, MANUAL_REASON_FA, WEIGHBRIDGE_STATUS_FA } from "../lib/uiLabels";
+import {
+  alertStyle,
+  brand,
+  btnDanger as themeBtnDanger,
+  btnPrimary as themeBtnPrimary,
+  btnSecondary as themeBtnSecondary,
+  inputStyle as themeInput,
+  radius,
+  selectStyle as themeSelect,
+  tableCellPadding,
+} from "../theme";
 
 type ManualReasonCode = "SCALE_DOWN" | "NETWORK" | "OTHER";
 
@@ -259,7 +270,7 @@ export default function WeighbridgePage() {
       <MineScope onMineSelected={() => setMineKey((k) => k + 1)} />
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-end", marginBottom: 14 }}>
-        <label style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+        <label style={{ fontSize: 13, fontWeight: 600, color: brand.textMuted }}>
           فیلتر وضعیت
           <select
             data-testid="wb-status-filter"
@@ -291,7 +302,7 @@ export default function WeighbridgePage() {
             <div style={{ overflowX: "auto" }}>
               <table style={tableStyle}>
                 <thead>
-                  <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
+                  <tr style={{ background: brand.surfaceTableHead, textAlign: "right" as const }}>
                     <th style={th}>تیکت</th>
                     <th style={th}>ماموریت</th>
                     <th style={th}>وضعیت</th>
@@ -305,7 +316,7 @@ export default function WeighbridgePage() {
                       onClick={() => selectTicket(t)}
                       style={{
                         cursor: "pointer",
-                        background: selectedId === t.id ? "#ECFDF5" : undefined,
+                        background: selectedId === t.id ? brand.successBg : undefined,
                       }}
                     >
                       <td style={td}>{t.ticket_number}</td>
@@ -318,16 +329,16 @@ export default function WeighbridgePage() {
             </div>
           )}
           {tickets && tickets.length === 0 && !err && (
-            <p style={{ color: "#6B7280", fontSize: 14 }}>تیکتی برای نمایش نیست.</p>
+            <p style={{ color: brand.textMuted, fontSize: 14 }}>تیکتی برای نمایش نیست.</p>
           )}
         </section>
 
         <section data-testid="wb-detail-panel">
           <h3 style={h3}>جزئیات تیکت</h3>
-          {!selectedId && <p style={{ color: "#6B7280", fontSize: 14 }}>یک تیکت از لیست انتخاب کنید.</p>}
+          {!selectedId && <p style={{ color: brand.textMuted, fontSize: 14 }}>یک تیکت از لیست انتخاب کنید.</p>}
           {detail && (
             <>
-              <div style={{ fontSize: 13, color: "#374151", marginBottom: 10, lineHeight: 1.7 }}>
+              <div style={{ fontSize: 13, color: brand.textMuted, marginBottom: 10, lineHeight: 1.7 }}>
                 <div>
                   <strong>{detail.ticket_number}</strong> — ماموریت #{detail.mission_id}
                 </div>
@@ -344,9 +355,8 @@ export default function WeighbridgePage() {
                     marginBottom: 12,
                     padding: 12,
                     borderRadius: 10,
-                    border: "1px solid #DC2626",
-                    background: "#FEF2F2",
-                    color: "#991B1B",
+                    ...alertStyle("danger"),
+                    border: undefined,
                     fontSize: 13,
                   }}
                 >
@@ -360,9 +370,8 @@ export default function WeighbridgePage() {
                     marginBottom: 12,
                     padding: 12,
                     borderRadius: 10,
-                    border: "1px solid #8B7355",
-                    background: "#FFFBEB",
-                    color: "#92400E",
+                    ...alertStyle("warn"),
+                    border: undefined,
                     fontSize: 13,
                   }}
                 >
@@ -409,7 +418,7 @@ export default function WeighbridgePage() {
                     data-testid="wb-submit-manual"
                     type="submit"
                     disabled={!weightsEditable || busy != null}
-                    style={{ ...btnPrimary, background: "#B45309", borderColor: "#B45309" }}
+                    style={{ ...btnPrimary, background: brand.warn, borderColor: brand.warnBorder }}
                   >
                     {busy === "manual" ? "…" : "ثبت دستی"}
                   </button>
@@ -453,7 +462,7 @@ export default function WeighbridgePage() {
                         type="text"
                         readOnly
                         value={detail.net_weight != null ? String(detail.net_weight) : "—"}
-                        style={{ ...inputStyle, background: "#F3F4F6", color: "#6B7280" }}
+                        style={{ ...inputStyle, background: brand.surfaceTableHead, color: brand.textMuted }}
                       />
                     </label>
                   </div>
@@ -466,7 +475,7 @@ export default function WeighbridgePage() {
                     {busy === "weights" ? "…" : "ثبت وزن"}
                   </button>
                   {!weightsEditable && (
-                    <span style={{ marginRight: 8, fontSize: 12, color: "#6B7280" }}>
+                    <span style={{ marginRight: 8, fontSize: 12, color: brand.textMuted }}>
                       ثبت وزن فقط وقتی تیکت در انتظار وزن خالی یا وزن خالی ثبت‌شده باشد.
                     </span>
                   )}
@@ -474,7 +483,7 @@ export default function WeighbridgePage() {
               )}
 
               {needsSupervisor && canApproveTicket && !isOpAdmin && approvable && (
-                <p style={{ fontSize: 12, color: "#991B1B", marginBottom: 8 }}>
+                <p style={{ fontSize: 12, color: brand.danger, marginBottom: 8 }}>
                   تأیید این تیکت فقط توسط مدیر عملیات امکان‌پذیر است.
                 </p>
               )}
@@ -486,7 +495,7 @@ export default function WeighbridgePage() {
                       type="button"
                       disabled={busy != null}
                       onClick={() => void approveTicket()}
-                      style={{ ...btnPrimary, background: "#B45309", borderColor: "#B45309" }}
+                      style={{ ...btnPrimary, background: brand.warn, borderColor: brand.warnBorder }}
                     >
                       {busy === "approve" ? "…" : needsSupervisor ? "تأیید دستی" : "آزادسازی از نگهداری"}
                     </button>
@@ -524,7 +533,7 @@ export default function WeighbridgePage() {
               )}
 
               {actionMsg && (
-                <div data-testid="wb-action-msg" style={{ marginTop: 12, fontSize: 13, color: "#374151" }}>
+                <div data-testid="wb-action-msg" style={{ marginTop: 12, fontSize: 13, color: brand.textMuted }}>
                   {actionMsg}
                 </div>
               )}
@@ -537,52 +546,13 @@ export default function WeighbridgePage() {
 }
 
 const h3: React.CSSProperties = { fontSize: 15, marginBottom: 8, marginTop: 0 };
-const th: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px", fontWeight: 700 };
-const td: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px" };
+const th: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: tableCellPadding, fontWeight: 700 };
+const td: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: tableCellPadding };
 const tableStyle: React.CSSProperties = { width: "100%", borderCollapse: "collapse", fontSize: 12 };
-const selectStyle: React.CSSProperties = {
-  display: "block",
-  marginTop: 4,
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #E5E7EB",
-  minWidth: 200,
-};
-const inputStyle: React.CSSProperties = {
-  display: "block",
-  marginTop: 4,
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #E5E7EB",
-  width: "100%",
-  minWidth: 120,
-};
-const labelBlock: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: "#374151", flex: "1 1 120px" };
-const btnPrimary: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 8,
-  border: "1px solid #15803d",
-  background: "#16a34a",
-  color: "#fff",
-  fontWeight: 600,
-  cursor: "pointer",
-};
-const btnSecondary: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 8,
-  border: "1px solid #D1D5DB",
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 13,
-};
-const btnDanger: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 8,
-  border: "1px solid #B91C1C",
-  background: "#DC2626",
-  color: "#fff",
-  fontWeight: 600,
-  cursor: "pointer",
-  alignSelf: "flex-start",
-};
-const alertWarn: React.CSSProperties = { color: "#B45309", marginBottom: 8, fontSize: 14 };
+const selectStyle: React.CSSProperties = { ...themeSelect, display: "block", marginTop: 4, minWidth: 200 };
+const inputStyle: React.CSSProperties = { ...themeInput, display: "block", marginTop: 4, width: "100%", minWidth: 120 };
+const labelBlock: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: brand.textMuted, flex: "1 1 120px" };
+const btnPrimary = themeBtnPrimary;
+const btnSecondary = themeBtnSecondary;
+const btnDanger: React.CSSProperties = { ...themeBtnDanger, alignSelf: "flex-start" };
+const alertWarn = alertStyle("warn");

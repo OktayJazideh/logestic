@@ -97,15 +97,15 @@ class OtpPinInputState extends State<OtpPinInput> {
               counterText: '',
               contentPadding: EdgeInsets.zero,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(MineralTheme.radiusMd),
                 borderSide: const BorderSide(color: MineralTheme.border),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(MineralTheme.radiusMd),
                 borderSide: const BorderSide(color: MineralTheme.border),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(MineralTheme.radiusMd),
                 borderSide: const BorderSide(color: MineralTheme.primary, width: 1.5),
               ),
             ),

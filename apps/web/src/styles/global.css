@@ -6,6 +6,26 @@
   font-display: swap;
 }
 
+:root {
+  --brand-bg: #f5f4f0;
+  --brand-panel: #ffffff;
+  --brand-panel-muted: #f0ede6;
+  --brand-border: #e2ddd4;
+  --brand-primary: #1e3a2f;
+  --brand-primary-dark: #152921;
+  --brand-primary-light: #e6efea;
+  --brand-text: #1a1a1a;
+  --brand-text-muted: #5a5650;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+  --shadow-sm: 0 1px 2px rgba(21, 41, 33, 0.06);
+  --shadow-md: 0 4px 12px rgba(21, 41, 33, 0.08);
+  --space-md: 16px;
+  --space-lg: 24px;
+}
+
 *,
 *::before,
 *::after {
@@ -17,8 +37,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Vazirmatn", Tahoma, sans-serif;
-  background: #f7f6f2;
-  color: #1c1c1c;
+  background: var(--brand-bg);
+  color: var(--brand-text);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -30,10 +50,18 @@ textarea {
 }
 
 a {
-  color: #1e3a2f;
+  color: var(--brand-primary);
 }
 
-/* تقویم جلالی (react-multi-date-picker) */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* تقویم جلالی — هم‌رنگ برند */
 .rmdp-wrapper {
   direction: rtl;
   font-family: "Vazirmatn", Tahoma, sans-serif;
@@ -42,4 +70,33 @@ a {
 .jalali-date-input {
   width: 100%;
   box-sizing: border-box;
+}
+
+.rmdp-container .rmdp-day.rmdp-selected span:not(.highlight) {
+  background-color: var(--brand-primary) !important;
+  box-shadow: 0 0 2px var(--brand-primary-dark);
+}
+
+.rmdp-container .rmdp-day.rmdp-today span {
+  background-color: var(--brand-primary-light) !important;
+  color: var(--brand-primary-dark) !important;
+}
+
+.rmdp-container .rmdp-header-values,
+.rmdp-container .rmdp-week-day {
+  color: var(--brand-primary-dark);
+}
+
+.rmdp-container .rmdp-arrow-container:hover {
+  background-color: var(--brand-primary-light) !important;
+  box-shadow: none;
+}
+
+.rmdp-container .rmdp-arrow {
+  border-color: var(--brand-primary);
+}
+
+.rmdp-container .rmdp-month-picker .rmdp-ym .rmdp-day.rmdp-selected span,
+.rmdp-container .rmdp-year-picker .rmdp-ym .rmdp-day.rmdp-selected span {
+  background-color: var(--brand-primary) !important;
 }

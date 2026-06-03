@@ -4,8 +4,7 @@ import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { dateToIsoDate, isoDateToDate } from "../lib/jalaliDate";
-import { brand } from "../theme";
-import "react-multi-date-picker/styles/colors/green.css";
+import { brand, fontSize, inputStyle, radius } from "../theme";
 
 type Props = {
   /** تاریخ میلادی برای API: YYYY-MM-DD */
@@ -42,7 +41,16 @@ export function JalaliDatePicker({
   return (
     <div style={style} data-testid={testId}>
       {label && (
-        <label htmlFor={id} style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+        <label
+          htmlFor={id}
+          style={{
+            display: "block",
+            fontSize: fontSize.sm,
+            fontWeight: 600,
+            marginBottom: 8,
+            color: brand.primaryDark,
+          }}
+        >
           {label}
         </label>
       )}
@@ -61,13 +69,9 @@ export function JalaliDatePicker({
         containerStyle={{ width: "100%" }}
         inputClass="jalali-date-input"
         style={{
+          ...inputStyle,
           width: "100%",
-          padding: "8px 10px",
-          borderRadius: 6,
-          border: `1px solid ${brand.border}`,
-          fontFamily: brand.fontFamily,
-          fontSize: 14,
-          background: brand.panel,
+          borderRadius: radius.md,
         }}
         calendarPosition="bottom-right"
         arrow={false}

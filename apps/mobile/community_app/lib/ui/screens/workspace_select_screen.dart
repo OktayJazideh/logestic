@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_theme.dart';
 
 import '../../core/community_api_client.dart';
 import '../../core/community_roles.dart';
@@ -77,7 +78,7 @@ class _WorkspaceSelectScreenState extends State<WorkspaceSelectScreen> {
           title: Text(isMineOperatorRole(widget.role) ? 'انتخاب معدن عملیاتی' : 'انتخاب عضویت تعاونی'),
         ),
         body: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -92,7 +93,7 @@ class _WorkspaceSelectScreenState extends State<WorkspaceSelectScreen> {
                     : isHouseholdRole(widget.role)
                         ? 'فقط فضای تعاونی — کار عملیاتی در معدن دیگر از اپ راننده/وب است.'
                         : 'فضای کاری تعاونی خود را انتخاب کنید.',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                style: const TextStyle(fontSize: 12, color: MineralTheme.muted),
               ),
               const SizedBox(height: 12),
               Expanded(

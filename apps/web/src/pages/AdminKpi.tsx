@@ -11,9 +11,11 @@ import {
 } from "recharts";
 import { PageFrame } from "../components/PageFrame";
 import { JalaliDatePicker } from "../components/JalaliDatePicker";
+import { Button } from "../components/ui";
 import { apiGetData, apiPostData } from "../api";
 import { formatJalaliDate, isoDaysAgo } from "../lib/jalaliDate";
 import { dateRange } from "../lib/validation";
+import { brand, cardStyle, inputStyle, space } from "../theme";
 
 type KpiPoint = {
   date: string;
@@ -34,43 +36,17 @@ type KpiDashboard = {
   raw_count: number;
 };
 
-const btn: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 8,
-  border: "1px solid #D1D5DB",
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 13,
-};
-
-const btnPrimary: React.CSSProperties = {
-  ...btn,
-  background: "#0F3D17",
-  color: "#fff",
-  borderColor: "#0F3D17",
-};
-
-const cardStyle: React.CSSProperties = {
+const kpiCardStyle: React.CSSProperties = {
+  ...cardStyle,
   flex: "1 1 140px",
-  padding: 14,
-  borderRadius: 10,
-  border: "1px solid #E5E7EB",
-  background: "#F9FAFB",
-};
-
-const inputStyle: React.CSSProperties = {
-  display: "block",
-  marginTop: 4,
-  padding: "6px 8px",
-  borderRadius: 6,
-  border: "1px solid #D1D5DB",
+  marginBottom: 0,
 };
 
 const CHART_SERIES: Array<{ key: string; label: string; color: string }> = [
-  { key: "fleet", label: "راندمان ناوگان", color: "#1B5E20" },
+  { key: "fleet", label: "راندمان ناوگان", color: brand.primary },
   { key: "delay", label: "درصد تأخیر", color: "#B45309" },
-  { key: "hold", label: "درصد نگهداری پرداخت", color: "#7C3AED" },
-  { key: "util", label: "بهره‌وری وسیله", color: "#0369A1" },
+  { key: "hold", label: "درصد نگهداری پرداخت", color: brand.accent },
+  { key: "util", label: "بهره‌وری وسیله", color: "#3D6B8C" },
 ];
 
 function pct(n: number | undefined) {
@@ -80,9 +56,9 @@ function pct(n: number | undefined) {
 
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
-    <div style={cardStyle}>
-      <div style={{ fontSize: 12, color: "#6B7280" }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, marginTop: 6 }}>{value}</div>
+    <div style={kpiCardStyle}>
+      <div style={{ fontSize: 12, color: brand.textMuted }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, marginTop: 6, color: brand.primaryDark }}>{value}</div>
     </div>
   );
 }
@@ -176,22 +152,22 @@ export default function AdminKpi() {
             style={{ ...inputStyle, width: 80 }}
           />
         </label>
-        <button type="button" style={btn} onClick={() => void load()} disabled={busy}>
+        <Button variant="secondary" onClick={() => void load()} disabled={busy}>
           بروزرسانی
-        </button>
-        <button type="button" style={btnPrimary} onClick={() => void recompute()} disabled={busy}>
+        </Button>
+        <Button onClick={() => void recompute()} disabled={busy}>
           محاسبهٔ مجدد
-        </button>
+        </Button>
       </div>
 
       {dashboard && (
-        <p style={{ fontSize: 12, color: "#6B7280", marginTop: 8 }}>
+        <p style={{ fontSize: 12, color: brand.textMuted, marginTop: 8 }}>
           آستانهٔ تأخیر: بیش از {dashboard.delay_threshold_hours} ساعت — {dashboard.raw_count.toLocaleString("fa-IR")} رکورد
         لحظه‌ای
         </p>
       )}
 
-      {error && <p style={{ color: "#B91C1C", marginTop: 12 }}>{error}</p>}
+      {error && <p style={{ color: brand.danger, marginTop: 12 }}>{error}</p>}
 
       {latest && (
         <div style={{ display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap" }}>

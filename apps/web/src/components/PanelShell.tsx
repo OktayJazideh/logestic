@@ -6,7 +6,8 @@ import { useAuthGuard } from "../hooks/useAuthGuard";
 import type { PanelOutletContext } from "../hooks/useAuthMe";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { BrandLogo } from "./BrandLogo";
-import { brand, btnSecondary } from "../theme";
+import { Button } from "./ui";
+import { brand, fontSize, radius, shadow, space } from "../theme";
 
 /** Layout wrapper با Outlet برای مسیرهای تو در تو */
 export function PanelLayout() {
@@ -46,8 +47,6 @@ export function PanelLayout() {
       style={{
         minHeight: "100vh",
         background: brand.bg,
-        padding: 16,
-        boxSizing: "border-box",
         fontFamily: brand.fontFamily,
         color: brand.text,
       }}
@@ -68,12 +67,11 @@ function PanelShellInner({ onLogout, nav, ctx }: InnerProps) {
   return (
     <div
       style={{
-        maxWidth: 1200,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        maxWidth: 1400,
         margin: "0 auto",
-        border: `1px solid ${brand.border}`,
-        background: brand.panel,
-        borderRadius: 8,
-        overflow: "hidden",
       }}
     >
       <header
@@ -81,55 +79,77 @@ function PanelShellInner({ onLogout, nav, ctx }: InnerProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "12px 16px",
-          borderBottom: `1px solid ${brand.border}`,
+          padding: `${space.md}px ${space.lg}px`,
           background: brand.primaryDark,
+          boxShadow: shadow.md,
           flexWrap: "wrap",
-          gap: 12,
+          gap: space.sm,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <BrandLogo variant="full" size={40} onDark />
-        </div>
-        <button type="button" onClick={onLogout} style={{ ...btnSecondary, background: brand.panelMuted }}>
+        <BrandLogo variant="full" size={40} onDark />
+        <Button variant="secondary" onClick={onLogout} style={{ background: brand.panel, borderColor: brand.border }}>
           خروج از حساب
-        </button>
+        </Button>
       </header>
 
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex", flex: 1, alignItems: "stretch" }}>
         <aside
           style={{
-            width: 240,
+            width: 260,
+            flexShrink: 0,
+            padding: space.md,
+            background: brand.panel,
             borderLeft: `1px solid ${brand.border}`,
-            padding: 12,
-            background: brand.panelMuted,
+            boxShadow: shadow.sm,
           }}
         >
-          <div style={{ marginBottom: 10, fontWeight: 700, color: brand.primaryDark }}>منو</div>
-          {nav.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              style={({ isActive }) => ({
-                display: "block",
-                padding: "10px 10px",
-                borderRadius: 6,
-                border: `1px solid ${isActive ? brand.primary : brand.border}`,
-                marginBottom: 8,
-                textDecoration: "none",
-                color: isActive ? brand.primaryDark : brand.text,
-                background: isActive ? brand.primaryLight : brand.panel,
-                fontWeight: isActive ? 700 : 400,
-                fontSize: 13,
-              })}
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          <div
+            style={{
+              marginBottom: space.md,
+              fontWeight: 700,
+              fontSize: fontSize.sm,
+              color: brand.textMuted,
+              letterSpacing: "0.02em",
+            }}
+          >
+            منوی اصلی
+          </div>
+          <nav>
+            {nav.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                style={({ isActive }) => ({
+                  display: "block",
+                  padding: "12px 14px",
+                  borderRadius: radius.md,
+                  marginBottom: 6,
+                  textDecoration: "none",
+                  color: isActive ? brand.primaryDark : brand.text,
+                  background: isActive ? brand.primaryLight : "transparent",
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: fontSize.base,
+                  borderRight: isActive ? `3px solid ${brand.primary}` : "3px solid transparent",
+                  transition: "background 0.15s ease",
+                })}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
         </aside>
 
-        <main style={{ flex: 1, padding: 16, background: brand.panel }}>
+        <main
+          style={{
+            flex: 1,
+            padding: space.lg,
+            paddingTop: space.xl,
+            paddingBottom: space.xl,
+            background: brand.bg,
+            minWidth: 0,
+          }}
+        >
           <Outlet context={ctx} />
         </main>
       </div>

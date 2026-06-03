@@ -14,7 +14,8 @@ import { PageFrame } from "../components/PageFrame";
 import { apiGetData } from "../api";
 import { formatJalaliDate, formatJalaliDateTime, formatPeriodKeyYm } from "../lib/jalaliDate";
 import { labelFa, MISSION_STATUS_FA } from "../lib/uiLabels";
-import { brand } from "../theme";
+import { Button } from "../components/ui";
+import { brand, cardStyle, radius, shadow, space } from "../theme";
 
 type OpsDashboard = {
   missions_today: { created: number; verified: number; in_progress: number };
@@ -34,12 +35,11 @@ type OpsDashboard = {
 };
 
 const kpiCard: React.CSSProperties = {
+  ...cardStyle,
   flex: "1 1 160px",
-  padding: 14,
-  borderRadius: 6,
-  border: `1px solid ${brand.border}`,
-  background: brand.panelMuted,
+  padding: space.md,
   minWidth: 140,
+  marginBottom: 0,
 };
 
 const th: React.CSSProperties = {
@@ -52,9 +52,9 @@ const td: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: 
 
 const quickLink: React.CSSProperties = {
   display: "inline-block",
-  padding: "10px 16px",
-  borderRadius: 6,
-  border: `1px solid ${brand.primary}`,
+  padding: "10px 18px",
+  borderRadius: radius.md,
+  border: `1px solid ${brand.primaryMuted}`,
   background: brand.primaryLight,
   color: brand.primaryDark,
   textDecoration: "none",
@@ -119,21 +119,9 @@ export default function OpsDashboard() {
       expectedRoles={["OPERATION_ADMIN", "ADMIN"]}
     >
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        <button
-          type="button"
-          onClick={() => void load()}
-          disabled={busy}
-          style={{
-            padding: "8px 14px",
-            borderRadius: 8,
-            border: `1px solid ${brand.border}`,
-            background: brand.panel,
-            cursor: busy ? "wait" : "pointer",
-            fontFamily: brand.fontFamily,
-          }}
-        >
+        <Button variant="secondary" onClick={() => void load()} disabled={busy}>
           {busy ? "در حال بارگذاری…" : "بروزرسانی"}
-        </button>
+        </Button>
         {dash?.last_updated && (
           <span style={{ fontSize: 12, color: brand.textMuted, alignSelf: "center" }}>
             آخرین بروزرسانی: {formatJalaliDateTime(dash.last_updated)}
@@ -185,11 +173,12 @@ export default function OpsDashboard() {
 
           <div
             style={{
-              marginBottom: 20,
-              padding: 12,
-              borderRadius: 10,
+              marginBottom: space.lg,
+              padding: space.lg,
+              borderRadius: radius.lg,
               border: `1px solid ${brand.border}`,
               background: brand.panel,
+              boxShadow: shadow.sm,
               minHeight: 260,
             }}
             data-testid="ops-mission-chart"
@@ -215,7 +204,16 @@ export default function OpsDashboard() {
 
           <div data-testid="ops-latest-missions">
             <div style={{ fontWeight: 700, marginBottom: 10, color: brand.text }}>آخرین مأموریت‌ها</div>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: 13,
+                border: `1px solid ${brand.border}`,
+                borderRadius: radius.lg,
+                overflow: "hidden",
+              }}
+            >
               <thead>
                 <tr>
                   <th style={th}>شناسه</th>

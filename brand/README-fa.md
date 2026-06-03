@@ -38,6 +38,20 @@
 flutter pub run flutter_launcher_icons
 ```
 
+## توکن‌های UI (وب + موبایل)
+
+| توکن | مقدار | کاربرد |
+|------|--------|--------|
+| primary | `#1E3A2F` | دکمه اصلی، هدر پنل |
+| primaryDark | `#152921` | هدر اپ / نوار بالا |
+| bg | `#F5F4F0` | پس‌زمینه صفحه |
+| border | `#E2DDD4` | حاشیه کارت و جدول |
+| radius.md | 12px | ورودی، دکمه |
+| radius.lg | 14px | کارت، جدول |
+
+وب: `apps/web/src/theme.ts` و `apps/web/src/components/ui/`  
+موبایل: `apps/mobile/packages/mineral_ui/lib/mineral_theme.dart`
+
 ## بازسازی پنل بعد از تغییر favicon
 
 ```bash

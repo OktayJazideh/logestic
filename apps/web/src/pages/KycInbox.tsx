@@ -4,6 +4,8 @@ import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData, apiPostData } from "../api";
 import { formatJalaliDate } from "../lib/jalaliDate";
+import { alertStyle, brand, btnPrimary, btnSecondary, inputStyle, radius, shadow, space } from "../theme";
+import { Button } from "../components/ui";
 
 type InboxStatus = "PENDING" | "NEEDS_CORRECTION";
 type EntityType = "household" | "driver" | "fleet_owner" | "vehicle";
@@ -61,9 +63,9 @@ const entityTypeOptions: Array<{ value: "" | EntityType; label: string }> = [
 ];
 
 const statusBadge: Record<string, { bg: string; color: string; label: string }> = {
-  PENDING: { bg: "#FEF3C7", color: "#92400E", label: "در انتظار" },
-  NEEDS_CORRECTION: { bg: "#FFEDD5", color: "#C2410C", label: "نیاز به اصلاح" },
-  APPROVED: { bg: "#DCFCE7", color: "#166534", label: "تأیید شده" },
+  PENDING: { bg: brand.warnBg, color: brand.warn, label: "در انتظار" },
+  NEEDS_CORRECTION: { bg: brand.dangerBg, color: brand.danger, label: "نیاز به اصلاح" },
+  APPROVED: { bg: brand.successBg, color: brand.success, label: "تأیید شده" },
 };
 
 function rowKey(item: InboxItem) {
@@ -512,7 +514,7 @@ export default function KycInbox() {
         </div>
       )}
 
-      {err && <div style={alertStyle}>{err}</div>}
+      {err && <div style={alertStyle("danger")}>{err}</div>}
 
       <p data-testid="kyc-inbox-row-count" style={{ fontSize: 13, color: "#6B7280", margin: "0 0 8px" }}>
         {total} مورد — صفحه {page} از {totalPages}
@@ -725,14 +727,7 @@ function ActionBtn({
   );
 }
 
-const alertStyle: React.CSSProperties = {
-  color: "#B45309",
-  marginBottom: 12,
-  padding: 10,
-  borderRadius: 8,
-  border: "1px solid #FCD34D",
-  background: "#FFFBEB",
-};
+const kycAlertStyle = alertStyle("warn");
 
 const filterLabel: React.CSSProperties = {
   display: "flex",
@@ -740,41 +735,19 @@ const filterLabel: React.CSSProperties = {
   gap: 4,
   fontSize: 12,
   fontWeight: 600,
-  color: "#374151",
+  color: brand.textMuted,
 };
 
-const filterInput: React.CSSProperties = {
-  padding: "6px 8px",
-  fontSize: 13,
-  borderRadius: 6,
-  border: "1px solid #D1D5DB",
-  minWidth: 140,
-};
+const filterInput: React.CSSProperties = { ...inputStyle, minWidth: 140, padding: "8px 12px" };
 
-const bulkBtn: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 6,
-  border: "none",
-  background: "#166534",
-  color: "#fff",
-  fontWeight: 600,
-  cursor: "pointer",
-  fontSize: 13,
-};
+const bulkBtn = btnPrimary;
 
-const pageBtn: React.CSSProperties = {
-  padding: "6px 12px",
-  borderRadius: 6,
-  border: "1px solid #D1D5DB",
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 13,
-};
+const pageBtn = btnSecondary;
 
 const modalOverlay: React.CSSProperties = {
   position: "fixed",
   inset: 0,
-  background: "rgba(0,0,0,0.4)",
+  background: "rgba(21, 41, 33, 0.45)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -782,30 +755,18 @@ const modalOverlay: React.CSSProperties = {
 };
 
 const modalPanel: React.CSSProperties = {
-  background: "#fff",
-  borderRadius: 12,
-  padding: 20,
+  background: brand.panel,
+  borderRadius: radius.lg,
+  padding: space.lg,
   width: "min(420px, 92vw)",
-  boxShadow: "none",
-  border: "1px solid #D8D4CC",
+  boxShadow: shadow.md,
+  border: `1px solid ${brand.border}`,
 };
 
-const modalCancelBtn: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 6,
-  border: "1px solid #D1D5DB",
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 13,
-};
+const modalCancelBtn = btnSecondary;
 
 const modalConfirmBtn: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 6,
-  border: "none",
-  background: "#C2410C",
-  color: "#fff",
-  fontWeight: 600,
-  cursor: "pointer",
-  fontSize: 13,
+  ...btnPrimary,
+  background: brand.danger,
+  border: `1px solid ${brand.dangerBorder}`,
 };

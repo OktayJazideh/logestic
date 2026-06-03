@@ -4,7 +4,8 @@ import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPostData, newIdempotencyKey } from "../api";
 import { formatJalaliDateTime } from "../lib/jalaliDate";
 import { labelFa, MISSION_STATUS_FA, OPERATION_TYPE_FA, WEIGHBRIDGE_STATUS_FA } from "../lib/uiLabels";
-import { brand } from "../theme";
+import { Button } from "../components/ui";
+import { brand, radius, space } from "../theme";
 
 const DISPATCH_ERROR_FA: Record<string, string> = {
   no_dispatch_candidates: "ناوگان در دسترس نیست",
@@ -71,11 +72,12 @@ const COLUMN_META: Array<{ key: keyof BoardColumns; title: string; hint: string 
 ];
 
 const mineralCard: React.CSSProperties = {
-  background: brand.panelMuted,
-  border: `1px solid ${brand.borderDark}`,
-  borderRadius: 6,
-  padding: 12,
-  marginBottom: 10,
+  background: brand.panel,
+  border: `1px solid ${brand.border}`,
+  borderRadius: radius.md,
+  padding: space.md,
+  marginBottom: space.sm,
+  boxShadow: "0 1px 2px rgba(21, 41, 33, 0.04)",
 };
 
 const columnShell: React.CSSProperties = {
@@ -83,9 +85,9 @@ const columnShell: React.CSSProperties = {
   minWidth: 220,
   maxHeight: "72vh",
   overflowY: "auto",
-  padding: 10,
-  borderRadius: 6,
-  background: brand.panel,
+  padding: space.sm,
+  borderRadius: radius.lg,
+  background: brand.panelMuted,
   border: `1px solid ${brand.border}`,
 };
 
@@ -183,29 +185,18 @@ export default function DispatchBoard() {
         style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}
         data-testid="dispatch-board-toolbar"
       >
-        <button
-          type="button"
-          onClick={() => void load()}
-          disabled={busy}
-          style={{
-            padding: "8px 14px",
-            borderRadius: 8,
-            border: "1px solid #C4A574",
-            background: "#fff",
-            cursor: busy ? "wait" : "pointer",
-          }}
-        >
+        <Button variant="secondary" onClick={() => void load()} disabled={busy}>
           {busy ? "بارگذاری…" : "بروزرسانی"}
-        </button>
+        </Button>
         {board?.generated_at && (
-          <span style={{ fontSize: 12, color: "#6B7280" }} data-testid="dispatch-board-updated">
+          <span style={{ fontSize: 12, color: brand.textMuted }} data-testid="dispatch-board-updated">
             آخرین بروزرسانی: {formatJalaliDateTime(board.generated_at)}
           </span>
         )}
       </div>
 
       {err && (
-        <div style={{ color: "#B91C1C", marginBottom: 12, fontSize: 14 }} data-testid="dispatch-board-error">
+        <div style={{ color: brand.danger, marginBottom: 12, fontSize: 14 }} data-testid="dispatch-board-error">
           {err}
         </div>
       )}
@@ -216,10 +207,10 @@ export default function DispatchBoard() {
           style={{
             marginBottom: 12,
             padding: 12,
-            borderRadius: 8,
-            color: "#166534",
-            background: "#F0FDF4",
-            border: "1px solid #BBF7D0",
+            borderRadius: radius.md,
+            color: brand.success,
+            background: brand.successBg,
+            border: `1px solid ${brand.successBorder}`,
           }}
         >
           {toast.missionIds.map((mid, i) => (
@@ -246,7 +237,7 @@ export default function DispatchBoard() {
           {COLUMN_META.map(({ key, title, hint }) => (
             <div key={key} style={columnShell} data-testid={`dispatch-column-${key}`}>
               <div style={columnHeader}>{title}</div>
-              <div style={{ fontSize: 11, color: "#6B7280", marginBottom: 10 }}>{hint}</div>
+              <div style={{ fontSize: 11, color: brand.textMuted, marginBottom: 10 }}>{hint}</div>
 
               {key === "PENDING_NEEDS" &&
                 cols.PENDING_NEEDS.map((n) => {
@@ -262,32 +253,22 @@ export default function DispatchBoard() {
                       }}
                       data-testid={`dispatch-need-card-${n.need_id}`}
                     >
-                      <div style={{ fontWeight: 700, color: "#4A3728" }}>نیاز #{n.need_id}</div>
+                      <div style={{ fontWeight: 700, color: brand.primaryDark }}>نیاز #{n.need_id}</div>
                       <div style={{ fontSize: 12, marginTop: 6 }}>{n.village_name}</div>
-                      <div style={{ fontSize: 12, color: "#57534E" }}>
+                      <div style={{ fontSize: 12, color: brand.textMuted }}>
                         {n.quantity_tons.toLocaleString("fa-IR")} تن · {labelFa(OPERATION_TYPE_FA, n.operation_type)}
                       </div>
-                      <button
-                        type="button"
+                      <Button
                         data-testid={`dispatch-auto-${n.need_id}`}
+                        fullWidth
                         disabled={dispatchBusy === n.need_id}
                         onClick={() => void autoDispatch(n.need_id)}
-                        style={{
-                          marginTop: 10,
-                          width: "100%",
-                          padding: "8px 10px",
-                          borderRadius: 8,
-                          border: "none",
-                          background: "#0F3D17",
-                          color: "#fff",
-                          fontWeight: 600,
-                          cursor: dispatchBusy === n.need_id ? "wait" : "pointer",
-                        }}
+                        style={{ marginTop: 10 }}
                       >
                         {dispatchBusy === n.need_id ? "در حال تخصیص…" : "تخصیص خودکار"}
-                      </button>
+                      </Button>
                       {dispatchErr[n.need_id] && (
-                        <div style={{ fontSize: 11, color: "#B91C1C", marginTop: 6 }}>{dispatchErr[n.need_id]}</div>
+                        <div style={{ fontSize: 11, color: brand.danger, marginTop: 6 }}>{dispatchErr[n.need_id]}</div>
                       )}
                     </div>
                   );
@@ -302,7 +283,7 @@ export default function DispatchBoard() {
                         <Link to={`/panel/missions/${m.mission_id}`} style={missionLink}>
                           #{m.mission_id} — {m.driver_name}
                         </Link>
-                        <div style={{ color: "#57534E" }}>
+                        <div style={{ color: brand.textMuted }}>
                           {m.vehicle_plate} · {m.quantity_tons.toLocaleString("fa-IR")} تن
                         </div>
                       </div>
@@ -320,7 +301,7 @@ export default function DispatchBoard() {
                   >
                     <div>#{m.mission_id}</div>
                     <div style={{ fontSize: 12, marginTop: 4 }}>{m.driver_name}</div>
-                    <div style={{ fontSize: 11, color: "#57534E" }}>
+                    <div style={{ fontSize: 11, color: brand.textMuted }}>
                       {m.vehicle_plate} · {labelFa(MISSION_STATUS_FA, m.status)}
                     </div>
                   </Link>
@@ -336,7 +317,7 @@ export default function DispatchBoard() {
                   >
                     <div>#{m.mission_id}</div>
                     <div style={{ fontSize: 12, marginTop: 4 }}>{m.driver_name}</div>
-                    <div style={{ fontSize: 11, color: "#57534E" }}>
+                    <div style={{ fontSize: 11, color: brand.textMuted }}>
                       بلیت: {labelFa(WEIGHBRIDGE_STATUS_FA, m.ticket_status)}
                     </div>
                   </Link>
@@ -354,26 +335,26 @@ export default function DispatchBoard() {
                     <div style={{ fontSize: 12, marginTop: 4 }}>
                       {m.verified_net_tons.toLocaleString("fa-IR")} تن خالص
                     </div>
-                    <div style={{ fontSize: 11, color: "#57534E" }}>
+                    <div style={{ fontSize: 11, color: brand.textMuted }}>
                       {formatJalaliDateTime(m.verified_at)}
                     </div>
                   </Link>
                 ))}
 
               {key === "PENDING_NEEDS" && cols.PENDING_NEEDS.length === 0 && (
-                <div style={{ fontSize: 12, color: "#9CA3AF" }}>خالی</div>
+                <div style={{ fontSize: 12, color: brand.textSoft }}>خالی</div>
               )}
               {key === "DISPATCHED" && cols.DISPATCHED.length === 0 && (
-                <div style={{ fontSize: 12, color: "#9CA3AF" }}>خالی</div>
+                <div style={{ fontSize: 12, color: brand.textSoft }}>خالی</div>
               )}
               {key === "IN_PROGRESS" && cols.IN_PROGRESS.length === 0 && (
-                <div style={{ fontSize: 12, color: "#9CA3AF" }}>خالی</div>
+                <div style={{ fontSize: 12, color: brand.textSoft }}>خالی</div>
               )}
               {key === "AWAITING_WB" && cols.AWAITING_WB.length === 0 && (
-                <div style={{ fontSize: 12, color: "#9CA3AF" }}>خالی</div>
+                <div style={{ fontSize: 12, color: brand.textSoft }}>خالی</div>
               )}
               {key === "VERIFIED" && cols.VERIFIED.length === 0 && (
-                <div style={{ fontSize: 12, color: "#9CA3AF" }}>خالی</div>
+                <div style={{ fontSize: 12, color: brand.textSoft }}>خالی</div>
               )}
             </div>
           ))}

@@ -1,11 +1,8 @@
 import React from "react";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { roleLabelFa } from "../lib/roleLabels";
-
-function expectedRolesFa(roles: string[]): string {
-  return roles.map((r) => roleLabelFa(r)).join("، ");
-}
-import { brand } from "../theme";
+import { Alert } from "./ui";
+import { brand, fontSize, space } from "../theme";
 
 type Props = {
   title: string;
@@ -15,6 +12,10 @@ type Props = {
   children: React.ReactNode;
 };
 
+function expectedRolesFa(roles: string[]): string {
+  return roles.map((r) => roleLabelFa(r)).join("، ");
+}
+
 export function PageFrame({ title, intro, expectedRoles, children }: Props) {
   const { me } = useAuthMe();
   const mismatch =
@@ -22,35 +23,36 @@ export function PageFrame({ title, intro, expectedRoles, children }: Props) {
 
   return (
     <div>
-      <h1 style={{ fontSize: 20, color: brand.primaryDark, marginTop: 0, marginBottom: 8, fontWeight: 700 }}>
+      <h1
+        style={{
+          fontSize: fontSize.title,
+          color: brand.primaryDark,
+          marginTop: 0,
+          marginBottom: space.sm,
+          fontWeight: 700,
+          lineHeight: 1.3,
+        }}
+      >
         {title}
       </h1>
       {intro && (
-        <div style={{ color: brand.textMuted, lineHeight: 1.8, marginBottom: 14, fontSize: 14 }}>{intro}</div>
-      )}
-      {mismatch && (
         <div
-          role="status"
           style={{
-            marginBottom: 14,
-            padding: 12,
-            borderRadius: 6,
-            border: `1px solid ${brand.warnBorder}`,
-            background: brand.warnBg,
-            fontSize: 13,
-            color: brand.warn,
+            color: brand.textMuted,
+            lineHeight: 1.7,
+            marginBottom: space.lg,
+            fontSize: fontSize.md,
+            maxWidth: 720,
           }}
         >
+          {intro}
+        </div>
+      )}
+      {mismatch && (
+        <Alert variant="warn">
           این صفحه معمولاً برای «{expectedRolesFa(expectedRoles!)}» است. نقش فعلی شما:{" "}
           <strong>{roleLabelFa(me?.role)}</strong>
-          {expectedRoles?.length ? (
-            <>
-              {" "}
-              — این صفحه معمولاً برای{" "}
-              <strong>{expectedRoles.join("، ")}</strong> استفاده می‌شود.
-            </>
-          ) : null}
-        </div>
+        </Alert>
       )}
       {children}
     </div>

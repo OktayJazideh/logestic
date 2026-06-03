@@ -27,10 +27,10 @@ class DemoLoginPanel extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(top: 20),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: MineralTheme.panelMuted,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MineralTheme.radiusLg),
         border: Border.all(color: MineralTheme.border, style: BorderStyle.solid),
       ),
       child: Column(

@@ -15,6 +15,18 @@ import {
 import { JalaliMonthPicker } from "../components/JalaliMonthPicker";
 import { formatMoney } from "../lib/formatMoney";
 import { todayGregorianYm } from "../lib/jalaliDate";
+import {
+  brand,
+  btnPrimary as themeBtnPrimary,
+  btnSecondary,
+  cardStyle as themeCard,
+  inputStyle,
+  radius,
+  sectionStyle,
+  shadow,
+  space,
+  tableCellPadding,
+} from "../theme";
 
 type FinanceCards = {
   owner_share: number;
@@ -58,53 +70,38 @@ declare global {
 
 const CHART_CDN = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js";
 
-const cardStyle: React.CSSProperties = {
+const financeCard: React.CSSProperties = {
+  ...themeCard,
   flex: "1 1 160px",
-  padding: 14,
-  borderRadius: 10,
-  border: "1px solid #E5E7EB",
-  background: "#F9FAFB",
+  padding: space.md,
 };
 
 const sectionCardOperational: React.CSSProperties = {
-  ...cardStyle,
+  ...financeCard,
   flex: "1 1 240px",
-  background: "#F0FDF4",
-  borderColor: "#86EFAC",
+  background: brand.successBg,
+  borderColor: brand.successBorder,
 };
 
 const sectionCardPlatform: React.CSSProperties = {
-  ...cardStyle,
+  ...financeCard,
   flex: "1 1 240px",
-  background: "#FFFBEB",
-  borderColor: "#FCD34D",
+  background: brand.warnBg,
+  borderColor: brand.warnBorder,
 };
 
 const sectionCardCommunity: React.CSSProperties = {
-  ...cardStyle,
+  ...financeCard,
   flex: "1 1 240px",
-  background: "#F3F1EB",
-  borderColor: "#93C5FD",
+  background: brand.panelMuted,
+  borderColor: brand.border,
 };
 
-const btn: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 8,
-  border: "1px solid #D1D5DB",
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 13,
-};
+const btn = btnSecondary;
+const btnPrimary = themeBtnPrimary;
 
-const btnPrimary: React.CSSProperties = {
-  ...btn,
-  background: "#0F3D17",
-  color: "#fff",
-  borderColor: "#0F3D17",
-};
-
-const th: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px" };
-const td: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px" };
+const th: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: tableCellPadding };
+const td: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: tableCellPadding };
 
 function formatTons(n: number) {
   return n.toLocaleString("fa-IR", { maximumFractionDigits: 1 });
@@ -209,7 +206,7 @@ export default function AdminFinance() {
               {
                 label: L.operational_settlement.fa,
                 data: summary.chart.map((p) => p.operational_total_rial),
-                backgroundColor: "#1B5E20",
+                backgroundColor: brand.primary,
               },
               {
                 label: L.restricted_community_fund.fa,
@@ -321,7 +318,7 @@ export default function AdminFinance() {
               value={mineId}
               onChange={(e) => setMineId(e.target.value)}
               placeholder="mine_id"
-              style={{ display: "block", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", width: 100 }}
+              style={{ display: "block", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: `1px solid ${brand.border}`, width: 100 }}
             />
           </label>
           <button type="button" style={btnPrimary} disabled={busy} onClick={() => void load()}>
@@ -352,8 +349,8 @@ export default function AdminFinance() {
 
           <section style={{ marginBottom: 24 }}>
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, marginBottom: 8 }}>
-              <h2 style={{ fontSize: 16, color: "#0F3D17", margin: 0 }}>۴. ماموریت‌های VERIFIED</h2>
-              <Link to="/panel/admin/finance/by-load" style={{ fontSize: 13, color: "#0F3D17" }}>
+              <h2 style={{ fontSize: 16, color: brand.primaryDark, margin: 0 }}>۴. ماموریت‌های VERIFIED</h2>
+              <Link to="/panel/admin/finance/by-load" style={{ fontSize: 13, color: brand.primaryDark }}>
                 جدول per-load (بازه تاریخ) →
               </Link>
             </div>
@@ -361,19 +358,19 @@ export default function AdminFinance() {
           </section>
 
           <section style={{ marginBottom: 24 }}>
-            <h2 style={{ fontSize: 16, color: "#0F3D17" }}>۵. نمودار سه ماه اخیر</h2>
-            <div style={{ maxWidth: 720, padding: 12, border: "1px solid #E5E7EB", borderRadius: 10 }}>
+            <h2 style={{ fontSize: 16, color: brand.primaryDark }}>۵. نمودار سه ماه اخیر</h2>
+            <div style={{ maxWidth: 720, padding: 12, border: `1px solid ${brand.border}`, borderRadius: 10 }}>
               <canvas ref={chartRef} height={120} />
             </div>
           </section>
 
           <section style={{ marginBottom: 24 }}>
-            <h2 style={{ fontSize: 16, color: "#0F3D17" }}>۶. تکمیلی دوره</h2>
+            <h2 style={{ fontSize: 16, color: brand.primaryDark }}>۶. تکمیلی دوره</h2>
             <SupplementaryCards cards={summary.cards} labels={displayLabels} />
           </section>
 
           <section style={{ marginBottom: 24 }}>
-            <h2 style={{ fontSize: 16, color: "#0F3D17" }}>۷. جدول IBAN</h2>
+            <h2 style={{ fontSize: 16, color: brand.primaryDark }}>۷. جدول IBAN</h2>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
@@ -426,7 +423,7 @@ export default function AdminFinance() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: 16, color: "#0F3D17" }}>۸. Export</h2>
+            <h2 style={{ fontSize: 16, color: brand.primaryDark }}>۸. Export</h2>
             <div style={{ display: "flex", gap: 8 }}>
               <button type="button" style={btn} disabled={busy} onClick={() => void downloadExport("excel")}>
                 Excel (CSV)
@@ -452,7 +449,7 @@ function SectionHeading({
   titleEn: string;
 }) {
   return (
-    <h2 style={{ fontSize: 16, color: "#0F3D17", marginTop: 0, marginBottom: 12 }}>
+    <h2 style={{ fontSize: 16, color: brand.primaryDark, marginTop: 0, marginBottom: 12 }}>
       {titleFa}
       <span style={{ fontSize: 12, color: "#6B7280", fontWeight: 400, marginRight: 8 }} dir="ltr">
         ({titleEn})
@@ -554,12 +551,12 @@ function SupplementaryCards({
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
       {items.map((item) => (
-        <div key={item.label} style={cardStyle}>
+        <div key={item.label} style={financeCard}>
           <div style={{ fontSize: 12, color: "#6B7280" }}>{item.label}</div>
           <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 2 }} dir="ltr">
             {item.sub}
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#0F3D17", marginTop: 6 }}>{item.value}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: brand.primaryDark, marginTop: 6 }}>{item.value}</div>
         </div>
       ))}
     </div>
@@ -637,7 +634,7 @@ function IbanRevealRow({
         value={reason}
         onChange={(e) => onReasonChange(e.target.value)}
         placeholder="دلیل (audit)"
-        style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #E5E7EB", fontSize: 12 }}
+        style={{ padding: "6px 8px", borderRadius: 6, border: `1px solid ${brand.border}`, fontSize: 12 }}
       />
       <button type="button" style={{ ...btn, fontSize: 12 }} disabled={disabled} onClick={onReveal}>
         نمایش کامل
