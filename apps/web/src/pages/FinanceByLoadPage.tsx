@@ -4,6 +4,7 @@ import { PageFrame } from "../components/PageFrame";
 import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData } from "../api";
+import { formatJalaliDateTime, isoDaysAgo } from "../lib/jalaliDate";
 import { financeDisplayLabels } from "../lib/platformLegal";
 import { formatMoney } from "../lib/formatMoney";
 
@@ -57,12 +58,6 @@ const inputStyle: React.CSSProperties = {
   border: "1px solid #D1D5DB",
 };
 
-function isoDaysAgo(days: number) {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - days);
-  return d.toISOString().slice(0, 10);
-}
-
 function HoldBadge() {
   return (
     <span
@@ -77,7 +72,7 @@ function HoldBadge() {
         marginInlineStart: 6,
       }}
     >
-      HOLD
+      نگهداری
     </span>
   );
 }

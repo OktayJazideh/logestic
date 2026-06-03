@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, getStoredToken } from "../api";
 import { formatMoney } from "../lib/formatMoney";
+import { formatJalaliDateTime } from "../lib/jalaliDate";
 
 type Summary = {
   verified_missions_count: number;
@@ -36,15 +37,7 @@ function formatTons(n: number) {
 }
 
 function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString("fa-IR", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return iso;
-  }
+  return formatJalaliDateTime(iso);
 }
 
 const statusBadge: Record<string, React.CSSProperties> = {

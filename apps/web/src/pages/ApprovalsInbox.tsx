@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData } from "../api";
+import { formatJalaliDateTime } from "../lib/jalaliDate";
 
 type InboxItemType = "period_statement" | "kyc" | "objection";
 
@@ -19,7 +20,7 @@ type TabKey = InboxItemType;
 
 const tabLabels: Record<TabKey, string> = {
   period_statement: "صورت وضعیت",
-  kyc: "KYC",
+  kyc: "احراز هویت",
   objection: "اعتراض",
 };
 
@@ -40,9 +41,7 @@ const td: React.CSSProperties = {
 };
 
 function formatWaitingSince(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("fa-IR", { dateStyle: "short", timeStyle: "short" });
+  return formatJalaliDateTime(iso);
 }
 
 export default function ApprovalsInbox() {

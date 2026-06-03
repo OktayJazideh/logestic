@@ -79,6 +79,17 @@ export function todayIsoDate(): string {
   return dateToIsoDate(new Date());
 }
 
+export function todayGregorianYm(): { year: number; month: number } {
+  const d = new Date();
+  return { year: d.getFullYear(), month: d.getMonth() + 1 };
+}
+
+export function isoDaysAgo(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return dateToIsoDate(d);
+}
+
 export function todayJalali(): JalaliParts {
   return gregorianToJalali(new Date());
 }

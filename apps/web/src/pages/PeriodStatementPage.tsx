@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPostData, getStoredToken } from "../api";
+import { JalaliMonthPicker } from "../components/JalaliMonthPicker";
 import { formatMoney } from "../lib/formatMoney";
-import { formatJalaliDate, formatJalaliDateTime, formatPeriodKeyYm } from "../lib/jalaliDate";
+import { formatJalaliDate, formatJalaliDateTime, formatPeriodKeyYm, todayGregorianYm } from "../lib/jalaliDate";
 import { labelFa, STATEMENT_STATUS_FA } from "../lib/uiLabels";
 
 type PeriodStatementLine = {
@@ -57,9 +58,9 @@ const btnPrimary: React.CSSProperties = {
 };
 
 export default function PeriodStatementPage() {
-  const now = new Date();
-  const [year, setYear] = useState(now.getUTCFullYear());
-  const [month, setMonth] = useState(now.getUTCMonth() + 1);
+  const nowYm = todayGregorianYm();
+  const [year, setYear] = useState(nowYm.year);
+  const [month, setMonth] = useState(nowYm.month);
   const [mineId, setMineId] = useState(1);
   const [coopId, setCoopId] = useState(1);
   const [statement, setStatement] = useState<PeriodStatement | null>(null);
@@ -110,14 +111,15 @@ export default function PeriodStatementPage() {
       </p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 16, alignItems: "center" }}>
-        <label>
-          سال{" "}
-          <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} style={{ width: 72 }} />
-        </label>
-        <label>
-          ماه{" "}
-          <input type="number" value={month} onChange={(e) => setMonth(Number(e.target.value))} style={{ width: 48 }} />
-        </label>
+        <JalaliMonthPicker
+          label="دوره"
+          year={year}
+          month={month}
+          onChange={(y, m) => {
+            setYear(y);
+            setMonth(m);
+          }}
+        />
         <label>
           معدن{" "}
           <input type="number" value={mineId} onChange={(e) => setMineId(Number(e.target.value))} style={{ width: 48 }} />

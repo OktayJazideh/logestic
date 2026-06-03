@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageFrame } from "../components/PageFrame";
+import { formatJalaliDateTime } from "../lib/jalaliDate";
 import { apiGetData, apiPostData } from "../api";
 import { usePermissions } from "../hooks/usePermissions";
 
@@ -241,7 +242,7 @@ export default function EmployerInbox() {
                     <MissionLinks missionIds={n.mission_ids} />
                   ) : null}
                 </td>
-                <td style={td}>{new Date(n.created_at).toLocaleString("fa-IR")}</td>
+                <td style={td}>{formatJalaliDateTime(n.created_at)}</td>
                 <td style={td}>{n.note ?? "—"}</td>
                 {canDispatch && (
                   <td style={td}>

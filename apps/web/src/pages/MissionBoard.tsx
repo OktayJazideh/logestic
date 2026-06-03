@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { formatJalaliDate } from "../lib/jalaliDate";
+import { labelFa, MATERIAL_TYPE_FA, OPERATION_TYPE_FA, RATE_CARD_STATUS_FA } from "../lib/uiLabels";
 import { apiGetData, getStoredToken } from "../api";
 
 type RateCardRow = {
@@ -57,12 +59,12 @@ export default function MissionBoard() {
           <tbody>
             {rows.map((row) => (
               <tr key={`${row.material_type}-${row.effectiveFrom}`}>
-                <td style={td}>{row.operation_type}</td>
-                <td style={td}>{row.material_type}</td>
-                <td style={td}>{row.unit_type}</td>
+                <td style={td}>{labelFa(OPERATION_TYPE_FA, row.operation_type)}</td>
+                <td style={td}>{labelFa(MATERIAL_TYPE_FA, row.material_type)}</td>
+                <td style={td}>{row.unit_type === "TON" ? "تن" : row.unit_type === "HOUR" ? "ساعت" : row.unit_type}</td>
                 <td style={td}>{row.rate.toLocaleString("fa-IR")}</td>
-                <td style={td}>{row.effectiveFrom}</td>
-                <td style={td}>{row.status}</td>
+                <td style={td}>{formatJalaliDate(row.effectiveFrom)}</td>
+                <td style={td}>{labelFa(RATE_CARD_STATUS_FA, row.status)}</td>
               </tr>
             ))}
           </tbody>

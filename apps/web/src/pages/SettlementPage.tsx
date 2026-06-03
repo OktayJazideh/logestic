@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPostData, getStoredToken, pollJobUntilDone, API_BASE } from "../api";
 import { formatMoney } from "../lib/formatMoney";
-import { formatJalaliDate, formatPeriodKeyYm } from "../lib/jalaliDate";
+import { JalaliMonthPicker } from "../components/JalaliMonthPicker";
+import { formatJalaliDate, formatPeriodKeyYm, todayGregorianYm } from "../lib/jalaliDate";
 import {
   COMMUNITY_POOL_STATUS_FA,
   labelFa,
@@ -76,7 +77,7 @@ const tabBtn = (active: boolean): React.CSSProperties => ({
 });
 
 export default function SettlementPage() {
-  const now = new Date();
+  const nowYm = todayGregorianYm();
   const [tab, setTab] = useState<Tab>("mine");
   const [batches, setBatches] = useState<Batch[]>([]);
   const [pools, setPools] = useState<Pool[]>([]);
@@ -85,8 +86,8 @@ export default function SettlementPage() {
   const [selectedStatementId, setSelectedStatementId] = useState<number | null>(null);
   const [mineId, setMineId] = useState(1);
   const [coopId, setCoopId] = useState(1);
-  const [year, setYear] = useState(now.getUTCFullYear());
-  const [month, setMonth] = useState(now.getUTCMonth() + 1);
+  const [year, setYear] = useState(nowYm.year);
+  const [month, setMonth] = useState(nowYm.month);
   const [paymentRef, setPaymentRef] = useState("");
   const [minePaymentRef, setMinePaymentRef] = useState("");
   const [receiptUrl, setReceiptUrl] = useState("");
@@ -325,21 +326,15 @@ export default function SettlementPage() {
               تعاونی
               <input type="number" value={coopId} onChange={(e) => setCoopId(Number(e.target.value))} style={inputStyle} />
             </label>
-            <label>
-              سال
-              <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} style={inputStyle} />
-            </label>
-            <label>
-              ماه
-              <input
-                type="number"
-                min={1}
-                max={12}
-                value={month}
-                onChange={(e) => setMonth(Number(e.target.value))}
-                style={inputStyle}
-              />
-            </label>
+            <JalaliMonthPicker
+              label="دوره"
+              year={year}
+              month={month}
+              onChange={(y, m) => {
+                setYear(y);
+                setMonth(m);
+              }}
+            />
             <button type="button" style={btn} disabled={busy} onClick={load}>
               بروزرسانی
             </button>
@@ -425,21 +420,15 @@ export default function SettlementPage() {
                 معدن
                 <input type="number" value={mineId} onChange={(e) => setMineId(Number(e.target.value))} style={inputStyle} />
               </label>
-              <label>
-                سال
-                <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} style={inputStyle} />
-              </label>
-              <label>
-                ماه
-                <input
-                  type="number"
-                  min={1}
-                  max={12}
-                  value={month}
-                  onChange={(e) => setMonth(Number(e.target.value))}
-                  style={inputStyle}
-                />
-              </label>
+              <JalaliMonthPicker
+                label="دوره"
+                year={year}
+                month={month}
+                onChange={(y, m) => {
+                  setYear(y);
+                  setMonth(m);
+                }}
+              />
               <button type="button" style={btnPrimary} disabled={busy} onClick={() => void monthlyClose()}>
                 بستن ماه
               </button>

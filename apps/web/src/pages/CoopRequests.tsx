@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { formatJalaliDate } from "../lib/jalaliDate";
 import { MineScope } from "../components/MineScope";
 import { apiGetData, apiPostData, getStoredToken } from "../api";
 
@@ -186,7 +187,7 @@ export default function CoopRequests() {
                       <td style={td}>{row.material_type}</td>
                       <td style={td}>{row.unit_type}</td>
                       <td style={td}>{row.rate.toLocaleString("fa-IR")}</td>
-                      <td style={td}>{row.effectiveFrom}</td>
+                      <td style={td}>{formatJalaliDate(row.effectiveFrom)}</td>
                     </tr>
                   ))}
                 </tbody>

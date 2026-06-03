@@ -12,7 +12,9 @@ import {
   type DisplayLabel,
   type FinanceDisplayLabels,
 } from "../lib/platformLegal";
+import { JalaliMonthPicker } from "../components/JalaliMonthPicker";
 import { formatMoney } from "../lib/formatMoney";
+import { todayGregorianYm } from "../lib/jalaliDate";
 
 type FinanceCards = {
   owner_share: number;
@@ -137,9 +139,9 @@ function loadChartJs(): Promise<void> {
 }
 
 export default function AdminFinance() {
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const nowYm = todayGregorianYm();
+  const [year, setYear] = useState(nowYm.year);
+  const [month, setMonth] = useState(nowYm.month);
   const [mineId, setMineId] = useState<string>("");
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [missions, setMissions] = useState<FinanceMissionRow[]>([]);
@@ -304,26 +306,15 @@ export default function AdminFinance() {
 
       <section style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
-          <label style={{ fontSize: 13 }}>
-            سال
-            <input
-              type="number"
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-              style={{ display: "block", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB" }}
-            />
-          </label>
-          <label style={{ fontSize: 13 }}>
-            ماه
-            <input
-              type="number"
-              min={1}
-              max={12}
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-              style={{ display: "block", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB" }}
-            />
-          </label>
+          <JalaliMonthPicker
+            label="دوره (شمسی)"
+            year={year}
+            month={month}
+            onChange={(y, m) => {
+              setYear(y);
+              setMonth(m);
+            }}
+          />
           <label style={{ fontSize: 13 }}>
             معدن (اختیاری)
             <input

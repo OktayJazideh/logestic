@@ -12,7 +12,7 @@ import {
 import { PageFrame } from "../components/PageFrame";
 import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { apiGetData, apiPostData } from "../api";
-import { formatJalaliDate } from "../lib/jalaliDate";
+import { formatJalaliDate, isoDaysAgo } from "../lib/jalaliDate";
 import { dateRange } from "../lib/validation";
 
 type KpiPoint = {
@@ -76,12 +76,6 @@ const CHART_SERIES: Array<{ key: string; label: string; color: string }> = [
 function pct(n: number | undefined) {
   if (n == null) return "—";
   return `${(n * 100).toFixed(1)}٪`;
-}
-
-function isoDaysAgo(days: number) {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - days);
-  return d.toISOString().slice(0, 10);
 }
 
 function KpiCard({ label, value }: { label: string; value: string }) {
