@@ -419,6 +419,7 @@ export default function SettlementPage() {
                 label="دوره"
                 year={year}
                 month={month}
+                showPeriodHint={false}
                 onChange={(y, m) => {
                   setYear(y);
                   setMonth(m);
