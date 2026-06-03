@@ -12,8 +12,9 @@ Set-Location (Join-Path $PSScriptRoot "..")
 Write-Host "==> git pull (local)"
 git -c http.proxy= -c https.proxy= pull
 
-Write-Host "==> build backend"
+Write-Host "==> build backend (prisma generate + tsc)"
 Push-Location apps/backend
+npx prisma generate
 npm run build
 Pop-Location
 
@@ -33,7 +34,7 @@ Write-Host "==> upload web dist"
 scp -r apps/web/dist "root@${VpsHost}:${RemoteRoot}/apps/web/"
 
 Write-Host "==> migrate + restart API on VPS"
-$remoteCmd = "cd ${RemoteRoot}/apps/backend && npx prisma migrate deploy && systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK"
+$remoteCmd = "cd ${RemoteRoot}/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK"
 ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""

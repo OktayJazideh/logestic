@@ -35,6 +35,7 @@ export default function AdminUserRequests() {
     const res = await apiGetData<{ requests: RequestRow[] }>("/admin/user-provisioning/requests?status=PENDING");
     if (!res.ok) {
       setError(apiErrorMessageFa(res.code, res.message));
+      setRequests([]);
       return;
     }
     setError(null);
@@ -86,11 +87,11 @@ export default function AdminUserRequests() {
       intro="درخواست‌های ثبت‌شده از تعاونی و عملیات معدن — پس از تأیید، کاربر می‌تواند با OTP وارد شود."
     >
       {error && <Alert variant="danger">{error}</Alert>}
-      {requests.length === 0 ? (
+      {!error && requests.length === 0 ? (
         <Card>
           <p style={{ margin: 0, color: "#6B7280" }}>درخواست در انتظاری وجود ندارد.</p>
         </Card>
-      ) : (
+      ) : !error ? (
         requests.map((r) => (
           <Card key={r.id} style={{ marginBottom: 12 }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 8 }}>

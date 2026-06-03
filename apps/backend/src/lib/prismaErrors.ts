@@ -22,6 +22,17 @@ export function prismaToApiError(err: unknown, requestId?: string): ApiError | n
       });
     }
   }
+  if (err instanceof TypeError) {
+    const msg = err.message;
+    if (msg.includes("user_provisioning_requests") || msg.includes("findMany")) {
+      return new ApiError({
+        statusCode: 503,
+        code: "schema_not_ready",
+        message: "Prisma client is out of date. Run: npx prisma generate && systemctl restart logestic-api",
+        requestId,
+      });
+    }
+  }
   if (err instanceof Error) {
     const code = (err as { code?: string }).code;
     if (code === "workspace_access_denied") {

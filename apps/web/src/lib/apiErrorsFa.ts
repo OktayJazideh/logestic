@@ -11,7 +11,8 @@ const CODE_FA: Record<string, string> = {
   self_delete: "نمی‌توانید حساب خود را حذف کنید.",
   schema_not_ready:
     "پایگاه‌داده به‌روز نیست. روی سرور دستور prisma migrate deploy (migration 0045) را اجرا کنید و API را restart کنید.",
-  internal_error: "خطای داخلی سرور. اگر تازه deploy کرده‌اید، migration و restart سرویس را بررسی کنید.",
+  internal_error:
+    "خطای داخلی سرور. روی VPS حتماً بعد از migrate این را اجرا کنید: npx prisma generate && npm run build && systemctl restart logestic-api",
   workspace_access_denied: "دسترسی به فضای کاری این معدن برای شما مجاز نیست.",
 };
 
