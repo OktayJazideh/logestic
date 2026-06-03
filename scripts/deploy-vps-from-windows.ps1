@@ -23,7 +23,7 @@ if (Get-Command flutter -ErrorAction SilentlyContinue) {
     Write-Host "    building mobile APKs (demo login enabled)..."
     & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApiBase -App both
 } else {
-    Write-Warning "Flutter not on PATH — skip APK build. Run .\scripts\build-apk.ps1 manually if login downloads are missing."
+    Write-Warning 'Flutter not on PATH - skip APK build. Run .\scripts\build-apk.ps1 manually if login downloads are missing.'
 }
 Push-Location apps/web
 $env:VITE_API_BASE = $ApiBase
@@ -41,7 +41,8 @@ Write-Host "==> upload web dist"
 scp -r apps/web/dist "root@${VpsHost}:${RemoteRoot}/apps/web/"
 
 Write-Host "==> prisma generate + migrate + restart on VPS (skip npm run build on server)"
-$remoteCmd = "cd ${RemoteRoot}/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK"
+# Single-quoted: bash uses && on remote; avoids PowerShell parsing ${RemoteRoot} with backslash escapes.
+$remoteCmd = 'cd ' + $RemoteRoot + '/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK'
 ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""
