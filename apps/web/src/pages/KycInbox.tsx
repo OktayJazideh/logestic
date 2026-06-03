@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { ShamsiDateField } from "../components/ShamsiDateField";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData, apiPostData } from "../api";
+import { formatJalaliDate } from "../lib/jalaliDate";
 
 type InboxStatus = "PENDING" | "NEEDS_CORRECTION";
 type EntityType = "household" | "driver" | "fleet_owner" | "vehicle";
@@ -69,11 +71,7 @@ function rowKey(item: InboxItem) {
 }
 
 function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString("fa-IR");
-  } catch {
-    return iso.slice(0, 10);
-  }
+  return formatJalaliDate(iso);
 }
 
 function docLinks(item: InboxItem) {
@@ -401,7 +399,7 @@ export default function KycInbox() {
   }, [inboxStatus, reasons, busy, bulkProgress]);
 
   const title =
-    inboxStatus === "PENDING" ? "صندوق KYC — در انتظار تأیید" : "صندوق KYC — نیاز به اصلاح";
+    inboxStatus === "PENDING" ? "صندوق احراز هویت — در انتظار تأیید" : "صندوق احراز هویت — نیاز به اصلاح";
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
@@ -411,7 +409,7 @@ export default function KycInbox() {
       expectedRoles={["COOP_ADMIN", "COOP_OPERATOR", "ADMIN"]}
       intro={
         <p style={{ margin: 0 }}>
-          درخواست‌های {inboxStatus === "PENDING" ? "PENDING" : "NEEDS_CORRECTION"} تعاونی شما. هر اقدام در
+          درخواست‌های {inboxStatus === "PENDING" ? "در انتظار تأیید" : "نیاز به اصلاح"} تعاونی شما. هر اقدام در
           audit ثبت می‌شود.
         </p>
       }
@@ -473,32 +471,24 @@ export default function KycInbox() {
               ))}
             </select>
           </label>
-          <label style={filterLabel}>
-            از تاریخ
-            <input
-              type="date"
-              data-testid="kyc-inbox-from-date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-                setPage(1);
-              }}
-              style={filterInput}
-            />
-          </label>
-          <label style={filterLabel}>
-            تا تاریخ
-            <input
-              type="date"
-              data-testid="kyc-inbox-to-date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-                setPage(1);
-              }}
-              style={filterInput}
-            />
-          </label>
+          <ShamsiDateField
+            label="از تاریخ"
+            value={fromDate}
+            onChange={(v) => {
+              setFromDate(v);
+              setPage(1);
+            }}
+            data-testid="kyc-inbox-from-date"
+          />
+          <ShamsiDateField
+            label="تا تاریخ"
+            value={toDate}
+            onChange={(v) => {
+              setToDate(v);
+              setPage(1);
+            }}
+            data-testid="kyc-inbox-to-date"
+          />
         </div>
       </section>
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageFrame } from "../components/PageFrame";
+import { ShamsiDateField } from "../components/ShamsiDateField";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData } from "../api";
 import { financeDisplayLabels } from "../lib/platformLegal";
@@ -216,9 +217,9 @@ export default function FinanceByLoadPage() {
 
   return (
     <PageFrame
-      title="مالی per Load"
+      title="مالی به ازای هر بار"
       expectedRoles={["ADMIN"]}
-      intro="جدول ماموریت‌های VERIFIED — تسویه عملیاتی و مشارکت اجتماعی (تن×نرخ، مستقل از کرایه)."
+      intro="مأموریت‌های تأییدشده — کرایه عملیاتی و سهم جامعه (تن×نرخ، مستقل از کرایه)."
     >
       <p style={{ marginBottom: 16, fontSize: 13 }}>
         <Link to="/panel/admin/finance">← داشبورد مالی تجمیعی</Link>
@@ -243,26 +244,8 @@ export default function FinanceByLoadPage() {
 
       <section style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
-          <label style={{ fontSize: 13 }}>
-            از
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              style={inputStyle}
-              data-testid="finance-by-load-from"
-            />
-          </label>
-          <label style={{ fontSize: 13 }}>
-            تا
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              style={inputStyle}
-              data-testid="finance-by-load-to"
-            />
-          </label>
+          <ShamsiDateField label="از تاریخ" value={from} onChange={setFrom} data-testid="finance-by-load-from" />
+          <ShamsiDateField label="تا تاریخ" value={to} onChange={setTo} data-testid="finance-by-load-to" />
           <label style={{ fontSize: 13 }}>
             معدن
             <input

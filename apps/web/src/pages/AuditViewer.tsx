@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { ShamsiDateField } from "../components/ShamsiDateField";
 import { JsonDiffView } from "../components/JsonDiffView";
 import { apiGetData } from "../api";
+import { formatJalaliDateTime } from "../lib/jalaliDate";
+import { labelFa, ENTITY_TYPE_FA } from "../lib/uiLabels";
 import { dateRange, positiveInt } from "../lib/validation";
 
 type AuditLogItem = {
@@ -156,24 +159,8 @@ export default function AuditViewer() {
           alignItems: "flex-end",
         }}
       >
-        <label style={{ fontSize: 12, color: "#374151" }}>
-          از تاریخ
-          <input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            style={{ display: "block", marginTop: 4, padding: "6px 8px", borderRadius: 6, border: "1px solid #D1D5DB" }}
-          />
-        </label>
-        <label style={{ fontSize: 12, color: "#374151" }}>
-          تا تاریخ
-          <input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            style={{ display: "block", marginTop: 4, padding: "6px 8px", borderRadius: 6, border: "1px solid #D1D5DB" }}
-          />
-        </label>
+        <ShamsiDateField label="از تاریخ" value={from} onChange={setFrom} />
+        <ShamsiDateField label="تا تاریخ" value={to} onChange={setTo} />
         <label style={{ fontSize: 12, color: "#374151" }}>
           نوع موجودیت
           <select
@@ -184,7 +171,7 @@ export default function AuditViewer() {
             <option value="">همه</option>
             {ENTITY_TYPES.filter(Boolean).map((t) => (
               <option key={t} value={t}>
-                {t}
+                {labelFa(ENTITY_TYPE_FA, t)}
               </option>
             ))}
           </select>
@@ -234,9 +221,9 @@ export default function AuditViewer() {
             {logs.map((log) => (
               <React.Fragment key={log.id}>
                 <tr style={{ borderBottom: "1px solid #F3F4F6" }}>
-                  <td style={td}>{new Date(log.created_at).toLocaleString("fa-IR")}</td>
+                  <td style={td}>{formatJalaliDateTime(log.created_at)}</td>
                   <td style={td}>
-                    <code>{log.entity_type}</code> / {log.entity_id}
+                    {labelFa(ENTITY_TYPE_FA, log.entity_type)} / {log.entity_id}
                   </td>
                   <td style={td}>{log.action}</td>
                   <td style={td}>{log.performed_by_user_id ?? "—"}</td>

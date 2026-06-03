@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPostData, getStoredToken } from "../api";
 import { formatMoney } from "../lib/formatMoney";
+import { formatJalaliDate, formatJalaliDateTime, formatPeriodKeyYm } from "../lib/jalaliDate";
+import { labelFa, STATEMENT_STATUS_FA } from "../lib/uiLabels";
 
 type PeriodStatementLine = {
   id: number;
@@ -152,7 +154,8 @@ export default function PeriodStatementPage() {
         <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <strong>
-              #{statement.id} — {statement.period_key} — وضعیت: {statement.status}
+              #{statement.id.toLocaleString("fa-IR")} — {formatPeriodKeyYm(statement.period_key)} — وضعیت:{" "}
+              {labelFa(STATEMENT_STATUS_FA, statement.status)}
             </strong>
             {statement.mine_payable && (
               <span style={{ background: "#DCFCE7", color: "#166534", padding: "4px 10px", borderRadius: 6 }}>
@@ -173,7 +176,7 @@ export default function PeriodStatementPage() {
 
           {statement.approval_due_at && !statement.approval_overdue && (
             <p style={{ marginTop: 8, fontSize: 13, color: "#6B7280" }}>
-              مهلت تأیید: {new Date(statement.approval_due_at).toLocaleString("fa-IR")}
+              مهلت تأیید: {formatJalaliDateTime(statement.approval_due_at)}
             </p>
           )}
 
@@ -185,7 +188,7 @@ export default function PeriodStatementPage() {
             <span>سرویس: {statement.service_count}</span>
             <span>تناژ: {statement.total_tons}</span>
             <span>عملیاتی: {formatMoney(statement.operational_rial)}</span>
-            <span>Community: {formatMoney(statement.community_rial)}</span>
+            <span>سهم جامعه: {formatMoney(statement.community_rial)}</span>
             <span>کسورات: {formatMoney(statement.deductions_rial)}</span>
             <span>
               <strong>قابل پرداخت: {formatMoney(statement.payable_rial)}</strong>
@@ -201,7 +204,7 @@ export default function PeriodStatementPage() {
           {statement.mine_paid && statement.mine_payment_reference && (
             <p style={{ marginTop: 8, fontSize: 13, color: "#059669" }}>
               پیگیری واریز معدن: {statement.mine_payment_reference}
-              {statement.mine_paid_at && ` — ${new Date(statement.mine_paid_at).toLocaleDateString("fa-IR")}`}
+              {statement.mine_paid_at && ` — ${formatJalaliDate(statement.mine_paid_at)}`}
             </p>
           )}
 

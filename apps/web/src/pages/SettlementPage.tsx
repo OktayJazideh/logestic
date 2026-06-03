@@ -2,6 +2,13 @@ import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPostData, getStoredToken, pollJobUntilDone, API_BASE } from "../api";
 import { formatMoney } from "../lib/formatMoney";
+import { formatJalaliDate, formatPeriodKeyYm } from "../lib/jalaliDate";
+import {
+  COMMUNITY_POOL_STATUS_FA,
+  labelFa,
+  SETTLEMENT_BATCH_STATUS_FA,
+  STATEMENT_STATUS_FA,
+} from "../lib/uiLabels";
 
 type Batch = {
   id: number;
@@ -265,7 +272,7 @@ export default function SettlementPage() {
   }
 
   return (
-    <PageFrame title="تسویه ماهانه (Settlement)" expectedRoles={["ADMIN", "CONSULTANT", "OPERATION_ADMIN"]}>
+    <PageFrame title="تسویه ماهانه" expectedRoles={["ADMIN", "CONSULTANT", "OPERATION_ADMIN"]}>
       {err && <div style={{ color: "#B45309", marginBottom: 10 }}>{err}</div>}
       {msg && <div style={{ color: "#065F46", marginBottom: 10 }}>{msg}</div>}
 
@@ -521,8 +528,8 @@ export default function SettlementPage() {
               <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
                 <th style={th}>انتخاب</th>
                 <th style={th}>ID</th>
-                <th style={th}>Status</th>
-                <th style={th}>Period</th>
+                <th style={th}>وضعیت</th>
+                <th style={th}>دوره</th>
               </tr>
             </thead>
             <tbody>
@@ -536,32 +543,32 @@ export default function SettlementPage() {
                     <input type="radio" checked={selectedId === b.id} readOnly />
                   </td>
                   <td style={td}>{b.id}</td>
-                  <td style={td}>{b.status}</td>
+                  <td style={td}>{labelFa(SETTLEMENT_BATCH_STATUS_FA, b.status)}</td>
                   <td style={td}>
-                    {b.period_start ? new Date(b.period_start).toLocaleDateString("fa-IR") : "—"} تا{" "}
-                    {b.period_end ? new Date(b.period_end).toLocaleDateString("fa-IR") : "—"}
+                    {b.period_start ? formatJalaliDate(b.period_start) : "—"} تا{" "}
+                    {b.period_end ? formatJalaliDate(b.period_end) : "—"}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          <h3 style={{ fontSize: 15 }}>Community Pool</h3>
+          <h3 style={{ fontSize: 15 }}>صندوق جامعه</h3>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
             <thead>
               <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-                <th style={th}>Period</th>
-                <th style={th}>Total</th>
-                <th style={th}>Status</th>
+                <th style={th}>دوره</th>
+                <th style={th}>جمع</th>
+                <th style={th}>وضعیت</th>
               </tr>
             </thead>
             <tbody>
               {pools.map((p) => (
                 <tr key={p.id}>
-                  <td style={td}>{p.period_key}</td>
+                  <td style={td}>{formatPeriodKeyYm(p.period_key)}</td>
                   <td style={td}>{formatMoney(Number(p.total_amount))}</td>
                   <td style={td}>
-                    {p.status}
+                    {labelFa(COMMUNITY_POOL_STATUS_FA, p.status)}
                     {p.status === "SNAPSHOT_LOCKED" && (
                       <button
                         type="button"

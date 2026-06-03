@@ -40,9 +40,31 @@ export const STATEMENT_STATUS_FA: Record<string, string> = {
 export const MISSION_STATUS_FA: Record<string, string> = {
   CREATED: "ایجاد شده",
   ASSIGNED: "تخصیص‌یافته",
+  ACCEPTED: "پذیرفته‌شده",
+  ARRIVED: "رسیده به مبدأ",
+  LOADED: "بارگیری شده",
+  IN_TRANSIT: "در مسیر",
   IN_PROGRESS: "در حال انجام",
   DELIVERED: "تحویل‌شده",
   VERIFIED: "تأیید نهایی",
+  SETTLED: "تسویه‌شده",
+  CANCELLED: "لغوشده",
+  LOADING: "در حال بارگیری",
+  AWAITING_WB: "در انتظار باسکول",
+};
+
+export const NEED_STATUS_FA: Record<string, string> = {
+  PENDING: "در انتظار تخصیص",
+  DISPATCHED: "تخصیص‌شده",
+  COMPLETED: "انجام‌شده",
+  CANCELLED: "لغوشده",
+};
+
+export const DISPATCH_COLUMN_FA: Record<string, string> = {
+  AWAITING_WB: "در انتظار باسکول",
+  ASSIGNED: "تخصیص‌شده",
+  IN_PROGRESS: "در جریان",
+  VERIFIED: "تأییدشده",
 };
 
 export const MATERIAL_TYPE_FA: Record<string, string> = {
@@ -53,6 +75,8 @@ export const MATERIAL_TYPE_FA: Record<string, string> = {
 export const OPERATION_TYPE_FA: Record<string, string> = {
   HAUL_TONNAGE: "حمل تنی",
   HOURLY_EQUIPMENT: "کار ساعتی تجهیز",
+  TONNAGE: "تنی",
+  HOURLY: "ساعتی",
 };
 
 export const KYC_STATUS_FA: Record<string, string> = {
@@ -62,9 +86,61 @@ export const KYC_STATUS_FA: Record<string, string> = {
   SUSPENDED: "معلق",
 };
 
+export const ENTITY_TYPE_FA: Record<string, string> = {
+  household: "خانوار",
+  driver: "راننده",
+  fleet_owner: "مالک ناوگان",
+  vehicle: "وسیله",
+  cooperative: "تعاونی",
+  user: "کاربر",
+  membership_objection: "اعتراض عضویت",
+  kyc_change: "تغییر احراز هویت",
+  mission_payment: "پرداخت مأموریت",
+  weighbridge_ticket: "تیکت باسکول",
+  weighbridge_adjustment: "اصلاح باسکول",
+  rate_card: "کارت نرخ",
+  finance_rule: "قانون مالی",
+  operation_need: "نیاز عملیات",
+  domain_event: "رویداد سیستم",
+  hourly_work_log: "کارکرد ساعتی",
+  AUTH: "احراز هویت",
+};
+
 export const ENTRY_SOURCE_FA: Record<string, string> = {
   SCALE: "باسکول",
   MANUAL: "دستی",
   COOP_OPERATOR: "اپراتور تعاونی",
   OPERATION_ADMIN: "مدیر عملیات",
+};
+
+export const RULE_SCOPE_FA: Record<string, string> = {
+  GLOBAL: "سراسری",
+  MINE: "معدن",
+  COOPERATIVE: "تعاونی",
+};
+
+export const RULE_STATUS_FA: Record<string, string> = {
+  ACTIVE: "فعال",
+  ARCHIVED: "بایگانی",
+};
+
+export const RATE_CARD_STATUS_FA: Record<string, string> = {
+  DRAFT: "پیش‌نویس",
+  ACTIVE: "فعال",
+  ARCHIVED: "بایگانی",
+};
+
+export const SETTLEMENT_BATCH_STATUS_FA: Record<string, string> = {
+  DRAFT: "پیش‌نویس",
+  CALCULATED: "محاسبه‌شده",
+  LOCKED: "قفل‌شده",
+  READY: "آماده پرداخت",
+  IN_BANK_QUEUE: "در صف بانک",
+  SETTLED: "تسویه‌شده",
+};
+
+export const COMMUNITY_POOL_STATUS_FA: Record<string, string> = {
+  OPEN: "باز",
+  SNAPSHOT_LOCKED: "اسنپ‌شات قفل",
+  DISTRIBUTED: "توزیع‌شده",
 };

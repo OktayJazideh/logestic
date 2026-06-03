@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { ShamsiDateField } from "../components/ShamsiDateField";
 import { apiGetData, apiPostData } from "../api";
+import { formatJalaliDate } from "../lib/jalaliDate";
 import { dateRange } from "../lib/validation";
 
 type KpiPoint = {
@@ -170,7 +172,7 @@ export default function AdminKpi() {
       .then(() => {
         if (cancelled || !chartRef.current || !window.Chart) return;
         chartInstance.current?.destroy();
-        const labels = dashboard.series.map((p) => p.date);
+        const labels = dashboard.series.map((p) => formatJalaliDate(p.date));
         chartInstance.current = new window.Chart!(chartRef.current.getContext("2d")!, {
           type: "line",
           data: {
@@ -189,13 +191,13 @@ export default function AdminKpi() {
                 tension: 0.2,
               },
               {
-                label: "درصد HOLD",
+                label: "درصد نگهداری پرداخت",
                 data: dashboard.series.map((p) => (p.hold_pct ?? 0) * 100),
                 borderColor: "#7C3AED",
                 tension: 0.2,
               },
               {
-                label: "Utilization وسیله",
+                label: "بهره‌وری وسیله",
                 data: dashboard.series.map((p) => (p.vehicle_utilization ?? 0) * 100),
                 borderColor: "#0369A1",
                 tension: 0.2,
@@ -220,21 +222,15 @@ export default function AdminKpi() {
 
   return (
     <PageFrame
-      title="داشبورد KPI (KPI-1)"
-      intro="راندمان ناوگان، تأخیر، HOLD، Utilization وسیله و failed settlement — محاسبهٔ روزانه از QUEUE-1."
+      title="شاخص‌های عملکرد"
+      intro="راندمان ناوگان، تأخیر، نگهداری پرداخت و بهره‌وری وسیله — بازه تاریخ شمسی."
       expectedRoles={["ADMIN", "OPERATION_ADMIN"]}
     >
       <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+        <ShamsiDateField label="از تاریخ" value={from} onChange={setFrom} />
+        <ShamsiDateField label="تا تاریخ" value={to} onChange={setTo} />
         <label style={{ fontSize: 13 }}>
-          از
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={inputStyle} />
-        </label>
-        <label style={{ fontSize: 13 }}>
-          تا
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={inputStyle} />
-        </label>
-        <label style={{ fontSize: 13 }}>
-          معدن (ID)
+          شناسه معدن
           <input
             type="text"
             value={mineId}
@@ -253,7 +249,8 @@ export default function AdminKpi() {
 
       {dashboard && (
         <p style={{ fontSize: 12, color: "#6B7280", marginTop: 8 }}>
-          آستانهٔ تأخیر: بیش از {dashboard.delay_threshold_hours} ساعت — {dashboard.raw_count} رکورد snapshot
+          آستانهٔ تأخیر: بیش از {dashboard.delay_threshold_hours} ساعت — {dashboard.raw_count.toLocaleString("fa-IR")} رکورد
+        لحظه‌ای
         </p>
       )}
 
@@ -263,12 +260,12 @@ export default function AdminKpi() {
         <div style={{ display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap" }}>
           <KpiCard label="راندمان ناوگان" value={pct(latest.fleet_efficiency)} />
           <KpiCard label="درصد تأخیر" value={pct(latest.delay_pct)} />
-          <KpiCard label="درصد HOLD" value={pct(latest.hold_pct)} />
-          <KpiCard label="Utilization وسیله" value={pct(latest.vehicle_utilization)} />
-          <KpiCard label="failed settlement" value={String(latest.failed_settlement ?? 0)} />
+          <KpiCard label="درصد نگهداری پرداخت" value={pct(latest.hold_pct)} />
+          <KpiCard label="بهره‌وری وسیله" value={pct(latest.vehicle_utilization)} />
+          <KpiCard label="تسویه ناموفق" value={(latest.failed_settlement ?? 0).toLocaleString("fa-IR")} />
           <KpiCard
-            label="verified / assigned"
-            value={`${latest.verified_missions ?? 0} / ${latest.assigned_missions ?? 0}`}
+            label="تأییدشده / تخصیص‌یافته"
+            value={`${(latest.verified_missions ?? 0).toLocaleString("fa-IR")} / ${(latest.assigned_missions ?? 0).toLocaleString("fa-IR")}`}
           />
         </div>
       )}

@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { ShamsiDateField } from "../components/ShamsiDateField";
 import { fieldErrorStyle } from "../components/FormField";
 import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostData } from "../api";
+import { formatJalaliDate } from "../lib/jalaliDate";
+import { labelFa, RULE_SCOPE_FA, RULE_STATUS_FA } from "../lib/uiLabels";
 import { dateRequired, positiveInt, positiveNumber, required } from "../lib/validation";
 
 type FinanceRule = {
@@ -132,8 +135,8 @@ export default function RuleEnginePage() {
 
   return (
     <PageFrame
-      title="Rule Engine (RULE-1)"
-      intro="قوانین مالی نسخه‌دار: split، آستانه باسکول، دوره تسویه. فقط ADMIN."
+      title="قوانین مالی"
+      intro="قوانین نسخه‌دار: سهم مالک، آستانه باسکول، دوره تسویه — فقط مدیر سیستم."
     >
       {err && <div style={alertStyle}>{err}</div>}
       {msg && <div style={okStyle}>{msg}</div>}
@@ -176,20 +179,20 @@ export default function RuleEnginePage() {
           {getError("value") && <span style={fieldErrorStyle}>{getError("value")}</span>}
         </label>
         <label style={labelStyle}>
-          scope
+          محدوده
           <select
             value={scopeType}
             onChange={(e) => setScopeType(e.target.value as typeof scopeType)}
             style={inputStyle}
           >
-            <option value="GLOBAL">GLOBAL</option>
-            <option value="MINE">mine_id</option>
-            <option value="COOPERATIVE">cooperative_id</option>
+            <option value="GLOBAL">{labelFa(RULE_SCOPE_FA, "GLOBAL")}</option>
+            <option value="MINE">{labelFa(RULE_SCOPE_FA, "MINE")}</option>
+            <option value="COOPERATIVE">{labelFa(RULE_SCOPE_FA, "COOPERATIVE")}</option>
           </select>
         </label>
         {scopeType === "MINE" && (
           <label style={labelStyle}>
-            mine_id <span style={{ color: "#DC2626" }}>*</span>
+            شناسه معدن <span style={{ color: "#DC2626" }}>*</span>
             <input
               value={mineId}
               onChange={(e) => {
@@ -204,7 +207,7 @@ export default function RuleEnginePage() {
         )}
         {scopeType === "COOPERATIVE" && (
           <label style={labelStyle}>
-            cooperative_id <span style={{ color: "#DC2626" }}>*</span>
+            شناسه تعاونی <span style={{ color: "#DC2626" }}>*</span>
             <input
               value={coopId}
               onChange={(e) => {
@@ -217,20 +220,17 @@ export default function RuleEnginePage() {
             {getError("coopId") && <span style={fieldErrorStyle}>{getError("coopId")}</span>}
           </label>
         )}
-        <label style={labelStyle}>
-          effective_from <span style={{ color: "#DC2626" }}>*</span>
-          <input
-            type="date"
+        <div>
+          <ShamsiDateField
+            label="اعتبار از *"
             value={effectiveFrom}
-            onChange={(e) => {
-              setEffectiveFrom(e.target.value);
-              validateField("effectiveFrom", e.target.value, [dateRequired("تاریخ اعتبار")]);
+            onChange={(v) => {
+              setEffectiveFrom(v);
+              validateField("effectiveFrom", v, [dateRequired("تاریخ اعتبار")]);
             }}
-            onBlur={() => validateField("effectiveFrom", effectiveFrom, [dateRequired("تاریخ اعتبار")])}
-            style={inputStyle}
           />
           {getError("effectiveFrom") && <span style={fieldErrorStyle}>{getError("effectiveFrom")}</span>}
-        </label>
+        </div>
         <div style={{ alignSelf: "flex-end" }}>
           <button type="submit" disabled={busy} style={btnStyle}>
             {busy ? "…" : "فعال‌سازی نسخه جدید"}
@@ -242,8 +242,8 @@ export default function RuleEnginePage() {
         <span style={{ fontWeight: 700 }}>فیلتر وضعیت:</span>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)} style={inputStyle}>
           <option value="">همه</option>
-          <option value="ACTIVE">ACTIVE</option>
-          <option value="ARCHIVED">ARCHIVED</option>
+          <option value="ACTIVE">{labelFa(RULE_STATUS_FA, "ACTIVE")}</option>
+          <option value="ARCHIVED">{labelFa(RULE_STATUS_FA, "ARCHIVED")}</option>
         </select>
         <button type="button" onClick={() => load()} style={{ ...btnStyle, background: "#374151" }}>
           بروزرسانی
@@ -256,7 +256,7 @@ export default function RuleEnginePage() {
             <tr style={{ background: "#F3F4F6", textAlign: "right" }}>
               <th style={th}>کلید</th>
               <th style={th}>مقدار</th>
-              <th style={th}>scope</th>
+              <th style={th}>محدوده</th>
               <th style={th}>نسخه</th>
               <th style={th}>وضعیت</th>
               <th style={th}>از</th>
@@ -269,14 +269,14 @@ export default function RuleEnginePage() {
                 <td style={td}>{r.key}</td>
                 <td style={td}>{formatValue(r.value)}</td>
                 <td style={td}>
-                  {r.scope_type}
-                  {r.mine_id != null ? ` mine=${r.mine_id}` : ""}
-                  {r.cooperative_id != null ? ` coop=${r.cooperative_id}` : ""}
+                  {labelFa(RULE_SCOPE_FA, r.scope_type)}
+                  {r.mine_id != null ? ` · معدن ${r.mine_id.toLocaleString("fa-IR")}` : ""}
+                  {r.cooperative_id != null ? ` · تعاونی ${r.cooperative_id.toLocaleString("fa-IR")}` : ""}
                 </td>
-                <td style={td}>{r.version}</td>
-                <td style={td}>{r.status}</td>
-                <td style={td}>{r.effective_from.slice(0, 10)}</td>
-                <td style={td}>{r.effective_to?.slice(0, 10) ?? "—"}</td>
+                <td style={td}>{r.version.toLocaleString("fa-IR")}</td>
+                <td style={td}>{labelFa(RULE_STATUS_FA, r.status)}</td>
+                <td style={td}>{formatJalaliDate(r.effective_from)}</td>
+                <td style={td}>{r.effective_to ? formatJalaliDate(r.effective_to) : "—"}</td>
               </tr>
             ))}
           </tbody>

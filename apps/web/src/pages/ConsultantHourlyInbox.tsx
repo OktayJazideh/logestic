@@ -3,6 +3,7 @@ import { PageFrame } from "../components/PageFrame";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData, apiPostData } from "../api";
 import { useAuthMe } from "../hooks/useAuthMe";
+import { formatJalaliDateTime } from "../lib/jalaliDate";
 import { hourlyStatusLabelFa } from "../lib/roleLabels";
 
 type HourlyLog = {
@@ -19,11 +20,7 @@ type HourlyLog = {
 
 function formatDate(iso?: string) {
   if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleString("fa-IR");
-  } catch {
-    return iso.slice(0, 16);
-  }
+  return formatJalaliDateTime(iso);
 }
 
 function formatHours(h?: number) {

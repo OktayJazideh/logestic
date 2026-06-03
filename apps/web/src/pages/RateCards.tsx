@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
+import { ShamsiDateField } from "../components/ShamsiDateField";
 import { useFieldValidation } from "../hooks/useFieldValidation";
+import { formatJalaliDate } from "../lib/jalaliDate";
+import { labelFa, MATERIAL_TYPE_FA, OPERATION_TYPE_FA, RATE_CARD_STATUS_FA } from "../lib/uiLabels";
 import { apiGetData, apiPostData, apiPutData } from "../api";
 import { dateRequired, minLength, positiveNumber, required } from "../lib/validation";
 
@@ -390,10 +393,7 @@ export default function RateCards() {
               <option value="2">تعاونی ۲</option>
             </select>
           </label>
-          <label style={labelStyle}>
-            تاریخ
-            <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} style={inputStyle} />
-          </label>
+          <ShamsiDateField label="تاریخ" value={filterDate} onChange={setFilterDate} />
           <button type="button" onClick={load} style={btnStyle}>
             بروزرسانی
           </button>
@@ -427,10 +427,7 @@ export default function RateCards() {
                 ))}
             </select>
           </label>
-          <label style={labelStyle}>
-            اعتبار از
-            <input type="date" value={scValidFrom} onChange={(e) => setScValidFrom(e.target.value)} style={inputStyle} />
-          </label>
+          <ShamsiDateField label="اعتبار از" value={scValidFrom} onChange={setScValidFrom} />
           <button type="submit" disabled={busy === "sc-create"} style={btnStyle}>
             ایجاد پیش‌نویس قرارداد
           </button>
@@ -492,10 +489,7 @@ export default function RateCards() {
                 شماره الحاقیه
                 <input value={nvAmendmentRef} onChange={(e) => setNvAmendmentRef(e.target.value)} style={inputStyle} placeholder="AMEND-1405-03" />
               </label>
-              <label style={labelStyle}>
-                اعتبار از
-                <input type="date" value={nvValidFrom} onChange={(e) => setNvValidFrom(e.target.value)} style={inputStyle} />
-              </label>
+              <ShamsiDateField label="اعتبار از" value={nvValidFrom} onChange={setNvValidFrom} />
               <label style={labelStyle}>
                 نرخ پایه (ریال/تن)
                 <input value={nvBaseRate} onChange={(e) => setNvBaseRate(e.target.value)} style={inputStyle} />
@@ -592,11 +586,11 @@ export default function RateCards() {
             <tr key={c.id}>
               <td style={td}>{c.id}</td>
               <td style={td}>{c.mine_id}</td>
-              <td style={td}>{c.operation_type}</td>
-              <td style={td}>{c.material_type}</td>
+              <td style={td}>{labelFa(OPERATION_TYPE_FA, c.operation_type)}</td>
+              <td style={td}>{labelFa(MATERIAL_TYPE_FA, c.material_type)}</td>
               <td style={td}>{c.rate.toLocaleString("fa-IR")}</td>
-              <td style={td}>{c.effectiveFrom}</td>
-              <td style={td}>{c.effectiveTo ?? "—"}</td>
+              <td style={td}>{formatJalaliDate(c.effectiveFrom)}</td>
+              <td style={td}>{c.effectiveTo ? formatJalaliDate(c.effectiveTo) : "—"}</td>
               <td style={td}>
                 <span
                   style={{
@@ -608,7 +602,7 @@ export default function RateCards() {
                     color: c.status === "ACTIVE" ? "#065F46" : c.status === "DRAFT" ? "#1E3A2F" : "#6B7280",
                   }}
                 >
-                  {c.status}
+                  {labelFa(RATE_CARD_STATUS_FA, c.status)}
                 </span>
               </td>
               <td style={td}>
@@ -664,15 +658,7 @@ export default function RateCards() {
             نرخ
             <input value={rate} onChange={(e) => setRate(e.target.value)} style={inputStyle} placeholder="12000" />
           </label>
-          <label style={labelStyle}>
-            اعتبار از
-            <input
-              type="date"
-              value={effectiveFrom}
-              onChange={(e) => setEffectiveFrom(e.target.value)}
-              style={inputStyle}
-            />
-          </label>
+          <ShamsiDateField label="اعتبار از" value={effectiveFrom} onChange={setEffectiveFrom} />
           <button type="submit" disabled={busy === "create"} style={btnStyle}>
             ایجاد پیش‌نویس
           </button>

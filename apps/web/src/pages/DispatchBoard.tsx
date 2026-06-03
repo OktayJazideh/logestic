@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPostData, newIdempotencyKey } from "../api";
+import { formatJalaliDateTime } from "../lib/jalaliDate";
+import { labelFa, MISSION_STATUS_FA, OPERATION_TYPE_FA, WEIGHBRIDGE_STATUS_FA } from "../lib/uiLabels";
 import { brand } from "../theme";
 
 const DISPATCH_ERROR_FA: Record<string, string> = {
@@ -197,7 +199,7 @@ export default function DispatchBoard() {
         </button>
         {board?.generated_at && (
           <span style={{ fontSize: 12, color: "#6B7280" }} data-testid="dispatch-board-updated">
-            آخرین بروزرسانی: {new Date(board.generated_at).toLocaleString("fa-IR")}
+            آخرین بروزرسانی: {formatJalaliDateTime(board.generated_at)}
           </span>
         )}
       </div>
@@ -263,7 +265,7 @@ export default function DispatchBoard() {
                       <div style={{ fontWeight: 700, color: "#4A3728" }}>نیاز #{n.need_id}</div>
                       <div style={{ fontSize: 12, marginTop: 6 }}>{n.village_name}</div>
                       <div style={{ fontSize: 12, color: "#57534E" }}>
-                        {n.quantity_tons.toLocaleString("fa-IR")} تن · {n.operation_type}
+                        {n.quantity_tons.toLocaleString("fa-IR")} تن · {labelFa(OPERATION_TYPE_FA, n.operation_type)}
                       </div>
                       <button
                         type="button"
@@ -319,7 +321,7 @@ export default function DispatchBoard() {
                     <div>#{m.mission_id}</div>
                     <div style={{ fontSize: 12, marginTop: 4 }}>{m.driver_name}</div>
                     <div style={{ fontSize: 11, color: "#57534E" }}>
-                      {m.vehicle_plate} · {m.status}
+                      {m.vehicle_plate} · {labelFa(MISSION_STATUS_FA, m.status)}
                     </div>
                   </Link>
                 ))}
@@ -334,7 +336,9 @@ export default function DispatchBoard() {
                   >
                     <div>#{m.mission_id}</div>
                     <div style={{ fontSize: 12, marginTop: 4 }}>{m.driver_name}</div>
-                    <div style={{ fontSize: 11, color: "#57534E" }}>بلیت: {m.ticket_status}</div>
+                    <div style={{ fontSize: 11, color: "#57534E" }}>
+                      بلیت: {labelFa(WEIGHBRIDGE_STATUS_FA, m.ticket_status)}
+                    </div>
                   </Link>
                 ))}
 
@@ -351,7 +355,7 @@ export default function DispatchBoard() {
                       {m.verified_net_tons.toLocaleString("fa-IR")} تن خالص
                     </div>
                     <div style={{ fontSize: 11, color: "#57534E" }}>
-                      {new Date(m.verified_at).toLocaleString("fa-IR")}
+                      {formatJalaliDateTime(m.verified_at)}
                     </div>
                   </Link>
                 ))}
