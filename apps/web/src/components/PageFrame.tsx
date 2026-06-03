@@ -22,7 +22,7 @@ export function PageFrame({ title, intro, expectedRoles, children }: Props) {
     me && expectedRoles?.length ? !expectedRoles.includes(me.role) : false;
 
   return (
-    <div>
+    <div className="panel-page">
       <h1
         style={{
           fontSize: fontSize.title,
@@ -36,15 +36,7 @@ export function PageFrame({ title, intro, expectedRoles, children }: Props) {
         {title}
       </h1>
       {intro && (
-        <div
-          style={{
-            color: brand.textMuted,
-            lineHeight: 1.7,
-            marginBottom: space.lg,
-            fontSize: fontSize.md,
-            maxWidth: 720,
-          }}
-        >
+        <div className="panel-page__intro">
           {intro}
         </div>
       )}

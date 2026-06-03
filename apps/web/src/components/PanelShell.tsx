@@ -1,5 +1,5 @@
-import React from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { setStoredToken } from "../api";
 import { PANEL_NAV, navForRole } from "../config/panelNav";
 import { useAuthGuard } from "../hooks/useAuthGuard";
@@ -7,7 +7,9 @@ import type { PanelOutletContext } from "../hooks/useAuthMe";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { BrandLogo } from "./BrandLogo";
 import { Button } from "./ui";
-import { brand, fontSize, radius, shadow, space } from "../theme";
+import { brand } from "../theme";
+
+const MOBILE_NAV_MQ = "(max-width: 900px)";
 
 /** Layout wrapper با Outlet برای مسیرهای تو در تو */
 export function PanelLayout() {
@@ -64,74 +66,86 @@ type InnerProps = {
 };
 
 function PanelShellInner({ onLogout, nav, ctx }: InnerProps) {
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isMobileNav, setIsMobileNav] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia(MOBILE_NAV_MQ).matches : false,
+  );
+
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  useEffect(() => {
+    closeMenu();
+  }, [location.pathname, closeMenu]);
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_NAV_MQ);
+    const onChange = () => {
+      setIsMobileNav(mq.matches);
+      if (!mq.matches) closeMenu();
+    };
+    setIsMobileNav(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [closeMenu]);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-        maxWidth: 1400,
-        margin: "0 auto",
-      }}
-    >
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: `${space.md}px ${space.lg}px`,
-          background: brand.primaryDark,
-          boxShadow: shadow.md,
-          flexWrap: "wrap",
-          gap: space.sm,
-        }}
-      >
-        <BrandLogo variant="full" size={40} onDark />
-        <Button variant="secondary" onClick={onLogout} style={{ background: brand.panel, borderColor: brand.border }}>
+    <div className={`panel-shell${menuOpen ? " panel-shell--menu-open" : ""}`}>
+      <header className="panel-shell__header">
+        <div className="panel-shell__header-start">
+          <button
+            type="button"
+            className="panel-shell__menu-btn"
+            aria-expanded={menuOpen}
+            aria-controls="panel-sidebar"
+            data-testid="panel-menu-toggle"
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {menuOpen ? "✕" : "☰"}
+          </button>
+          <BrandLogo variant="full" size={40} onDark />
+        </div>
+        <Button
+          variant="secondary"
+          onClick={onLogout}
+          style={{ background: brand.panel, borderColor: brand.border }}
+        >
           خروج از حساب
         </Button>
       </header>
 
-      <div style={{ display: "flex", flex: 1, alignItems: "stretch" }}>
+      <div className="panel-shell__body">
+        <button
+          type="button"
+          className="panel-shell__overlay"
+          aria-label="بستن منو"
+          tabIndex={menuOpen ? 0 : -1}
+          onClick={closeMenu}
+        />
+
         <aside
-          style={{
-            width: 260,
-            flexShrink: 0,
-            padding: space.md,
-            background: brand.sidebarBg,
-            borderLeft: `1px solid ${brand.primaryDark}`,
-          }}
+          id="panel-sidebar"
+          className="panel-shell__sidebar"
+          aria-hidden={isMobileNav ? !menuOpen : false}
         >
-          <div
-            style={{
-              marginBottom: space.md,
-              fontWeight: 700,
-              fontSize: fontSize.sm,
-              color: brand.sidebarMuted,
-              letterSpacing: "0.02em",
-            }}
-          >
-            منوی اصلی
-          </div>
+          <div className="panel-shell__sidebar-title">منوی اصلی</div>
           <nav>
             {nav.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                style={({ isActive }) => ({
-                  display: "block",
-                  padding: "12px 14px",
-                  borderRadius: radius.md,
-                  marginBottom: 6,
-                  textDecoration: "none",
-                  color: isActive ? "#FFFFFF" : brand.sidebarText,
-                  background: isActive ? brand.sidebarActive : "transparent",
-                  fontWeight: isActive ? 700 : 500,
-                  fontSize: fontSize.base,
-                  borderRight: isActive ? `3px solid ${brand.primaryMuted}` : "3px solid transparent",
-                  transition: "background 0.15s ease",
-                })}
+                className={({ isActive }) =>
+                  isActive ? "panel-nav__link panel-nav__link--active" : "panel-nav__link"
+                }
+                onClick={closeMenu}
               >
                 {item.label}
               </NavLink>
@@ -139,16 +153,7 @@ function PanelShellInner({ onLogout, nav, ctx }: InnerProps) {
           </nav>
         </aside>
 
-        <main
-          style={{
-            flex: 1,
-            padding: space.lg,
-            paddingTop: space.xl,
-            paddingBottom: space.xl,
-            background: brand.bg,
-            minWidth: 0,
-          }}
-        >
+        <main className="panel-shell__main">
           <Outlet context={ctx} />
         </main>
       </div>
