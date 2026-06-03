@@ -5,13 +5,6 @@ export interface SmsProvider {
   sendMessage(mobile: string, message: string): Promise<void>;
 }
 
-type KavenegarApiClient = {
-  Send: (
-    data: { message: string; sender: string; receptor: string },
-    callback: (response: unknown, status: number, message: string) => void,
-  ) => void;
-};
-
 export class MockSmsProvider implements SmsProvider {
   async sendOtp(mobile: string, code: string): Promise<void> {
     if (!isProduction()) {
@@ -29,33 +22,37 @@ export class MockSmsProvider implements SmsProvider {
 }
 
 export class KavenegarProvider implements SmsProvider {
-  private api: KavenegarApiClient;
-  private sender: string;
+  constructor(
+    private apiKey: string,
+    private sender: string,
+  ) {}
 
-  constructor(apiKey: string, sender: string) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Kavenegar = require("kavenegar") as {
-      KavenegarApi: (opts: { apikey: string }) => KavenegarApiClient;
-    };
-    this.api = Kavenegar.KavenegarApi({ apikey: apiKey });
-    this.sender = sender;
-  }
-
-  private send(data: { message: string; sender: string; receptor: string }): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.api.Send(data, (_response, status, message) => {
-        if (status !== 200) {
-          reject(new Error(`kavenegar_${status}_${message ?? "send_failed"}`));
-          return;
-        }
-        resolve();
-      });
+  /** REST client — encodes API key (may end with `=`) unlike legacy kavenegar npm path. */
+  private async send(data: { message: string; sender: string; receptor: string }): Promise<void> {
+    const url = `https://api.kavenegar.com/v1/${encodeURIComponent(this.apiKey)}/sms/send.json`;
+    const body = new URLSearchParams({
+      receptor: data.receptor,
+      sender: data.sender,
+      message: data.message,
     });
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+      body: body.toString(),
+    });
+    const json = (await res.json()) as {
+      return?: { status?: number; message?: string };
+    };
+    const status = json.return?.status;
+    const message = json.return?.message;
+    if (status !== 200) {
+      throw new Error(`kavenegar_${status ?? res.status}_${message ?? "send_failed"}`);
+    }
   }
 
   async sendOtp(mobile: string, code: string): Promise<void> {
     await this.send({
-      message: `کد ورود همسهمان: ${code}`,
+      message: `کد ورود ${code}`,
       sender: this.sender,
       receptor: mobile,
     });
