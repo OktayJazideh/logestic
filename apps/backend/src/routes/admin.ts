@@ -16,6 +16,7 @@ import { ruleEngine, SEED_RULE_KEYS } from "../services/ruleEngine";
 import type { FinanceRuleScope } from "../repositories/financeRulesRepository";
 import { reconciliationService } from "../services/reconciliationService";
 import { restoreEntity, softDeleteEntity } from "../services/softDeleteService";
+import * as provisioningService from "../services/userProvisioningService";
 import { requireMineContext } from "../middleware/requireMineContext";
 import { resolveEffectiveMineId } from "../lib/mineScope";
 import { isDispatchQueueEnabled } from "../config/env";
@@ -208,20 +209,42 @@ router.post(
   },
 );
 
+function mapAdminUser(u: {
+  id: number;
+  mobile_number: string;
+  national_id?: string;
+  full_name?: string;
+  role: string;
+  cooperative_id?: number;
+  is_active: boolean;
+  is_weighbridge_operator?: boolean;
+}) {
+  return {
+    id: u.id,
+    mobile_number: u.mobile_number,
+    national_id: u.national_id,
+    full_name: u.full_name,
+    role: u.role,
+    cooperative_id: u.cooperative_id,
+    is_active: u.is_active,
+    is_weighbridge_operator: u.is_weighbridge_operator,
+  };
+}
+
 router.get("/admin/users", requireAuth, requirePermission("users:manage"), async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
+  const includeDeleted = z
+    .enum(["true", "false"])
+    .optional()
+    .safeParse(req.query.include_deleted);
   try {
-    const users = await appContext.userStore.listUsers();
+    const users = await appContext.userStore.listUsers({
+      includeDeleted: includeDeleted.success && includeDeleted.data === "true",
+    });
     return res.json(
       success(
         {
-          users: users.map((u) => ({
-            id: u.id,
-            mobile_number: u.mobile_number,
-            role: u.role,
-            cooperative_id: u.cooperative_id,
-            is_active: u.is_active,
-          })),
+          users: users.map(mapAdminUser),
         },
         requestId,
       ),
@@ -230,6 +253,136 @@ router.get("/admin/users", requireAuth, requirePermission("users:manage"), async
     next(e);
   }
 });
+
+router.post("/admin/users", requireAuth, requirePermission("users:manage"), async (req, res, next) => {
+  const requestId = (req as any).requestId as string | undefined;
+  const body = z
+    .object({
+      mobile_number: z.string().regex(provisioningService.MOBILE_REGEX),
+      national_id: z.string().min(5).max(20),
+      role: z.string(),
+      cooperative_id: z.number().int().positive().nullable().optional(),
+      full_name: z.string().max(200).optional(),
+      is_active: z.boolean().optional(),
+    })
+    .safeParse(req.body);
+  if (!body.success) {
+    return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid input", requestId }));
+  }
+  if (!appContext.authService.validateRole(body.data.role)) {
+    return next(new ApiError({ statusCode: 400, code: "invalid_role", message: "Invalid role", requestId }));
+  }
+  try {
+    const user = await provisioningService.createUserDirect({
+      mobile_number: body.data.mobile_number,
+      national_id: body.data.national_id,
+      role: body.data.role as UserRole,
+      cooperative_id: body.data.cooperative_id,
+      full_name: body.data.full_name,
+      is_active: body.data.is_active ?? true,
+      requestId,
+    });
+    appContext.auditStore.record({
+      entity_type: "user",
+      entity_id: String(user.id),
+      action: "USER_CREATED",
+      after_value: { role: user.role, mobile_number: user.mobile_number, national_id: user.national_id },
+      performed_by_user_id: (req as any).auth.user.id,
+      reason: "admin_create_user",
+    });
+    return res.status(201).json(success({ user: mapAdminUser(user) }, requestId));
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch(
+  "/admin/users/:userId",
+  requireAuth,
+  requirePermission("users:manage"),
+  async (req, res, next) => {
+    const requestId = (req as any).requestId as string | undefined;
+    const userId = z.coerce.number().int().positive().safeParse(req.params.userId);
+    const body = z
+      .object({
+        role: z.string().optional(),
+        cooperative_id: z.number().int().positive().nullable().optional(),
+        is_active: z.boolean().optional(),
+        full_name: z.string().max(200).nullable().optional(),
+        national_id: z.string().min(5).max(20).optional(),
+      })
+      .safeParse(req.body);
+    if (!userId.success || !body.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid input", requestId }));
+    }
+    if (body.data.role && !appContext.authService.validateRole(body.data.role)) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_role", message: "Invalid role", requestId }));
+    }
+    try {
+      const updated = await provisioningService.updateUserAdmin(
+        userId.data,
+        {
+          role: body.data.role as UserRole | undefined,
+          cooperative_id: body.data.cooperative_id,
+          is_active: body.data.is_active,
+          full_name: body.data.full_name,
+          national_id: body.data.national_id,
+        },
+        requestId,
+      );
+      if (!updated) {
+        return next(new ApiError({ statusCode: 404, code: "user_not_found", message: "User not found", requestId }));
+      }
+      appContext.auditStore.record({
+        entity_type: "user",
+        entity_id: String(updated.id),
+        action: "USER_UPDATED",
+        after_value: mapAdminUser(updated),
+        performed_by_user_id: (req as any).auth.user.id,
+        reason: "admin_update_user",
+      });
+      return res.json(success({ user: mapAdminUser(updated) }, requestId));
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+router.delete(
+  "/admin/users/:userId",
+  requireAuth,
+  requirePermission("users:manage"),
+  async (req, res, next) => {
+    const requestId = (req as any).requestId as string | undefined;
+    const userId = z.coerce.number().int().positive().safeParse(req.params.userId);
+    if (!userId.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid input", requestId }));
+    }
+    try {
+      const performerId = (req as any).auth.user.id as number;
+      if (performerId === userId.data) {
+        return next(
+          new ApiError({ statusCode: 400, code: "self_delete", message: "Cannot delete your own account", requestId }),
+        );
+      }
+      const deleted = await provisioningService.softDeleteUserAdmin(userId.data, requestId);
+      if (!deleted) {
+        return next(new ApiError({ statusCode: 404, code: "user_not_found", message: "User not found", requestId }));
+      }
+      appContext.auditStore.record({
+        entity_type: "user",
+        entity_id: String(deleted.id),
+        action: "USER_SOFT_DELETED",
+        after_value: { is_active: false, deleted: true },
+        performed_by_user_id: performerId,
+        reason: "admin_soft_delete_user",
+      });
+      return res.json(success({ user: mapAdminUser(deleted) }, requestId));
+    } catch (e) {
+      next(e);
+    }
+  },
+);
 
 router.patch(
   "/admin/users/:userId/role",

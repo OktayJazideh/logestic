@@ -18,6 +18,18 @@ test("CONSULTANT nav has exactly one work item and no settlement leak", async ({
   expect(count).toBe(1);
 });
 
+test("ADMIN sees user management nav", async ({ page, request }) => {
+  await loginViaUi(page, "09000000000", request);
+  await expect(page.getByRole("link", { name: /مدیریت کاربران/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /درخواست‌های کاربر/i })).toBeVisible();
+});
+
+test("COOP_ADMIN sees user request form not admin users", async ({ page, request }) => {
+  await loginViaUi(page, "09000000001", request);
+  await expect(page.getByRole("link", { name: /ثبت کاربر جدید/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /مدیریت کاربران/i })).toHaveCount(0);
+});
+
 test("home shows only accessible sections (no locked cards)", async ({ page, request }) => {
   await loginViaUi(page, "09000000007", request);
   await page.goto("/panel");

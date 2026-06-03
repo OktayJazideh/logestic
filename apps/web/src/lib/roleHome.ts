@@ -10,15 +10,15 @@ export const ROLE_HOME_CONFIG: Record<string, RoleHomeConfig> = {
     defaultPath: "/panel/admin/finance",
     quickActions: [
       { to: "/panel/admin/finance", label: "داشبورد مالی" },
-      { to: "/panel/admin/period-statement", label: "صورت وضعیت دوره" },
-      { to: "/panel/admin/audit", label: "سوابق تغییرات" },
+      { to: "/panel/admin/users", label: "مدیریت کاربران" },
+      { to: "/panel/admin/user-requests", label: "درخواست‌های کاربر" },
     ],
   },
   OPERATION_ADMIN: {
     defaultPath: "/panel/ops",
     quickActions: [
       { to: "/panel/ops", label: "داشبورد عملیاتی" },
-      { to: "/panel/dispatch-board", label: "بورد تخصیص" },
+      { to: "/panel/user-requests", label: "ثبت کاربر جدید" },
       { to: "/panel/settlement", label: "تسویه" },
     ],
   },
@@ -33,7 +33,7 @@ export const ROLE_HOME_CONFIG: Record<string, RoleHomeConfig> = {
     defaultPath: "/panel/kyc",
     quickActions: [
       { to: "/panel/kyc", label: "احراز هویت" },
-      { to: "/panel/members", label: "شفافیت اعضا" },
+      { to: "/panel/user-requests", label: "ثبت کاربر جدید" },
       { to: "/panel/admin/period-statement", label: "صورت وضعیت" },
     ],
   },

@@ -11,6 +11,7 @@ import { prisma } from "../db/prisma";
 import * as workspaceRepo from "../repositories/workspaceMembershipsRepository";
 import { toNum } from "../repositories/id";
 import { UserRoles, type UserRole } from "../types/userRole";
+import { nationalIdFromSeed } from "../lib/nationalId";
 
 const router = Router();
 
@@ -40,14 +41,41 @@ router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), async (req
       return res.status(404).json({ success: false, error: { code: "mine_not_found", message: "Mine not found", requestId } });
     }
 
-    const admin = await appContext.userStore.upsertUserByMobile("09000000000", "ADMIN", { is_active: true });
-    await appContext.userStore.upsertUserByMobile("09000000001", "COOP_ADMIN", { is_active: true, cooperative_id: 1 });
-    await appContext.userStore.upsertUserByMobile("09000000002", "OPERATION_ADMIN", { is_active: true });
-    const driverUser = await appContext.userStore.upsertUserByMobile("09000000003", "DRIVER", { is_active: true });
-    const fleetOwnerUser = await appContext.userStore.upsertUserByMobile("09000000004", "FLEET_OWNER", { is_active: true });
-    const householdUser = await appContext.userStore.upsertUserByMobile("09000000005", "HOUSEHOLD", { is_active: true });
-    const consultantUser = await appContext.userStore.upsertUserByMobile("09000000006", "CONSULTANT", { is_active: true });
-    await appContext.userStore.upsertUserByMobile("09000000007", "EMPLOYER", { is_active: true });
+    const seedNational = (mobile: string) => nationalIdFromSeed(mobile.slice(-9));
+    const admin = await appContext.userStore.upsertUserByMobile("09000000000", "ADMIN", {
+      is_active: true,
+      national_id: seedNational("09000000000"),
+      full_name: "مدیر سیستم",
+    });
+    await appContext.userStore.upsertUserByMobile("09000000001", "COOP_ADMIN", {
+      is_active: true,
+      cooperative_id: 1,
+      national_id: seedNational("09000000001"),
+    });
+    await appContext.userStore.upsertUserByMobile("09000000002", "OPERATION_ADMIN", {
+      is_active: true,
+      national_id: seedNational("09000000002"),
+    });
+    const driverUser = await appContext.userStore.upsertUserByMobile("09000000003", "DRIVER", {
+      is_active: true,
+      national_id: seedNational("09000000003"),
+    });
+    const fleetOwnerUser = await appContext.userStore.upsertUserByMobile("09000000004", "FLEET_OWNER", {
+      is_active: true,
+      national_id: seedNational("09000000004"),
+    });
+    const householdUser = await appContext.userStore.upsertUserByMobile("09000000005", "HOUSEHOLD", {
+      is_active: true,
+      national_id: seedNational("09000000005"),
+    });
+    const consultantUser = await appContext.userStore.upsertUserByMobile("09000000006", "CONSULTANT", {
+      is_active: true,
+      national_id: seedNational("09000000006"),
+    });
+    await appContext.userStore.upsertUserByMobile("09000000007", "EMPLOYER", {
+      is_active: true,
+      national_id: seedNational("09000000007"),
+    });
 
     const villages = appContext.mineData.listVillagesByMine(mineId);
     const villageId = villages[0]?.id;

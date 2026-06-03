@@ -7,7 +7,9 @@ export class UserStore {
   async upsertUserByMobile(
     mobile_number: string,
     role: UserRole,
-    patch?: Partial<Pick<User, "is_active" | "cooperative_id" | "is_weighbridge_operator">>,
+    patch?: Partial<
+      Pick<User, "is_active" | "cooperative_id" | "is_weighbridge_operator" | "national_id" | "full_name">
+    >,
   ) {
     return usersRepo.upsertUserByMobile(mobile_number, role, patch);
   }
@@ -20,12 +22,24 @@ export class UserStore {
     return usersRepo.findUserById(id);
   }
 
-  async listUsers() {
-    return usersRepo.listUsers();
+  async listUsers(opts?: { includeDeleted?: boolean }) {
+    return usersRepo.listUsers(opts);
   }
 
   async updateUserRole(userId: number, role: UserRole, cooperative_id?: number | null) {
     return usersRepo.updateUserRole(userId, role, cooperative_id);
+  }
+
+  async createUser(input: Parameters<typeof usersRepo.createUser>[0]) {
+    return usersRepo.createUser(input);
+  }
+
+  async updateUser(userId: number, data: Parameters<typeof usersRepo.updateUser>[1]) {
+    return usersRepo.updateUser(userId, data);
+  }
+
+  async deactivateAndSoftDeleteUser(userId: number) {
+    return usersRepo.deactivateAndSoftDeleteUser(userId);
   }
 
   async migrateLegacyCoopRoles() {

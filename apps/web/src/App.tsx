@@ -18,6 +18,8 @@ import KycInbox from "./pages/KycInbox";
 import PaymentControlPage from "./pages/PaymentControlPage";
 import ConsultantHourlyInbox from "./pages/ConsultantHourlyInbox";
 import AdminUsers from "./pages/AdminUsers";
+import AdminUserRequests from "./pages/AdminUserRequests";
+import UserRequestForm from "./pages/UserRequestForm";
 import RateCards from "./pages/RateCards";
 import RuleEnginePage from "./pages/RuleEngine";
 import JobsMonitor from "./pages/JobsMonitor";
@@ -205,6 +207,22 @@ export default function App() {
           element={
             <G permission="users:manage">
               <AdminUsers />
+            </G>
+          }
+        />
+        <Route
+          path="admin/user-requests"
+          element={
+            <G permission="users:manage">
+              <AdminUserRequests />
+            </G>
+          }
+        />
+        <Route
+          path="user-requests"
+          element={
+            <G permission="users:request">
+              <UserRequestForm />
             </G>
           }
         />

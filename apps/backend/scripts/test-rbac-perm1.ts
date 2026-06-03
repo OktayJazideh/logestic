@@ -192,6 +192,20 @@ async function runOnce(run: number) {
 
   }
 
+  const coopCanRequest = await http("/api/user-provisioning/requests", {
+    headers: { Authorization: `Bearer ${coopAToken}` },
+  });
+  if (coopCanRequest.status !== 200) {
+    throw new Error(`run ${run}: COOP_ADMIN should list provisioning requests, got ${coopCanRequest.status}`);
+  }
+
+  const coopCannotManage = await http("/api/admin/user-provisioning/requests", {
+    headers: { Authorization: `Bearer ${coopAToken}` },
+  });
+  if (coopCannotManage.status !== 403) {
+    throw new Error(`run ${run}: COOP_ADMIN must not access admin provisioning inbox`);
+  }
+
 
 
   // eslint-disable-next-line no-console

@@ -1,7 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
 import { prisma } from "../db/prisma";
 import { ApiError } from "../http/errors";
-import { normalizeNationalId } from "./nationalId";
+import { normalizeNationalId, validateIranNationalIdChecksum } from "./nationalId";
+import { runWithSoftDeleteBypass } from "./softDelete";
 import { toBig } from "../repositories/id";
 
 export type NationalIdEntityType = "cooperative" | "household" | "fleet_owner";
@@ -59,5 +60,36 @@ export async function assertNationalIdAvailable(
 
   const found = await db.fleet_owners.findUnique({ where: { national_id: normalized } });
   if (found && (!excludeId || found.id !== excludeId)) conflict();
+  return normalized;
+}
+
+/** Cross-table check before assigning national_id to a user account. */
+export async function assertNationalIdFreeForUserAccount(
+  nationalId: string,
+  excludeUserId?: number,
+  db: PrismaClient = prisma,
+  requestId?: string,
+): Promise<string> {
+  const normalized = normalizeNationalId(nationalId);
+  if (!validateIranNationalIdChecksum(normalized)) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "invalid_national_id",
+      message: "Invalid national ID",
+      requestId,
+    });
+  }
+
+  const excludeBig = excludeUserId != null && excludeUserId > 0 ? toBig(excludeUserId) : null;
+  const existingUser = await runWithSoftDeleteBypass(() =>
+    db.users.findFirst({ where: { national_id: normalized } }),
+  );
+  if (existingUser && (!excludeBig || existingUser.id !== excludeBig)) {
+    throw nationalIdConflictError(requestId);
+  }
+
+  await assertNationalIdAvailable("cooperative", null, normalized, db, requestId);
+  await assertNationalIdAvailable("household", null, normalized, db, requestId);
+  await assertNationalIdAvailable("fleet_owner", null, normalized, db, requestId);
   return normalized;
 }

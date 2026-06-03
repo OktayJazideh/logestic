@@ -7,6 +7,7 @@ export const PERMISSIONS = {
   ADMIN: ["audit:read"],
   OPERATION_ADMIN: [
     "ops:*",
+    "users:request",
     "settlement:read",
     "settlement:approve",
     "settlement:lock",
@@ -26,6 +27,7 @@ export const PERMISSIONS = {
     "objection:create",
     "contract:amend",
     "settlement:approve",
+    "users:request",
   ],
   COOP_OPERATOR: ["kyc:review", "members:read", "weighbridge:submit", "weighbridge:approve"],
   OPERATOR: ["hourly:start", "hourly:end"],
@@ -67,6 +69,7 @@ export type PermissionKey =
   | "shares:read_own"
   | "objection:create"
   | "users:manage"
+  | "users:request"
   | "cooperatives:manage"
   | "contract:amend"
   | "weighbridge:submit"

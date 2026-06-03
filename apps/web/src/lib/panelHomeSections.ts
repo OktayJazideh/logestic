@@ -131,6 +131,18 @@ export const PANEL_HOME_SECTIONS: PanelHomeSection[] = [
     description: "نقش‌ها و دسترسی",
     permission: "users:manage",
   },
+  {
+    to: "/panel/admin/user-requests",
+    title: "درخواست‌های کاربر",
+    description: "تأیید درخواست واحدها",
+    permission: "users:manage",
+  },
+  {
+    to: "/panel/user-requests",
+    title: "ثبت کاربر جدید",
+    description: "درخواست افزودن کاربر",
+    permission: "users:request",
+  },
 ];
 
 export type PanelHomeSectionView = PanelHomeSection & { canAccess: boolean };

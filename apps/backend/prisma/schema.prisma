@@ -201,9 +201,17 @@ enum LedgerLane {
   COMMUNITY_LEDGER
 }
 
+enum ProvisioningUnitType {
+  COOPERATIVE
+  MINE_OPS
+  PLATFORM_SUPPORT
+}
+
 model users {
   id              BigInt @id @default(autoincrement())
   mobile_number   String @unique
+  national_id     String? @unique
+  full_name       String?
   password_hash   String
   role            UserRole
   cooperative_id  BigInt?
@@ -230,9 +238,45 @@ model users {
   objections_reported membership_objections[] @relation("ObjectionReporter")
   objections_resolved membership_objections[] @relation("ObjectionResolver")
   household_approvals household_approvals[]
+  provisioning_requests_submitted user_provisioning_requests[] @relation("ProvisioningRequester")
+  provisioning_requests_reviewed user_provisioning_requests[] @relation("ProvisioningReviewer")
+  provisioning_requests_created user_provisioning_requests[] @relation("ProvisioningCreatedUser")
 
   @@index([cooperative_id])
   @@index([deleted_at])
+}
+
+model user_provisioning_requests {
+  id                  BigInt               @id @default(autoincrement())
+  status              ApprovalStatus       @default(PENDING)
+  unit_type           ProvisioningUnitType
+  requester_user_id   BigInt
+  cooperative_id      BigInt?
+  mine_id             BigInt?
+  target_role         UserRole
+  mobile_number       String
+  national_id         String
+  full_name           String?
+  note                String?
+  rejection_reason    String?
+  reviewed_by_user_id BigInt?
+  reviewed_at         DateTime?
+  created_user_id     BigInt?
+  created_at          DateTime             @default(now())
+  updated_at          DateTime             @updatedAt
+
+  requester    users          @relation("ProvisioningRequester", fields: [requester_user_id], references: [id])
+  reviewer     users?         @relation("ProvisioningReviewer", fields: [reviewed_by_user_id], references: [id])
+  created_user users?         @relation("ProvisioningCreatedUser", fields: [created_user_id], references: [id])
+  cooperative  cooperatives?  @relation(fields: [cooperative_id], references: [id])
+  mine         mines?         @relation(fields: [mine_id], references: [id])
+
+  @@index([status])
+  @@index([requester_user_id])
+  @@index([cooperative_id])
+  @@index([mine_id])
+  @@index([mobile_number])
+  @@index([national_id])
 }
 
 model user_workspace_memberships {
@@ -307,6 +351,7 @@ model cooperatives {
   workspace_memberships user_workspace_memberships[]
   membership_objections membership_objections[]
   period_statements period_statements[]
+  user_provisioning_requests user_provisioning_requests[]
 
   @@index([mine_id])
   @@index([deleted_at])
@@ -336,6 +381,7 @@ model mines {
   kpi_snapshots kpi_snapshots[]
   workspace_memberships user_workspace_memberships[]
   period_statements period_statements[]
+  user_provisioning_requests user_provisioning_requests[]
 }
 
 model service_contracts {

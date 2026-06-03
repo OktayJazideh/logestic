@@ -114,6 +114,19 @@ export async function apiPostPublic<T>(path: string, body: unknown): Promise<Api
   }
 }
 
+export async function apiDeleteData<T>(path: string): Promise<ApiResult<T>> {
+  try {
+    const r = await fetch(`${API_BASE}${path}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${getStoredToken()}` },
+    });
+    const j = (await r.json()) as unknown;
+    return parseApiJson<T>(j, r.status);
+  } catch (e) {
+    return { ok: false, message: String(e), status: 0 };
+  }
+}
+
 export async function apiPatchData<T>(path: string, body: unknown): Promise<ApiResult<T>> {
   try {
     const r = await fetch(`${API_BASE}${path}`, {

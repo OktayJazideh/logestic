@@ -21,6 +21,7 @@ import { coopRouter } from "./routes/coop";
 import { coopKycRouter } from "./routes/coopKyc";
 import { householdsRouter } from "./routes/households";
 import { adminRouter } from "./routes/admin";
+import { userProvisioningRouter } from "./routes/userProvisioning";
 import { jobsRouter } from "./routes/jobs";
 import { employerRouter } from "./routes/employer";
 import { notificationsRouter } from "./routes/notifications";
@@ -68,6 +69,7 @@ export function createApp() {
   app.use("/api", coopKycRouter);
   app.use("/api", householdsRouter);
   app.use("/api", adminRouter);
+  app.use("/api", userProvisioningRouter);
   app.use("/api", jobsRouter);
   app.use("/api", employerRouter);
   app.use("/api", notificationsRouter);

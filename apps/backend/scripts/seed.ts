@@ -260,10 +260,14 @@ async function main() {
   ];
 
   const userByMobile = new Map<string, Awaited<ReturnType<typeof usersRepo.upsertUserByMobile>>>();
+  const { nationalIdFromSeed } = await import("../src/lib/nationalId");
+  const seedNational = (mobile: string) => nationalIdFromSeed(mobile.slice(-9));
+
   for (const u of demoUsers) {
     const row = await usersRepo.upsertUserByMobile(u.mobile, u.role, {
       is_active: true,
       cooperative_id: u.cooperative_id,
+      national_id: seedNational(u.mobile),
     });
     userByMobile.set(u.mobile, row);
   }
@@ -296,10 +300,19 @@ async function main() {
   await seedMembership("09000001001", mineTaftan.id, "HOUSEHOLD", 1);
   await seedMembership("09000001002", mineB.id, "HOUSEHOLD", 2);
 
-  const admin = await usersRepo.upsertUserByMobile("09000000000", "ADMIN", { is_active: true });
+  const admin = await usersRepo.upsertUserByMobile("09000000000", "ADMIN", {
+    is_active: true,
+    national_id: seedNational("09000000000"),
+  });
 
-  const hhA = await usersRepo.upsertUserByMobile("09000001001", "HOUSEHOLD", { is_active: true });
-  const hhB = await usersRepo.upsertUserByMobile("09000001002", "HOUSEHOLD", { is_active: true });
+  const hhA = await usersRepo.upsertUserByMobile("09000001001", "HOUSEHOLD", {
+    is_active: true,
+    national_id: seedNational("09000001001"),
+  });
+  const hhB = await usersRepo.upsertUserByMobile("09000001002", "HOUSEHOLD", {
+    is_active: true,
+    national_id: seedNational("09000001002"),
+  });
 
   const householdTaftan = await householdsRepo.upsertHousehold({
     user_id: hhA.id,

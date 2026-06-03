@@ -1,0 +1,356 @@
+import type { ProvisioningUnitType } from "@prisma/client";
+import { ApiError } from "../http/errors";
+import { assertNationalIdFreeForUserAccount } from "../lib/nationalIdEnforcement";
+import { normalizeNationalId } from "../lib/nationalId";
+import { isCoopScopedRole, normalizeRole, type UserRole } from "../types/userRole";
+import * as usersRepo from "../repositories/usersRepository";
+import * as provisioningRepo from "../repositories/userProvisioningRepository";
+import * as workspaceRepo from "../repositories/workspaceMembershipsRepository";
+
+export const MOBILE_REGEX = /^09\d{9}$/;
+
+const COOP_UNIT_ROLES: UserRole[] = ["COOP_ADMIN", "COOP_OPERATOR", "HOUSEHOLD"];
+const MINE_OPS_ROLES: UserRole[] = ["OPERATOR", "OPERATION_ADMIN"];
+const PLATFORM_ROLES: UserRole[] = ["CONSULTANT", "OPERATOR"];
+
+export function validateMobile(mobile: string, requestId?: string): string {
+  const trimmed = mobile.trim();
+  if (!MOBILE_REGEX.test(trimmed)) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "invalid_mobile",
+      message: "Invalid mobile number",
+      requestId,
+    });
+  }
+  return trimmed;
+}
+
+export async function assertMobileAvailable(
+  mobile: string,
+  excludeUserId?: number,
+  requestId?: string,
+): Promise<void> {
+  const existing = await provisioningRepo.findUserByMobileIncludingDeleted(mobile);
+  if (existing) {
+    if (existing.deleted_at) return;
+    const existingId = Number(existing.id);
+    if (!excludeUserId || existingId !== excludeUserId) {
+      throw new ApiError({
+        statusCode: 409,
+        code: "mobile_taken",
+        message: "Mobile number is already registered",
+        requestId,
+      });
+    }
+  }
+  const pendingMobile = await provisioningRepo.findPendingByMobile(mobile);
+  if (pendingMobile) {
+    throw new ApiError({
+      statusCode: 409,
+      code: "mobile_pending",
+      message: "Mobile number has a pending provisioning request",
+      requestId,
+    });
+  }
+}
+
+export async function assertProvisioningIdentityAvailable(
+  mobile: string,
+  nationalId: string,
+  excludeUserId?: number,
+  requestId?: string,
+): Promise<{ mobile: string; national_id: string }> {
+  const mobileNorm = validateMobile(mobile, requestId);
+  await assertMobileAvailable(mobileNorm, excludeUserId, requestId);
+  const national_id = await assertNationalIdFreeForUserAccount(nationalId, excludeUserId, undefined, requestId);
+
+  const pending = await provisioningRepo.findPendingByMobileOrNationalId(mobileNorm, national_id);
+  if (pending) {
+    const code = pending.mobile_number === mobileNorm ? "mobile_pending" : "national_id_pending";
+    throw new ApiError({
+      statusCode: 409,
+      code,
+      message: "A pending provisioning request already exists for this identity",
+      requestId,
+    });
+  }
+
+  return { mobile: mobileNorm, national_id };
+}
+
+export function assertRoleAllowedForUnit(
+  unitType: ProvisioningUnitType,
+  targetRole: UserRole,
+  requestId?: string,
+): void {
+  const allowed =
+    unitType === "COOPERATIVE"
+      ? COOP_UNIT_ROLES
+      : unitType === "MINE_OPS"
+        ? MINE_OPS_ROLES
+        : PLATFORM_ROLES;
+  if (!allowed.includes(targetRole)) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "invalid_role_for_unit",
+      message: "Role not allowed for this unit type",
+      requestId,
+    });
+  }
+}
+
+export function resolveUnitTypeForRequester(role: UserRole, bodyUnit?: ProvisioningUnitType): ProvisioningUnitType {
+  const n = normalizeRole(role);
+  if (n === "COOP_ADMIN") return "COOPERATIVE";
+  if (n === "OPERATION_ADMIN") return bodyUnit ?? "MINE_OPS";
+  throw new Error("unsupported_requester");
+}
+
+export async function createProvisioningRequest(input: {
+  requesterUserId: number;
+  requesterRole: UserRole;
+  cooperativeId?: number;
+  mineId?: number;
+  unit_type?: ProvisioningUnitType;
+  target_role: UserRole;
+  mobile_number: string;
+  national_id: string;
+  full_name?: string;
+  note?: string;
+  requestId?: string;
+}) {
+  const unit_type = input.unit_type ?? resolveUnitTypeForRequester(input.requesterRole);
+  assertRoleAllowedForUnit(unit_type, input.target_role, input.requestId);
+
+  const n = normalizeRole(input.requesterRole);
+  let cooperative_id = input.cooperativeId;
+  let mine_id = input.mineId;
+
+  if (n === "COOP_ADMIN") {
+    if (!cooperative_id) {
+      throw new ApiError({
+        statusCode: 403,
+        code: "cooperative_required",
+        message: "Cooperative scope required",
+        requestId: input.requestId,
+      });
+    }
+    if (unit_type !== "COOPERATIVE") {
+      throw new ApiError({ statusCode: 403, code: "forbidden", message: "Forbidden", requestId: input.requestId });
+    }
+  }
+
+  if (n === "OPERATION_ADMIN") {
+    if (!mine_id) {
+      throw new ApiError({
+        statusCode: 400,
+        code: "mine_required",
+        message: "Select workspace (mine) first",
+        requestId: input.requestId,
+      });
+    }
+    await workspaceRepo.assertOperationalMineAccess({
+      userId: input.requesterUserId,
+      userRole: input.requesterRole,
+      mineId: mine_id,
+    });
+  }
+
+  if (isCoopScopedRole(input.target_role) && !cooperative_id) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "cooperative_required",
+      message: "cooperative_id is required for cooperative roles",
+      requestId: input.requestId,
+    });
+  }
+
+  const identity = await assertProvisioningIdentityAvailable(
+    input.mobile_number,
+    input.national_id,
+    undefined,
+    input.requestId,
+  );
+
+  return provisioningRepo.createProvisioningRequest({
+    unit_type,
+    requester_user_id: input.requesterUserId,
+    cooperative_id,
+    mine_id,
+    target_role: input.target_role,
+    mobile_number: identity.mobile,
+    national_id: identity.national_id,
+    full_name: input.full_name?.trim() || undefined,
+    note: input.note?.trim() || undefined,
+  });
+}
+
+export async function createUserDirect(input: {
+  mobile_number: string;
+  national_id: string;
+  role: UserRole;
+  cooperative_id?: number | null;
+  full_name?: string;
+  is_active?: boolean;
+  requestId?: string;
+}) {
+  if (isCoopScopedRole(input.role) && input.cooperative_id == null) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "cooperative_required",
+      message: "cooperative_id is required for COOP roles",
+      requestId: input.requestId,
+    });
+  }
+
+  const identity = await assertProvisioningIdentityAvailable(
+    input.mobile_number,
+    input.national_id,
+    undefined,
+    input.requestId,
+  );
+
+  const existing = await provisioningRepo.findUserByMobileIncludingDeleted(identity.mobile);
+  if (existing) {
+    if (existing.deleted_at) {
+      const restored = await usersRepo.restoreUser(Number(existing.id), {
+        mobile_number: identity.mobile,
+        national_id: identity.national_id,
+        role: input.role,
+        cooperative_id: input.cooperative_id ?? null,
+        full_name: input.full_name ?? null,
+        is_active: input.is_active ?? true,
+      });
+      if (!restored) {
+        throw new ApiError({
+          statusCode: 500,
+          code: "restore_failed",
+          message: "Failed to restore user",
+          requestId: input.requestId,
+        });
+      }
+      return restored;
+    }
+    throw new ApiError({
+      statusCode: 409,
+      code: "mobile_taken",
+      message: "Mobile number is already registered",
+      requestId: input.requestId,
+    });
+  }
+
+  return usersRepo.createUser({
+    mobile_number: identity.mobile,
+    national_id: identity.national_id,
+    role: input.role,
+    cooperative_id: input.cooperative_id ?? undefined,
+    full_name: input.full_name,
+    is_active: input.is_active ?? true,
+  });
+}
+
+export async function approveProvisioningRequest(
+  requestId: number,
+  reviewerUserId: number,
+  httpRequestId?: string,
+) {
+  const req = await provisioningRepo.findProvisioningRequestById(requestId);
+  if (!req) {
+    throw new ApiError({ statusCode: 404, code: "not_found", message: "Request not found", requestId: httpRequestId });
+  }
+  if (req.status !== "PENDING") {
+    throw new ApiError({
+      statusCode: 400,
+      code: "invalid_status",
+      message: "Request is not pending",
+      requestId: httpRequestId,
+    });
+  }
+
+  await assertProvisioningIdentityAvailable(req.mobile_number, req.national_id, undefined, httpRequestId);
+
+  const user = await createUserDirect({
+    mobile_number: req.mobile_number,
+    national_id: req.national_id,
+    role: req.target_role,
+    cooperative_id: req.cooperative_id ?? null,
+    full_name: req.full_name,
+    is_active: true,
+    requestId: httpRequestId,
+  });
+
+  if (!user) {
+    throw new ApiError({
+      statusCode: 500,
+      code: "create_failed",
+      message: "Failed to create user",
+      requestId: httpRequestId,
+    });
+  }
+
+  const updated = await provisioningRepo.approveProvisioningRequest(requestId, reviewerUserId, user.id);
+  return { request: updated, user };
+}
+
+export async function updateUserAdmin(
+  userId: number,
+  patch: {
+    role?: UserRole;
+    cooperative_id?: number | null;
+    is_active?: boolean;
+    full_name?: string | null;
+    national_id?: string;
+    mobile_number?: string;
+  },
+  httpRequestId?: string,
+) {
+  const existing = await usersRepo.findUserById(userId);
+  if (!existing) {
+    throw new ApiError({ statusCode: 404, code: "user_not_found", message: "User not found", requestId: httpRequestId });
+  }
+
+  if (patch.mobile_number && patch.mobile_number !== existing.mobile_number) {
+    await assertMobileAvailable(patch.mobile_number, userId, httpRequestId);
+  }
+  if (patch.national_id) {
+    await assertNationalIdFreeForUserAccount(patch.national_id, userId, undefined, httpRequestId);
+  }
+
+  const role = patch.role ?? existing.role;
+  let cooperative_id = patch.cooperative_id;
+  if (isCoopScopedRole(role) && cooperative_id === undefined) {
+    cooperative_id = existing.cooperative_id ?? null;
+  }
+  if (!isCoopScopedRole(role)) {
+    cooperative_id = null;
+  }
+  if (isCoopScopedRole(role) && (cooperative_id == null || cooperative_id === undefined)) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "cooperative_required",
+      message: "cooperative_id is required for COOP roles",
+      requestId: httpRequestId,
+    });
+  }
+
+  const national_id = patch.national_id
+    ? normalizeNationalId(patch.national_id)
+    : existing.national_id;
+
+  return usersRepo.updateUser(userId, {
+    role: patch.role,
+    cooperative_id,
+    is_active: patch.is_active,
+    full_name: patch.full_name,
+    national_id: patch.national_id ? national_id : undefined,
+  });
+}
+
+export async function softDeleteUserAdmin(userId: number, httpRequestId?: string) {
+  const existing = await usersRepo.findUserById(userId);
+  if (!existing) {
+    throw new ApiError({ statusCode: 404, code: "user_not_found", message: "User not found", requestId: httpRequestId });
+  }
+  return usersRepo.deactivateAndSoftDeleteUser(userId);
+}
