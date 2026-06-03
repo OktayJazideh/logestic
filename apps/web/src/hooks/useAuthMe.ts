@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { apiGetData, getStoredToken, setStoredToken } from "../api";
 import { hasAnyPermission } from "../lib/permissions";
+import { permissionsForRole } from "../lib/rolePermissions";
 
 export type AuthMe = {
   id: number;
@@ -55,9 +56,14 @@ export function useAuthMe() {
           setError(meRes.message);
         }
       }
-      if (permsRes.ok) {
-        setMyPermissions(permsRes.data.permissions);
+      if (permsRes.ok && permsRes.data.permissions.length > 0) {
+        const fromApi = permsRes.data.permissions;
+        const fallback = meRes.ok ? permissionsForRole(meRes.data.role) : [];
+        const merged = [...new Set([...fromApi, ...fallback])];
+        setMyPermissions(merged);
       } else if (meRes.ok) {
+        setMyPermissions(permissionsForRole(meRes.data.role));
+      } else {
         setMyPermissions([]);
       }
       setLoading(false);

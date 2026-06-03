@@ -80,7 +80,24 @@ function parseApiJson<T>(j: unknown, status: number): ApiResult<T> {
   if (j && typeof j === "object" && "success" in j && (j as { success: boolean }).success === true && "data" in j) {
     return { ok: true, data: (j as { data: T }).data, status };
   }
-  return { ok: false, message: "پاسخ نامعتبر از سرور", status };
+  if (status === 404) {
+    return {
+      ok: false,
+      message: "مسیر API روی سرور یافت نشد — backend را build و restart کنید.",
+      code: "endpoint_not_found",
+      status,
+    };
+  }
+  if (j && typeof j === "object" && "error" in j) {
+    const legacy = (j as { error?: string }).error;
+    return {
+      ok: false,
+      message: legacy === "not_found" ? "مسیر API روی سرور یافت نشد." : String(legacy ?? "خطا"),
+      code: legacy === "not_found" ? "endpoint_not_found" : "api_error",
+      status,
+    };
+  }
+  return { ok: false, message: "پاسخ نامعتبر از سرور", code: "invalid_response", status };
 }
 
 export async function apiGetData<T>(path: string): Promise<ApiResult<T>> {

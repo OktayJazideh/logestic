@@ -34,7 +34,9 @@ Write-Host "==> upload web dist"
 scp -r apps/web/dist "root@${VpsHost}:${RemoteRoot}/apps/web/"
 
 Write-Host "==> migrate + restart API on VPS"
-$remoteCmd = "cd ${RemoteRoot}/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK"
+$remoteCmd = @"
+cd ${RemoteRoot} && git pull && cd apps/backend && npx prisma generate && npx prisma migrate deploy && npm run build && systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK
+"@
 ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""

@@ -14,6 +14,10 @@ const CODE_FA: Record<string, string> = {
   internal_error:
     "خطای داخلی سرور. روی VPS حتماً بعد از migrate این را اجرا کنید: npx prisma generate && npm run build && systemctl restart logestic-api",
   workspace_access_denied: "دسترسی به فضای کاری این معدن برای شما مجاز نیست.",
+  endpoint_not_found:
+    "نسخه API روی سرور قدیمی است. در VPS: git pull && cd apps/backend && npm run build && systemctl restart logestic-api",
+  invalid_response: "پاسخ نامعتبر از سرور — احتمالاً API به‌روز نشده است.",
+  forbidden: "دسترسی به این عملیات ندارید.",
 };
 
 export function apiErrorMessageFa(code?: string, fallback?: string): string {

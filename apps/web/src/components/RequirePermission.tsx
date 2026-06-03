@@ -39,14 +39,14 @@ export function RequirePermission({ permission, permissions, children }: Props) 
         }}
       >
         <p style={{ fontWeight: 700, color: brand.warn, margin: "0 0 12px", fontSize: 16 }}>
-          دسترسی به این صفحه ندارید
+          این بخش برای شما باز نیست
         </p>
         <p style={{ fontSize: 14, margin: "0 0 8px" }}>
           نقش فعلی: <strong>{roleLabelFa(me?.role)}</strong>
         </p>
         <p style={{ fontSize: 14, margin: "0 0 20px", color: brand.textMuted }}>
-          برای ورود به این بخش باید مجوز مربوط به نقش شما فعال باشد. از صفحه خانه بخشی را انتخاب کنید که
-          برچسب «باز» دارد، یا از منوی کنار استفاده کنید.
+          مدیر تعاونی باید از منو یا خانه به «ثبت کاربر جدید» برود (نه «مدیریت کاربران» که فقط برای ادمین
+          پلتفرم است). اگر منو را نمی‌بینید، API سرور را build و restart کنید.
         </p>
         <Link
           to="/panel"

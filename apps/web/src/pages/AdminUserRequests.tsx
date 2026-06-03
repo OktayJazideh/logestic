@@ -135,7 +135,7 @@ export default function AdminUserRequests() {
             )}
           </Card>
         ))
-      )}
+      ) : null}
     </PageFrame>
   );
 }
