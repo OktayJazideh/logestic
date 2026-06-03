@@ -1,6 +1,6 @@
 # Deploy latest web + backend to VPS when git pull on server fails (DNS).
-# Usage (PowerShell): .\scripts\deploy-vps-from-windows.ps1
-# Requires: OpenSSH scp/ssh, SSH access to root@185.36.145.164
+# Usage: .\scripts\deploy-vps-from-windows.ps1
+# Requires: OpenSSH scp/ssh to root@185.36.145.164
 
 $ErrorActionPreference = "Stop"
 $VpsHost = "185.36.145.164"
@@ -33,10 +33,12 @@ Write-Host "==> upload web dist"
 scp -r apps/web/dist "root@${VpsHost}:${RemoteRoot}/apps/web/"
 
 Write-Host "==> restart API on VPS"
-ssh "root@${VpsHost}" "systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK"
+$remoteCmd = "systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK"
+ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""
-Write-Host "Done. Open http://${VpsHost} — login page should show:"
-Write-Host "  - checkbox 'مرا بخاطر داشته باش'"
-Write-Host "  - demo buttons + 'نسخه پنل: $sha'"
-Write-Host "Test dev login on VPS: POST /api/auth/__dev/login with mobile 09000000000"
+Write-Host "Done. Open http://${VpsHost}"
+Write-Host "  - remember-me checkbox on login"
+Write-Host "  - demo login buttons"
+Write-Host "  - panel version line: $sha"
+Write-Host "  - test API: POST /api/auth/__dev/login mobile 09000000000"
