@@ -75,6 +75,8 @@ export class OtpsRepository {
         // eslint-disable-next-line no-console
         console.error("[otp:sms] mock delivery failed (continuing)", err);
       } else {
+        // eslint-disable-next-line no-console
+        console.error("[otp:sms] kavenegar delivery failed", err);
         throw err instanceof SmsDeliveryError
           ? err
           : new SmsDeliveryError("Kavenegar SMS send failed", err);

@@ -2,9 +2,10 @@
  * SMS-PROD-1: SmsProvider factory, mock OTP log gating, sendOtp wiring.
  * Run 3x: npm run test:sms-prod1
  *
- * Live Kavenegar (optional, uses env — never commit keys):
- *   SMS_PROVIDER=kavenegar SMS_API_KEY=... SMS_SENDER_LINE=... npm run test:sms-prod1 -- --live
+ * Live Kavenegar on VPS (reads /etc/logestic/backend.env when --live):
+ *   npm run test:sms-prod1 -- --live
  */
+import fs from "node:fs";
 import "dotenv/config";
 import { getSmsApiKey, getSmsSenderLine, isProduction, resolveSmsProvider } from "../src/config/env";
 import {
@@ -17,6 +18,23 @@ import { sendOtp } from "../src/services/notificationService";
 
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg);
+}
+
+/** Load systemd env file on VPS so `npm run test:sms-prod1 -- --live` sees SMS_* vars. */
+function loadBackendEnvFile() {
+  const path = process.env.BACKEND_ENV_FILE ?? "/etc/logestic/backend.env";
+  if (!fs.existsSync(path)) return;
+  for (const line of fs.readFileSync(path, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const val = trimmed.slice(eq + 1).trim();
+    process.env[key] = val;
+  }
+  // eslint-disable-next-line no-console
+  console.log(`[test:sms-prod1] loaded env from ${path}`);
 }
 
 async function testMockProviderLogsInDev() {
@@ -109,6 +127,10 @@ function isKavenegarSenderAccessError(err: unknown): boolean {
 
 async function main() {
   const live = process.argv.includes("--live");
+  if (live) {
+    loadBackendEnvFile();
+    resetSmsProviderForTests();
+  }
   const receptor = process.env.SMS_TEST_MOBILE ?? "09013019626";
 
   await testMockProviderLogsInDev();

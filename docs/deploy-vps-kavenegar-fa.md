@@ -86,7 +86,20 @@ cd /opt/logestic/logestic
 npm -w @app/backend run test:sms-prod1 -- --live
 ```
 
+اسکریپت خودکار `/etc/logestic/backend.env` را می‌خواند.
+
 انتظار: `live Kavenegar OK` و پیامک روی `09013019626`.
+
+اگر خطا دیدید:
+
+```bash
+sudo journalctl -u logestic-api -n 30 --no-pager | grep -i kavenegar
+```
+
+| خطا | کار |
+|-----|-----|
+| `kavenegar_427` | پنل → خطوط → `2000660110` → **فعال‌سازی API** |
+| `skip live` | `SMS_API_KEY` در env نیست — فایل §۲ را چک کنید |
 
 ---
 
