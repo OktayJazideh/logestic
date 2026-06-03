@@ -245,6 +245,57 @@ router.get("/__dev/audit", async (req, res, next) => {
   }
 });
 
+// DEV/UAT: passwordless login for seeded users — no OTP/SMS (demo buttons).
+router.post("/__dev/login", async (req, res, next) => {
+  const requestId = (req as any).requestId as string | undefined;
+  if (env.NODE_ENV === "production") {
+    return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
+  }
+  const body = z.object({ mobile_number: MobileSchema }).safeParse(req.body);
+  if (!body.success) {
+    return next(
+      new ApiError({
+        statusCode: 400,
+        code: "invalid_request",
+        message: "Invalid input",
+        details: body.error.flatten(),
+        requestId,
+      }),
+    );
+  }
+  const { mobile_number } = body.data;
+  const result = await appContext.authService.devLoginWithoutOtp(mobile_number);
+  if (!result.ok) {
+    if (result.reason === "not_registered") {
+      return next(
+        new ApiError({
+          statusCode: 403,
+          code: "user_not_registered",
+          message: AUTH_USER_NOT_REGISTERED_MESSAGE,
+          requestId,
+        }),
+      );
+    }
+    return next(
+      new ApiError({
+        statusCode: 403,
+        code: "user_inactive",
+        message: AUTH_USER_INACTIVE_MESSAGE,
+        requestId,
+      }),
+    );
+  }
+  return res.json(
+    success(
+      {
+        access_token: result.session.token,
+        role: result.session.role,
+      },
+      requestId,
+    ),
+  );
+});
+
 // DEV helper: return current OTP for a mobile number (for local debugging).
 // Disabled in production — never expose OTP in API response body in prod.
 router.get("/__dev/otp", async (req, res, next) => {

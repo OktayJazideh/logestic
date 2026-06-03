@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiGetData, apiPostData, getStoredToken } from "../api";
-import { brand } from "../theme";
+import { apiGetData, apiPostData, getStoredToken, setStoredToken } from "../api";
+import { brand, btnSecondary } from "../theme";
 
 export type WorkspaceRow = {
   membership_kind: "COMMUNITY" | "OPERATIONAL";
@@ -155,7 +155,20 @@ export default function WorkspaceSelectPage() {
   return (
     <div dir="rtl" style={pageStyle}>
       <div style={cardStyle}>
-        <h1 style={{ margin: "0 0 8px", fontSize: 20, color: "#0E3B13" }}>انتخاب فضای کاری</h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 8 }}>
+          <h1 style={{ margin: 0, fontSize: 20, color: "#0E3B13" }}>انتخاب فضای کاری</h1>
+          <button
+            type="button"
+            data-testid="workspace-logout"
+            onClick={() => {
+              setStoredToken("");
+              navigate("/login", { replace: true });
+            }}
+            style={{ ...btnSecondary, fontSize: 12, padding: "6px 10px", flexShrink: 0 }}
+          >
+            خروج از حساب
+          </button>
+        </div>
         <p style={{ margin: "0 0 20px", fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>
           عضویت تعاونی و کار عملیاتی در معدن جدا هستند — فقط یکی را برای این نشست انتخاب کنید.
         </p>

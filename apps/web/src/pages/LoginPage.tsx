@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FormField, fieldBorderStyle } from "../components/FormField";
 import { useFieldValidation } from "../hooks/useFieldValidation";
-import { apiGetData, apiPostPublic, getStoredToken, setStoredToken } from "../api";
+import { apiGetData, apiPostPublic, getRememberMePreference, getStoredToken, setRememberMePreference, setStoredToken } from "../api";
 import { mobileNumber, otpCode, required, runValidators } from "../lib/validation";
 import { BrandLogo } from "../components/BrandLogo";
 import { DemoLoginPanel } from "../components/DemoLoginPanel";
@@ -95,6 +95,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [resendSec, setResendSec] = useState(0);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [rememberMe, setRememberMe] = useState(getRememberMePreference);
   const { getError, validateField, validateAll, clearErrors } = useFieldValidation();
 
   const mobileValidators = useMemo(() => [required("شماره موبایل"), mobileNumber()], []);
@@ -182,13 +183,13 @@ export default function LoginPage() {
     });
     setBusy(false);
     if (r.ok) {
-      setStoredToken(r.data.access_token);
+      setStoredToken(r.data.access_token, rememberMe);
       navigate("/workspace-select", { replace: true });
       return;
     }
     const details = r.details as VerifyDetails | undefined;
     setError(otpErrorMessage(details, loginErrorMessage(r.code, r.message)));
-  }, [mobile, otp, navigate, validateAll, otpValidators]);
+  }, [mobile, otp, navigate, validateAll, otpValidators, rememberMe]);
 
   if (checkingSession) {
     return (
@@ -260,6 +261,30 @@ export default function LoginPage() {
                 style={fieldBorderStyle(inputStyle, mobileError)}
               />
             </FormField>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 16,
+                fontSize: 13,
+                color: brand.textMuted,
+                cursor: "pointer",
+                userSelect: "none",
+              }}
+            >
+              <input
+                type="checkbox"
+                data-testid="login-remember-me"
+                checked={rememberMe}
+                onChange={(e) => {
+                  setRememberMe(e.target.checked);
+                  setRememberMePreference(e.target.checked);
+                }}
+                disabled={busy}
+              />
+              مرا بخاطر داشته باش
+            </label>
             <button
               data-testid="login-request-otp"
               type="submit"

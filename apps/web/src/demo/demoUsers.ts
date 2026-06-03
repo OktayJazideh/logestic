@@ -5,6 +5,12 @@
 
 export type DemoApp = "web" | "driver" | "community";
 
+export type DemoWorkspace = {
+  mine_id: number;
+  membership_kind: "OPERATIONAL" | "COMMUNITY";
+  cooperative_id?: number;
+};
+
 export type DemoPersona = {
   id: string;
   roleLabel: string;
@@ -12,7 +18,12 @@ export type DemoPersona = {
   apps: DemoApp[];
   workspaceHint: string;
   flowHint: string;
+  /** Web demo: auto-select workspace then open /panel */
+  workspace?: DemoWorkspace;
 };
+
+const MINE_1_OP: DemoWorkspace = { mine_id: 1, membership_kind: "OPERATIONAL" };
+const MINE_1_COMMUNITY: DemoWorkspace = { mine_id: 1, cooperative_id: 1, membership_kind: "COMMUNITY" };
 
 export const DEMO_PERSONAS: DemoPersona[] = [
   {
@@ -22,6 +33,7 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     apps: ["web"],
     workspaceHint: "OPERATIONAL · معدن ۱",
     flowHint: "صورت وضعیت، audit، پرداخت معدن",
+    workspace: MINE_1_OP,
   },
   {
     id: "employer",
@@ -30,6 +42,7 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     apps: ["web"],
     workspaceHint: "OPERATIONAL · معدن ۱",
     flowHint: "ثبت نیاز حمل",
+    workspace: MINE_1_OP,
   },
   {
     id: "ops_admin",
@@ -38,6 +51,7 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     apps: ["web"],
     workspaceHint: "OPERATIONAL · معدن ۱",
     flowHint: "dispatch، تأیید باسکول",
+    workspace: MINE_1_OP,
   },
   {
     id: "coop_op",
@@ -46,6 +60,7 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     apps: ["web"],
     workspaceHint: "OPERATIONAL · معدن ۱",
     flowHint: "ثبت وزن در /panel/weighbridge",
+    workspace: MINE_1_OP,
   },
   {
     id: "coop_admin",
@@ -54,6 +69,7 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     apps: ["web", "community"],
     workspaceHint: "COMMUNITY · معدن ۱",
     flowHint: "KYC، اعضا، صورت وضعیت",
+    workspace: MINE_1_COMMUNITY,
   },
   {
     id: "driver",
@@ -70,6 +86,7 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     apps: ["web"],
     workspaceHint: "OPERATIONAL · معدن ۱",
     flowHint: "کیف پول / ناوگان",
+    workspace: MINE_1_OP,
   },
   {
     id: "household_pending",
@@ -94,6 +111,7 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     apps: ["web"],
     workspaceHint: "OPERATIONAL · معدن ۱",
     flowHint: "تأیید کار ساعتی",
+    workspace: MINE_1_OP,
   },
 ];
 

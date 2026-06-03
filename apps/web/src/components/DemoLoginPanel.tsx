@@ -43,7 +43,7 @@ export function DemoLoginPanel({ app }: Props) {
       setErr(r.message);
       return;
     }
-    navigate("/workspace-select", { replace: true });
+    navigate("/panel", { replace: true });
   }
 
   return (
@@ -52,8 +52,8 @@ export function DemoLoginPanel({ app }: Props) {
         ورود دمو (UAT)
       </div>
       <p style={{ margin: "0 0 10px", fontSize: 11, color: brand.textMuted, lineHeight: 1.5 }}>
-        یک‌کلیک ورود با کاربران seed. نیاز: <code style={{ fontSize: 10 }}>db:seed</code> ·{" "}
-        <code style={{ fontSize: 10 }}>SMS_PROVIDER=mock</code> ·{" "}
+        یک‌کلیک ورود بدون SMS — مستقیم به داشبورد. نیاز:{" "}
+        <code style={{ fontSize: 10 }}>db:seed</code> ·{" "}
         <code style={{ fontSize: 10 }}>NODE_ENV=development</code>
       </p>
       {err && (

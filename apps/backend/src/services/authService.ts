@@ -44,6 +44,22 @@ export class AuthService {
     return this.otpStore.requestOtp(mobile_number);
   }
 
+  /** Dev/UAT only — session without OTP/SMS (route must guard NODE_ENV). */
+  async devLoginWithoutOtp(mobile_number: string) {
+    const gate = await this.resolveLoginUser(mobile_number);
+    if (!gate.ok) {
+      return { ok: false as const, reason: gate.reason as AuthVerifyFailureReason };
+    }
+    const user = gate.user;
+    const session = await this.sessionStore.createSession({
+      userId: user.id,
+      mobile_number: user.mobile_number,
+      role: user.role,
+      is_active: user.is_active,
+    });
+    return { ok: true as const, session };
+  }
+
   async verifyOtp(mobile_number: string, otp_code: string) {
     const gate = await this.resolveLoginUser(mobile_number);
     if (!gate.ok) {

@@ -3,14 +3,36 @@ import { newIdempotencyKey } from "./lib/idempotencyKey";
 export { newIdempotencyKey };
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:4000/api";
+const TOKEN_KEY = "auth_token";
+const REMEMBER_KEY = "auth_remember";
 
 export function getStoredToken(): string {
-  return localStorage.getItem("auth_token") ?? "";
+  return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY) ?? "";
 }
 
-export function setStoredToken(token: string) {
-  if (token) localStorage.setItem("auth_token", token);
-  else localStorage.removeItem("auth_token");
+/** @param remember — localStorage when true (default), sessionStorage when false */
+export function setStoredToken(token: string, remember = true) {
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  if (!token) {
+    localStorage.removeItem(REMEMBER_KEY);
+    return;
+  }
+  if (remember) {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(REMEMBER_KEY, "1");
+  } else {
+    sessionStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(REMEMBER_KEY, "0");
+  }
+}
+
+export function getRememberMePreference(): boolean {
+  return localStorage.getItem(REMEMBER_KEY) !== "0";
+}
+
+export function setRememberMePreference(remember: boolean) {
+  localStorage.setItem(REMEMBER_KEY, remember ? "1" : "0");
 }
 
 export async function apiGet(path: string): Promise<unknown> {

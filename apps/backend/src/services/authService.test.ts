@@ -67,4 +67,13 @@ describe("AuthService registration gate", () => {
     if (!r.ok) expect(r.reason).toBe("not_registered");
     expect(otpStore.verifyOtp).not.toHaveBeenCalled();
   });
+
+  it("devLoginWithoutOtp creates session without OTP", async () => {
+    const { svc, otpStore } = makeService(makeUser({ id: 1, role: "ADMIN", is_active: true }));
+    const r = await svc.devLoginWithoutOtp(mobile);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.session.token).toBe("tok");
+    expect(otpStore.requestOtp).not.toHaveBeenCalled();
+    expect(otpStore.verifyOtp).not.toHaveBeenCalled();
+  });
 });

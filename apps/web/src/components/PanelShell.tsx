@@ -92,7 +92,7 @@ function PanelShellInner({ onLogout, nav, ctx }: InnerProps) {
           <BrandLogo variant="full" size={40} onDark />
         </div>
         <button type="button" onClick={onLogout} style={{ ...btnSecondary, background: brand.panelMuted }}>
-          خروج
+          خروج از حساب
         </button>
       </header>
 
