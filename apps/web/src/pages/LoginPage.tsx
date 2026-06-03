@@ -6,6 +6,7 @@ import { apiGetData, apiPostPublic, getRememberMePreference, getStoredToken, set
 import { mobileNumber, otpCode, required, runValidators } from "../lib/validation";
 import { BrandLogo } from "../components/BrandLogo";
 import { DemoLoginPanel } from "../components/DemoLoginPanel";
+import { isDemoLoginEnabled } from "../demo/demoUsers";
 import { loginErrorMessage } from "../lib/authMessages";
 import { brandNames } from "../brand";
 import { brand, btnPrimary, btnSecondary } from "../theme";
@@ -358,6 +359,11 @@ export default function LoginPage() {
               </button>
             </div>
           </form>
+        )}
+        {isDemoLoginEnabled() && (
+          <p style={{ margin: "16px 0 0", fontSize: 10, color: brand.textSoft, textAlign: "center" }}>
+            نسخه پنل: {import.meta.env.VITE_BUILD_SHA ?? "?"}
+          </p>
         )}
       </LoginCard>
     </LoginShell>
