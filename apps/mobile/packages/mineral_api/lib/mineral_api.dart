@@ -5,6 +5,7 @@ export 'src/api_exception.dart';
 export 'src/auth_errors.dart';
 export 'src/app_config.dart';
 export 'src/brand_names.dart';
+export 'src/demo_login_config.dart';
 export 'src/demo_users.dart';
 export 'src/mineral_api_client.dart';
 export 'src/mineral_theme.dart';

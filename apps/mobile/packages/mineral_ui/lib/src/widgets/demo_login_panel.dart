@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mineral_api/mineral_api.dart';
 
@@ -6,10 +5,7 @@ import '../../mineral_theme.dart';
 
 typedef DemoLoginHandler = Future<void> Function(DemoPersona persona);
 
-bool get _demoLoginVisible =>
-    kDebugMode || const bool.fromEnvironment('ENABLE_DEMO_LOGIN');
-
-/// UAT one-tap login — debug builds, or release with `--dart-define=ENABLE_DEMO_LOGIN=true`.
+/// UAT one-tap login — visible on debug, ENABLE_DEMO_LOGIN, or staging IP API.
 class DemoLoginPanel extends StatelessWidget {
   const DemoLoginPanel({
     super.key,
@@ -24,7 +20,7 @@ class DemoLoginPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!_demoLoginVisible) return const SizedBox.shrink();
+    if (!isDemoLoginEnabled()) return const SizedBox.shrink();
 
     final personas = demoPersonasForApp(app);
     if (personas.isEmpty) return const SizedBox.shrink();
@@ -46,7 +42,7 @@ class DemoLoginPanel extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'نیاز: db:seed روی سرور · SMS mock · NODE_ENV=development',
+            'نیاز: db:seed · SMS mock · NODE_ENV=development',
             style: TextStyle(fontSize: 11, color: MineralTheme.muted, height: 1.4),
           ),
           const SizedBox(height: 10),

@@ -130,4 +130,19 @@ sudo -u logestic env VITE_API_BASE=http://185.36.145.164:4000/api npm run build
 sudo systemctl reload nginx
 ```
 
+با آدرس IP در `VITE_API_BASE`، بخش **«ورود دمو (UAT)»** زیر دکمه «دریافت کد» نمایش داده می‌شود (ادمین، کارفرما، عملیات، …).
+
+**برای کار کردن دکمه‌های دمو:** `SMS_PROVIDER=mock` و `NODE_ENV=development` و `db:seed`.
+
+---
+
+## ۷. APK با ورود دمو
+
+APK با `API_BASE_URL=http://185.36.145.164:4000` به‌صورت خودکار پنل دمو را نشان می‌دهد (staging روی IP).
+
+```bash
+# روی PC
+flutter build apk --release --dart-define=API_BASE_URL=http://185.36.145.164:4000
+```
+
 </div>

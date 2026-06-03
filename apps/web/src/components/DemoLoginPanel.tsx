@@ -52,8 +52,9 @@ export function DemoLoginPanel({ app }: Props) {
         ورود دمو (UAT)
       </div>
       <p style={{ margin: "0 0 10px", fontSize: 11, color: brand.textMuted, lineHeight: 1.5 }}>
-        فقط با <code style={{ fontSize: 10 }}>db:seed</code> و <code style={{ fontSize: 10 }}>SMS_PROVIDER=mock</code>.
-        داده‌ها به‌هم وصل‌اند (معدن تفتان · تعاونی ۱ · راننده تأییدشده).
+        یک‌کلیک ورود با کاربران seed. نیاز: <code style={{ fontSize: 10 }}>db:seed</code> ·{" "}
+        <code style={{ fontSize: 10 }}>SMS_PROVIDER=mock</code> ·{" "}
+        <code style={{ fontSize: 10 }}>NODE_ENV=development</code>
       </p>
       {err && (
         <div role="alert" style={{ marginBottom: 8, fontSize: 12, color: brand.danger }}>

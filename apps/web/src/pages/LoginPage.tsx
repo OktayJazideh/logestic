@@ -7,6 +7,7 @@ import { mobileNumber, otpCode, required, runValidators } from "../lib/validatio
 import { BrandLogo } from "../components/BrandLogo";
 import { DemoLoginPanel } from "../components/DemoLoginPanel";
 import { loginErrorMessage } from "../lib/authMessages";
+import { brandNames } from "../brand";
 import { brand, btnPrimary, btnSecondary } from "../theme";
 
 const RESEND_COOLDOWN_SEC = 60;
@@ -267,6 +268,7 @@ export default function LoginPage() {
             >
               {busy ? "در حال ارسال…" : "دریافت کد"}
             </button>
+            <DemoLoginPanel app="web" />
           </form>
         ) : (
           <form
@@ -332,7 +334,6 @@ export default function LoginPage() {
             </div>
           </form>
         )}
-        <DemoLoginPanel app="web" />
       </LoginCard>
     </LoginShell>
   );

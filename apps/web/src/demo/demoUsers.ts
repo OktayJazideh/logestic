@@ -101,9 +101,14 @@ export function personasForApp(app: DemoApp): DemoPersona[] {
   return DEMO_PERSONAS.filter((p) => p.apps.includes(app));
 }
 
-/** Dev/UAT — local dev, or production build with VITE_ENABLE_DEMO_LOGIN=true */
+/** Dev/UAT — local dev, explicit flag, or staging API on raw IP (VPS without domain). */
 export function isDemoLoginEnabled(): boolean {
-  return import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEMO_LOGIN === "true";
+  if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "false") return false;
+  if (import.meta.env.DEV) return true;
+  if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "true") return true;
+  const api = import.meta.env.VITE_API_BASE ?? "";
+  if (/https?:\/\/(\d{1,3}\.){3}\d{1,3}/.test(api)) return true;
+  return false;
 }
 
 export function getApiOrigin(apiBase = import.meta.env.VITE_API_BASE ?? "http://localhost:4000/api"): string {
