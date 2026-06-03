@@ -205,6 +205,7 @@ async function main() {
       | "EMPLOYER";
     cooperative_id?: number;
   }> = [
+    { mobile: "09013019626", role: "ADMIN" },
     { mobile: "09000000000", role: "ADMIN" },
     { mobile: "09000000001", role: "COOP_ADMIN", cooperative_id: 1 },
     { mobile: "09000000002", role: "OPERATION_ADMIN" },

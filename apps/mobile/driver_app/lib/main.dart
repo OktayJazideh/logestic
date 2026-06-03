@@ -16,7 +16,7 @@ class DriverApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'سیستم لجستیک معادن — راننده',
+      title: BrandNames.driverAppTitle,
       theme: MineralTheme.lightTheme,
       initialRoute: '/splash',
       onGenerateRoute: AppRouter.onGenerateRoute,

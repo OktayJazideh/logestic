@@ -5,6 +5,7 @@ import { ApiError } from "../http/errors";
 import { failure, success } from "../http/apiResponse";
 import { appContext } from "../appContext";
 import { resolveAuthContext } from "../lib/authContext";
+import { AUTH_USER_INACTIVE_MESSAGE, AUTH_USER_NOT_REGISTERED_MESSAGE } from "../lib/authMessages";
 import { env } from "../config/env";
 
 const router = Router();
@@ -39,6 +40,26 @@ router.post("/request-otp", async (req, res, next) => {
   const { mobile_number } = body.data;
   const result = await appContext.authService.requestOtp(mobile_number);
   if (!result.allowed) {
+    if ("reason" in result) {
+      if (result.reason === "not_registered") {
+        return next(
+          new ApiError({
+            statusCode: 403,
+            code: "user_not_registered",
+            message: AUTH_USER_NOT_REGISTERED_MESSAGE,
+            requestId,
+          }),
+        );
+      }
+      return next(
+        new ApiError({
+          statusCode: 403,
+          code: "user_inactive",
+          message: AUTH_USER_INACTIVE_MESSAGE,
+          requestId,
+        }),
+      );
+    }
     return next(
       new ApiError({
         statusCode: 429,
@@ -84,6 +105,26 @@ router.post("/verify-otp", async (req, res, next) => {
   const { mobile_number, otp_code } = body.data;
   const result = await appContext.authService.verifyOtp(mobile_number, otp_code);
   if (!result.ok) {
+    if (result.reason === "not_registered") {
+      return next(
+        new ApiError({
+          statusCode: 403,
+          code: "user_not_registered",
+          message: AUTH_USER_NOT_REGISTERED_MESSAGE,
+          requestId,
+        }),
+      );
+    }
+    if (result.reason === "inactive") {
+      return next(
+        new ApiError({
+          statusCode: 403,
+          code: "user_inactive",
+          message: AUTH_USER_INACTIVE_MESSAGE,
+          requestId,
+        }),
+      );
+    }
     return next(
       new ApiError({
         statusCode: 400,

@@ -15,7 +15,7 @@ class CommunityApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'سیستم لجستیک معادن — تعاونی',
+      title: BrandNames.communityAppTitle,
       theme: MineralTheme.lightTheme,
       initialRoute: '/splash',
       onGenerateRoute: AppRouter.onGenerateRoute,

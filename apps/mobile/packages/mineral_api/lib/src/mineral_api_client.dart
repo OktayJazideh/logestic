@@ -148,6 +148,23 @@ class MineralApiClient {
     );
   }
 
+  /// Dev/UAT only — backend returns 404 when NODE_ENV=production.
+  Future<String?> fetchDevOtp(String mobileNumber) async {
+    try {
+      final res = await send(
+        _http.get(
+          Uri.parse('$baseUrl/api/auth/__dev/otp?mobile_number=$mobileNumber'),
+          headers: {'content-type': 'application/json'},
+        ),
+      );
+      if (res.statusCode == 404) return null;
+      final body = await decodeResponse(res);
+      return body['data']?['otp'] as String?;
+    } on ApiException {
+      return null;
+    }
+  }
+
   Future<AuthVerifyResponse> verifyOtp({
     required String mobileNumber,
     required String otpCode,

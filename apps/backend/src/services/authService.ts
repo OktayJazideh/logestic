@@ -1,9 +1,20 @@
-import { OtpStore } from "../stores/otpStore";
+import { OtpStore, type OtpRequestResult } from "../stores/otpStore";
 import { SessionStore, type Session } from "../stores/sessionStore";
 import { UserStore, type User } from "../stores/userStore";
 import { UserRole, UserRoles } from "../types/userRole";
 import { listRolePermissions } from "../types/permissions";
-import { env } from "../config/env";
+
+export type AuthOtpRequestResult =
+  | OtpRequestResult
+  | { allowed: false; reason: "not_registered" | "inactive" };
+
+export type AuthVerifyFailureReason =
+  | "not_found"
+  | "expired"
+  | "locked"
+  | "invalid"
+  | "not_registered"
+  | "inactive";
 
 export class AuthService {
   constructor(
@@ -16,35 +27,39 @@ export class AuthService {
     return (UserRoles as readonly string[]).includes(role);
   }
 
-  requestOtp(mobile_number: string) {
+  private async resolveLoginUser(
+    mobile_number: string,
+  ): Promise<{ ok: true; user: User } | { ok: false; reason: "not_registered" | "inactive" }> {
+    const user = await this.userStore.getByMobile(mobile_number);
+    if (!user) return { ok: false, reason: "not_registered" };
+    if (!user.is_active) return { ok: false, reason: "inactive" };
+    return { ok: true, user };
+  }
+
+  async requestOtp(mobile_number: string): Promise<AuthOtpRequestResult> {
+    const gate = await this.resolveLoginUser(mobile_number);
+    if (!gate.ok) {
+      return { allowed: false, reason: gate.reason };
+    }
     return this.otpStore.requestOtp(mobile_number);
   }
 
   async verifyOtp(mobile_number: string, otp_code: string) {
-    const res = await this.otpStore.verifyOtp(mobile_number, otp_code);
-    if (!res.ok) return { ok: false as const, reason: res.reason, attemptsLeft: (res as { attemptsLeft?: number }).attemptsLeft };
-
-    let user = await this.userStore.getByMobile(mobile_number);
-    if (!user) {
-      const role: UserRole =
-        env.DEV_ADMIN_MOBILE && mobile_number === env.DEV_ADMIN_MOBILE
-          ? "ADMIN"
-          : env.DEV_COOP_MOBILE && mobile_number === env.DEV_COOP_MOBILE
-            ? "COOP_ADMIN"
-            : env.DEV_EMPLOYER_MOBILE && mobile_number === env.DEV_EMPLOYER_MOBILE
-              ? "EMPLOYER"
-              : env.DEV_FLEET_OWNER_MOBILE && mobile_number === env.DEV_FLEET_OWNER_MOBILE
-                ? "FLEET_OWNER"
-                : env.DEV_HOUSEHOLD_MOBILE && mobile_number === env.DEV_HOUSEHOLD_MOBILE
-                  ? "HOUSEHOLD"
-                  : env.DEV_CONSULTANT_MOBILE && mobile_number === env.DEV_CONSULTANT_MOBILE
-                    ? "CONSULTANT"
-                    : "DRIVER";
-
-      user = await this.userStore.upsertUserByMobile(mobile_number, role, { is_active: true });
-    } else {
-      user = await this.userStore.upsertUserByMobile(mobile_number, user.role, { is_active: true });
+    const gate = await this.resolveLoginUser(mobile_number);
+    if (!gate.ok) {
+      return { ok: false as const, reason: gate.reason as AuthVerifyFailureReason };
     }
+
+    const res = await this.otpStore.verifyOtp(mobile_number, otp_code);
+    if (!res.ok) {
+      return {
+        ok: false as const,
+        reason: res.reason as AuthVerifyFailureReason,
+        attemptsLeft: (res as { attemptsLeft?: number }).attemptsLeft,
+      };
+    }
+
+    const user = gate.user;
 
     const session = await this.sessionStore.createSession({
       userId: user.id,

@@ -13,8 +13,8 @@ describe("auth OTP integration", () => {
     await prisma.$disconnect();
   });
 
-  it.runIf(() => serverUp)("request → verify → me", async () => {
-    const mobile = `09${String(Date.now()).slice(-9)}`;
+  it.runIf(() => serverUp)("request → verify → me (registered user)", async () => {
+    const mobile = "09000000003";
 
     const req = await http("/api/auth/request-otp", {
       method: "POST",
@@ -44,6 +44,17 @@ describe("auth OTP integration", () => {
     expect(me.json.success).toBe(true);
     expect(me.json.data.mobile_number).toBe(mobile);
     expect(me.json.data.role).toBe("DRIVER");
+  });
+
+  it.runIf(() => serverUp)("rejects unregistered mobile on request-otp", async () => {
+    const mobile = `09${String(Date.now()).slice(-9)}`;
+    const req = await http("/api/auth/request-otp", {
+      method: "POST",
+      body: JSON.stringify({ mobile_number: mobile }),
+    });
+    expect(req.status).toBe(403);
+    expect(req.json.success).toBe(false);
+    expect(req.json.error?.code).toBe("user_not_registered");
   });
 
   it.runIf(() => serverUp)("loginAs helper issues valid session", async () => {

@@ -22,15 +22,4 @@ String? validateOtp(String otp) {
   return null;
 }
 
-String persianApiError(Object error) {
-  if (error is ApiException) {
-    if (error.errorCode == 'otp_verification_failed') {
-      return 'کد وارد شده نامعتبر یا منقضی شده است.';
-    }
-    if (error.errorCode == 'rate_limited') {
-      return 'درخواست‌های زیاد. لطفاً چند دقیقه بعد دوباره تلاش کنید.';
-    }
-    return error.message;
-  }
-  return 'خطا در ارتباط با سرور. دوباره تلاش کنید.';
-}
+String persianApiError(Object error) => authErrorMessage(error);

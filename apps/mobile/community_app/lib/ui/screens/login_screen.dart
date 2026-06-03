@@ -78,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _otpKey.currentState?.clear();
       _startResendCountdown();
     } catch (e) {
-      setState(() => _errorText = e.toString());
+      setState(() => _errorText = authErrorMessage(e));
     } finally {
       setState(() => _loading = false);
     }
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
         },
       );
     } catch (e) {
-      setState(() => _errorText = e.toString());
+      setState(() => _errorText = authErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -132,6 +132,42 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorText = null;
       _resendCountdown = 0;
     });
+  }
+
+  Future<void> _demoLogin(DemoPersona persona) async {
+    setState(() {
+      _loading = true;
+      _errorText = null;
+    });
+    try {
+      await widget.api.requestOtp(persona.mobile);
+      final code = await widget.api.fetchDevOtp(persona.mobile);
+      if (code == null || code.length != 6) {
+        setState(() => _errorText = 'OTP دمو در دسترس نیست. سرور development + db:seed؟');
+        return;
+      }
+      final v = await widget.api.verifyOtp(mobileNumber: persona.mobile, otpCode: code);
+      if (!isCommunityRole(v.role)) {
+        setState(() => _errorText = 'این اپ مخصوص نقش‌های تعاونی است (${v.role}).');
+        return;
+      }
+      await widget.sessionStore.saveSession(
+        AuthSession(accessToken: v.accessToken, role: v.role, mobileNumber: persona.mobile),
+      );
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(
+        context,
+        '/workspace-select',
+        arguments: {
+          'token': v.accessToken,
+          'role': normalizeCommunityRole(v.role),
+        },
+      );
+    } catch (e) {
+      setState(() => _errorText = authErrorMessage(e));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -150,39 +186,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 24),
-                    Center(
-                      child: Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: MineralTheme.primaryDark,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: MineralTheme.border),
-                        ),
-                        child: const Icon(
-                          Icons.groups_outlined,
-                          color: Colors.white,
-                          size: 40,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    Text(
-                      'سیستم لجستیک معادن',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: MineralTheme.primaryDark,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'پنل تعاونی و خانوار',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: MineralTheme.muted,
-                            fontWeight: FontWeight.w600,
-                          ),
-                      textAlign: TextAlign.center,
+                    AppBrandHeader(
+                      icon: Icons.groups_outlined,
+                      title: BrandNames.communityLoginTitle,
+                      subtitle: BrandNames.communityLoginSubtitle,
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -270,6 +277,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               )
                             : Text(_otpRequested ? 'ورود' : 'دریافت کد'),
                       ),
+                    ),
+                    DemoLoginPanel(
+                      app: 'community',
+                      busy: _loading,
+                      onDemoLogin: _demoLogin,
                     ),
                   ],
                 ),

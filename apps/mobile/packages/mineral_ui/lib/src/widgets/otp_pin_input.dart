@@ -53,7 +53,7 @@ class OtpPinInputState extends State<OtpPinInput> {
       return;
     }
     _controllers[index].text = digits;
-    _controllers[index].selection = const TextSelection.collapsed(offset: digits.length);
+    _controllers[index].selection = TextSelection.collapsed(offset: digits.length);
     _notify();
     if (digits.isNotEmpty && index < _length - 1) {
       _focusNodes[index + 1].requestFocus();

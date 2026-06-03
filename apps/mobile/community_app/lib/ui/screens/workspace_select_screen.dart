@@ -107,7 +107,7 @@ class _WorkspaceSelectScreenState extends State<WorkspaceSelectScreen> {
                     }
                     final items = snap.data ?? [];
                     if (items.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
                           isMineOperatorRole(widget.role)
                               ? 'عضویت عملیاتی فعالی برای شما ثبت نشده است.'

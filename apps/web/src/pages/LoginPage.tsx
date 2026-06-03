@@ -4,6 +4,9 @@ import { FormField, fieldBorderStyle } from "../components/FormField";
 import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostPublic, getStoredToken, setStoredToken } from "../api";
 import { mobileNumber, otpCode, required, runValidators } from "../lib/validation";
+import { BrandLogo } from "../components/BrandLogo";
+import { DemoLoginPanel } from "../components/DemoLoginPanel";
+import { loginErrorMessage } from "../lib/authMessages";
 import { brand, btnPrimary, btnSecondary } from "../theme";
 
 const RESEND_COOLDOWN_SEC = 60;
@@ -160,7 +163,7 @@ export default function LoginPage() {
       setError("درخواست‌های زیاد. کمی بعد دوباره تلاش کنید.");
       return;
     }
-    setError(r.message);
+    setError(loginErrorMessage(r.code, r.message));
   }, [mobile, startResendCooldown, validateAll, mobileValidators, clearErrors]);
 
   const verifyOtp = useCallback(async () => {
@@ -183,7 +186,7 @@ export default function LoginPage() {
       return;
     }
     const details = r.details as VerifyDetails | undefined;
-    setError(otpErrorMessage(details, r.message));
+    setError(otpErrorMessage(details, loginErrorMessage(r.code, r.message)));
   }, [mobile, otp, navigate, validateAll, otpValidators]);
 
   if (checkingSession) {
@@ -202,10 +205,15 @@ export default function LoginPage() {
   return (
     <LoginShell>
       <LoginCard>
-        <h1 style={{ margin: "0 0 4px", fontSize: 20, color: brand.primaryDark, fontWeight: 700 }}>
-          سیستم لجستیک معادن
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+          <BrandLogo variant="full" size={44} />
+        </div>
+        <h1 style={{ margin: "0 0 4px", fontSize: 18, color: brand.primaryDark, fontWeight: 700, textAlign: "center" }}>
+          {brandNames.panel.title}
         </h1>
-        <p style={{ margin: "0 0 16px", fontSize: 13, color: brand.textMuted }}>ورود با شماره موبایل</p>
+        <p style={{ margin: "0 0 16px", fontSize: 13, color: brand.textMuted, textAlign: "center" }}>
+          {brandNames.tagline} — ورود با موبایل
+        </p>
         <p style={{ margin: "0 0 20px", fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>
           {step === 1
             ? "شماره موبایل خود را وارد کنید تا کد یک‌بارمصرف ارسال شود."
@@ -324,6 +332,7 @@ export default function LoginPage() {
             </div>
           </form>
         )}
+        <DemoLoginPanel app="web" />
       </LoginCard>
     </LoginShell>
   );

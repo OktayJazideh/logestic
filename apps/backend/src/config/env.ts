@@ -61,7 +61,7 @@ const EnvSchema = z.object({
   /** Public base URL for receipt QR links (no trailing slash). */
   PUBLIC_URL: z.string().url().default("http://localhost:4000"),
   /** Brand name on settlement receipt PDFs. */
-  PLATFORM_NAME: z.string().min(1).default("Logestic"),
+  PLATFORM_NAME: z.string().min(1).default("Hamsahman"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

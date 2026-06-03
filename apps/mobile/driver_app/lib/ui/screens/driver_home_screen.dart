@@ -108,7 +108,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('سیستم لجستیک معادن'),
+          title: const Text(BrandNames.driverAppTitle),
           actions: [
             IconButton(
               tooltip: 'مأموریت‌ها',

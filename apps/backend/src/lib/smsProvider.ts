@@ -55,7 +55,7 @@ export class KavenegarProvider implements SmsProvider {
 
   async sendOtp(mobile: string, code: string): Promise<void> {
     await this.send({
-      message: `کد ورود Logestic: ${code}`,
+      message: `کد ورود همسهمان: ${code}`,
       sender: this.sender,
       receptor: mobile,
     });
@@ -89,7 +89,7 @@ export class FarazSmsProvider implements SmsProvider {
   }
 
   async sendOtp(mobile: string, code: string): Promise<void> {
-    await this.post(`کد ورود Logestic: ${code}`, mobile);
+    await this.post(`کد ورود همسهمان: ${code}`, mobile);
   }
 
   async sendMessage(mobile: string, message: string): Promise<void> {
