@@ -5,6 +5,7 @@ import { PANEL_NAV, navForRole } from "../config/panelNav";
 import { useAuthGuard } from "../hooks/useAuthGuard";
 import type { PanelOutletContext } from "../hooks/useAuthMe";
 import { useAuthMe } from "../hooks/useAuthMe";
+import { BrandLogo } from "./BrandLogo";
 import { brand, btnSecondary } from "../theme";
 
 /** Layout wrapper با Outlet برای مسیرهای تو در تو */
@@ -87,17 +88,8 @@ function PanelShellInner({ onLogout, nav, ctx }: InnerProps) {
           gap: 12,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: 2,
-              background: brand.accentLight,
-              border: `1px solid ${brand.border}`,
-            }}
-          />
-          <div style={{ fontWeight: 700, color: "#FFFFFF", fontSize: 15 }}>سیستم لجستیک معادن</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <BrandLogo variant="full" size={40} onDark />
         </div>
         <button type="button" onClick={onLogout} style={{ ...btnSecondary, background: brand.panelMuted }}>
           خروج
