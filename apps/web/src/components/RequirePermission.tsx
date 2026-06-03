@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { roleLabelFa } from "../lib/roleLabels";
+import { brand, btnSecondary } from "../theme";
 
 type Props = {
   permission?: string;
@@ -15,7 +16,7 @@ export function RequirePermission({ permission, permissions, children }: Props) 
 
   if (!ready) {
     return (
-      <div style={{ padding: 24, color: "#6B7280", fontSize: 14, textAlign: "center" }}>
+      <div style={{ padding: 24, color: brand.textMuted, fontSize: 14, textAlign: "center" }}>
         در حال بررسی دسترسی…
       </div>
     );
@@ -26,31 +27,34 @@ export function RequirePermission({ permission, permissions, children }: Props) 
       <div
         dir="rtl"
         style={{
-          padding: 24,
-          maxWidth: 480,
-          margin: "0 auto",
+          padding: 32,
+          maxWidth: 520,
+          margin: "24px auto",
           textAlign: "center",
-          lineHeight: 1.8,
-          color: "#374151",
+          lineHeight: 1.85,
+          color: brand.text,
+          border: `1px solid ${brand.border}`,
+          borderRadius: 12,
+          background: brand.panelMuted,
         }}
       >
-        <p style={{ fontWeight: 700, color: "#B45309", marginBottom: 8 }}>دسترسی به این بخش ندارید</p>
-        <p style={{ fontSize: 14, margin: "0 0 16px" }}>
+        <p style={{ fontWeight: 700, color: brand.warn, margin: "0 0 12px", fontSize: 16 }}>
+          دسترسی به این صفحه ندارید
+        </p>
+        <p style={{ fontSize: 14, margin: "0 0 8px" }}>
           نقش فعلی: <strong>{roleLabelFa(me?.role)}</strong>
-          <br />
-          برای ورود به این صفحه مجوز لازم است. از منو یا صفحه خانه بخشی را انتخاب کنید که برای شما باز است.
+        </p>
+        <p style={{ fontSize: 14, margin: "0 0 20px", color: brand.textMuted }}>
+          برای ورود به این بخش باید مجوز مربوط به نقش شما فعال باشد. از صفحه خانه بخشی را انتخاب کنید که
+          برچسب «باز» دارد، یا از منوی کنار استفاده کنید.
         </p>
         <Link
           to="/panel"
           style={{
+            ...btnSecondary,
             display: "inline-block",
-            padding: "10px 16px",
-            borderRadius: 8,
-            border: "1px solid #D1D5DB",
-            background: "#F9FAFB",
             textDecoration: "none",
-            color: "#111827",
-            fontSize: 14,
+            color: brand.text,
           }}
         >
           بازگشت به خانه

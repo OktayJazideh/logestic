@@ -6,6 +6,7 @@ import { useAuthMe } from "../hooks/useAuthMe";
 import { useFieldValidation } from "../hooks/useFieldValidation";
 import { fieldErrorStyle } from "../components/FormField";
 import { minLength, positiveNumber, required, runValidators } from "../lib/validation";
+import { labelFa, MANUAL_REASON_FA, WEIGHBRIDGE_STATUS_FA } from "../lib/uiLabels";
 
 type ManualReasonCode = "SCALE_DOWN" | "NETWORK" | "OTHER";
 
@@ -33,20 +34,14 @@ type TicketDetail = TicketRow & {
 const MANUAL_NOTE_MIN = 20;
 
 const MANUAL_REASON_OPTIONS: { value: ManualReasonCode; label: string }[] = [
-  { value: "SCALE_DOWN", label: "خرابی باسکول (SCALE_DOWN)" },
-  { value: "NETWORK", label: "قطع شبکه (NETWORK)" },
-  { value: "OTHER", label: "سایر (OTHER)" },
+  { value: "SCALE_DOWN", label: MANUAL_REASON_FA.SCALE_DOWN },
+  { value: "NETWORK", label: MANUAL_REASON_FA.NETWORK },
+  { value: "OTHER", label: MANUAL_REASON_FA.OTHER },
 ];
 
 const STATUS_OPTIONS = [
   { value: "", label: "همه وضعیت‌ها" },
-  { value: "PENDING_EMPTY", label: "PENDING_EMPTY" },
-  { value: "EMPTY_REGISTERED", label: "EMPTY_REGISTERED" },
-  { value: "LOADED_REGISTERED", label: "LOADED_REGISTERED" },
-  { value: "PENDING_HOLD", label: "PENDING_HOLD" },
-  { value: "APPROVED", label: "APPROVED" },
-  { value: "REJECTED", label: "REJECTED" },
-  { value: "ADJUSTED", label: "ADJUSTED" },
+  ...Object.entries(WEIGHBRIDGE_STATUS_FA).map(([value, label]) => ({ value, label })),
 ] as const;
 
 function canEnterWeight(role: string | undefined) {
@@ -199,7 +194,7 @@ export default function WeighbridgePage() {
       return;
     }
     setDetail((prev) => (prev ? { ...prev, ...r.data.ticket } : prev));
-    setActionMsg("ثبت دستی انجام شد — تیکت در PENDING_HOLD؛ تأیید نهایی فقط OPERATION_ADMIN.");
+    setActionMsg("ثبت دستی انجام شد. تیکت در انتظار نگهداری است؛ تأیید نهایی فقط توسط مدیر عملیات.");
     await refreshAll();
   }
 
@@ -255,10 +250,9 @@ export default function WeighbridgePage() {
       title="باسکول"
       expectedRoles={["COOP_ADMIN", "COOP_OPERATOR", "OPERATION_ADMIN", "ADMIN"]}
       intro={
-        <p style={{ margin: 0 }}>
-          ثبت وزن عادی: <strong>COOP_OPERATOR</strong> — ورود دستی (failover): فقط{" "}
-          <strong>OPERATION_ADMIN</strong> با دلیل و audit. تأیید نهایی manual:{" "}
-          <strong>OPERATION_ADMIN</strong>. راننده وزن وارد نمی‌کند.
+        <p style={{ margin: 0, lineHeight: 1.75 }}>
+          اپراتور باسکول وزن خالی و پر را ثبت می‌کند. در صورت خرابی باسکول، مدیر عملیات ثبت دستی با
+          دلیل انجام می‌دهد. راننده وزن وارد نمی‌کند.
         </p>
       }
     >
@@ -316,7 +310,7 @@ export default function WeighbridgePage() {
                     >
                       <td style={td}>{t.ticket_number}</td>
                       <td style={td}>{t.mission_id}</td>
-                      <td style={td}>{t.status}</td>
+                      <td style={td}>{labelFa(WEIGHBRIDGE_STATUS_FA, t.status)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -338,7 +332,8 @@ export default function WeighbridgePage() {
                   <strong>{detail.ticket_number}</strong> — ماموریت #{detail.mission_id}
                 </div>
                 <div>
-                  وضعیت: <strong data-testid="wb-ticket-status">{detail.status}</strong>
+                  وضعیت:{" "}
+                  <strong data-testid="wb-ticket-status">{labelFa(WEIGHBRIDGE_STATUS_FA, detail.status)}</strong>
                 </div>
               </div>
 
@@ -355,7 +350,7 @@ export default function WeighbridgePage() {
                     fontSize: 13,
                   }}
                 >
-                  ثبت <strong>دستی (MANUAL)</strong> — نیاز به تأیید <strong>OPERATION_ADMIN</strong> قبل از VERIFIED.
+                  ثبت دستی انجام شده — تأیید نهایی فقط توسط مدیر عملیات.
                 </div>
               )}
               {isHold && !needsSupervisor && (
@@ -371,15 +366,15 @@ export default function WeighbridgePage() {
                     fontSize: 13,
                   }}
                 >
-                  اختلاف وزن با حجم بار ≥۵٪ — تیکت در حالت <strong>PENDING_HOLD</strong> است. برای ادامه،
-                  OPERATION_ADMIN باید آزادسازی (Release) انجام دهد.
+                  اختلاف وزن با حجم بار بیش از حد مجاز است. تیکت در انتظار نگهداری است؛ مدیر عملیات باید
+                  آزادسازی کند.
                 </div>
               )}
 
               {canManualOverride && (
                 <form onSubmit={(e) => void submitManualWeights(e)} style={{ marginBottom: 14 }}>
                   <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
-                    ثبت دستی (Failover) — فقط اپراتور عملیات
+                    ثبت دستی — فقط مدیر عملیات
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
                     <label style={labelBlock}>
@@ -416,7 +411,7 @@ export default function WeighbridgePage() {
                     disabled={!weightsEditable || busy != null}
                     style={{ ...btnPrimary, background: "#B45309", borderColor: "#B45309" }}
                   >
-                    {busy === "manual" ? "…" : "ثبت دستی (MANUAL)"}
+                    {busy === "manual" ? "…" : "ثبت دستی"}
                   </button>
                 </form>
               )}
@@ -435,7 +430,7 @@ export default function WeighbridgePage() {
                         disabled={!weightsEditable || busy != null}
                         onChange={(e) => setEmptyKg(e.target.value)}
                         style={inputStyle}
-                        placeholder="empty_kg"
+                        placeholder="کیلوگرم"
                       />
                     </label>
                     <label style={labelBlock}>
@@ -448,7 +443,7 @@ export default function WeighbridgePage() {
                         disabled={!weightsEditable || busy != null}
                         onChange={(e) => setLoadedKg(e.target.value)}
                         style={inputStyle}
-                        placeholder="loaded_kg"
+                        placeholder="کیلوگرم"
                       />
                     </label>
                     <label style={labelBlock}>
@@ -472,7 +467,7 @@ export default function WeighbridgePage() {
                   </button>
                   {!weightsEditable && (
                     <span style={{ marginRight: 8, fontSize: 12, color: "#6B7280" }}>
-                      ثبت وزن فقط در وضعیت PENDING_EMPTY / EMPTY_REGISTERED.
+                      ثبت وزن فقط وقتی تیکت در انتظار وزن خالی یا وزن خالی ثبت‌شده باشد.
                     </span>
                   )}
                 </form>
@@ -480,7 +475,7 @@ export default function WeighbridgePage() {
 
               {needsSupervisor && canApproveTicket && !isOpAdmin && approvable && (
                 <p style={{ fontSize: 12, color: "#991B1B", marginBottom: 8 }}>
-                  تأیید این تیکت فقط توسط OPERATION_ADMIN امکان‌پذیر است.
+                  تأیید این تیکت فقط توسط مدیر عملیات امکان‌پذیر است.
                 </p>
               )}
               {approveAllowed && (
@@ -493,7 +488,7 @@ export default function WeighbridgePage() {
                       onClick={() => void approveTicket()}
                       style={{ ...btnPrimary, background: "#B45309", borderColor: "#B45309" }}
                     >
-                      {busy === "approve" ? "…" : needsSupervisor ? "تأیید دستی (Supervisor)" : "آزادسازی (Release)"}
+                      {busy === "approve" ? "…" : needsSupervisor ? "تأیید دستی" : "آزادسازی از نگهداری"}
                     </button>
                   )}
                   {(!isHold || !isOpAdmin) && !needsSupervisor && (

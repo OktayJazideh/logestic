@@ -1,6 +1,10 @@
 import React from "react";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { roleLabelFa } from "../lib/roleLabels";
+
+function expectedRolesFa(roles: string[]): string {
+  return roles.map((r) => roleLabelFa(r)).join("، ");
+}
 import { brand } from "../theme";
 
 type Props = {
@@ -37,7 +41,7 @@ export function PageFrame({ title, intro, expectedRoles, children }: Props) {
             color: brand.warn,
           }}
         >
-          این بخش برای نقش دیگری طراحی شده. نقش فعلی شما:{" "}
+          این صفحه معمولاً برای «{expectedRolesFa(expectedRoles!)}» است. نقش فعلی شما:{" "}
           <strong>{roleLabelFa(me?.role)}</strong>
           {expectedRoles?.length ? (
             <>

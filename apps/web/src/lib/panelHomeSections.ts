@@ -9,8 +9,14 @@ export type PanelHomeSection = {
   permissions?: string[];
 };
 
-/** کارت‌های خانه — همان مجوزهای مسیر در App.tsx */
+/** همه کارت‌های خانه — همیشه نمایش داده می‌شوند؛ دسترسی جداگانه مشخص می‌شود */
 export const PANEL_HOME_SECTIONS: PanelHomeSection[] = [
+  {
+    to: "/panel/ops",
+    title: "داشبورد عملیاتی",
+    description: "نمای کلی مأموریت‌ها، باسکول و وضعیت دوره",
+    permissions: ["ops:*", "users:manage"],
+  },
   {
     to: "/panel/coop",
     title: "درخواست‌های تعاونی",
@@ -19,9 +25,21 @@ export const PANEL_HOME_SECTIONS: PanelHomeSection[] = [
   },
   {
     to: "/panel/employer",
-    title: "نیاز کارفرما",
-    description: "ثبت نیاز حمل و پیگیری وضعیت",
+    title: "ثبت نیاز کارفرما",
+    description: "نیاز حمل تنی یا کار ساعتی",
     permission: "needs:create",
+  },
+  {
+    to: "/panel/employer/inbox",
+    title: "پیگیری نیازهای کارفرما",
+    description: "فهرست نیازهای ثبت‌شده و وضعیت آن‌ها",
+    permissions: ["needs:read_own", "ops:*", "users:manage"],
+  },
+  {
+    to: "/panel/dispatch-board",
+    title: "بورد تخصیص",
+    description: "تخصیص راننده و ناوگان به مأموریت",
+    permission: "dispatch:create",
   },
   {
     to: "/panel/missions",
@@ -32,38 +50,14 @@ export const PANEL_HOME_SECTIONS: PanelHomeSection[] = [
   {
     to: "/panel/weighbridge",
     title: "باسکول",
-    description: "ثبت وزن و تأیید تیکت‌ها",
+    description: "ثبت وزن و تأیید تیکت",
     permission: "weighbridge:submit",
   },
   {
     to: "/panel/payments",
-    title: "نگهداری و آزادسازی پرداخت",
-    description: "مدیریت پرداخت‌های مشکوک با ثبت دلیل",
+    title: "نگهداری پرداخت",
+    description: "نگهداری، آزادسازی یا برگشت پرداخت مشکوک",
     permission: "hold:create",
-  },
-  {
-    to: "/panel/settlement",
-    title: "تسویه و سهم خانوار",
-    description: "بسته تسویه، قفل دوره و وضعیت سهم ماهانه",
-    permission: "settlement:read",
-  },
-  {
-    to: "/panel/kyc",
-    title: "صندوق احراز هویت",
-    description: "بررسی درخواست‌های در انتظار تأیید",
-    permissions: ["kyc:approve", "kyc:review"],
-  },
-  {
-    to: "/panel/members",
-    title: "شفافیت اعضا و اعتراض",
-    description: "نمایش کنترل‌شده و ثبت اعتراض",
-    permission: "members:read",
-  },
-  {
-    to: "/panel/wallet",
-    title: "کیف پول",
-    description: "مانده و گردش مالک ناوگان یا خانوار",
-    permission: "wallet:read_own",
   },
   {
     to: "/panel/consultant/hourly",
@@ -72,27 +66,85 @@ export const PANEL_HOME_SECTIONS: PanelHomeSection[] = [
     permission: "hourly:verify",
   },
   {
+    to: "/panel/settlement",
+    title: "تسویه و سهم خانوار",
+    description: "بسته تسویه و وضعیت سهم ماهانه",
+    permission: "settlement:read",
+  },
+  {
+    to: "/panel/approvals",
+    title: "صندوق تأییدها",
+    description: "تأییدهای در انتظار مدیریت",
+    permissions: ["coop:manage", "settlement:approve"],
+  },
+  {
+    to: "/panel/kyc",
+    title: "صندوق احراز هویت",
+    description: "بررسی درخواست‌های عضویت",
+    permissions: ["kyc:approve", "kyc:review"],
+  },
+  {
+    to: "/panel/members",
+    title: "شفافیت اعضا",
+    description: "اطلاعات عمومی و ثبت اعتراض",
+    permission: "members:read",
+  },
+  {
+    to: "/panel/wallet",
+    title: "کیف پول",
+    description: "مانده و گردش حساب",
+    permission: "wallet:read_own",
+  },
+  {
+    to: "/panel/fleet-owner",
+    title: "داشبورد مالک ناوگان",
+    description: "ناوگان و درآمد",
+    permission: "vehicles:read_own",
+  },
+  {
+    to: "/panel/rate-cards",
+    title: "کارت نرخ",
+    description: "تعریف و فعال‌سازی نرخ",
+    permissions: ["coop:manage", "settlement:execute"],
+  },
+  {
     to: "/panel/admin/finance",
     title: "داشبورد مالی",
-    description: "خلاصه سهم‌ها، نمودار و خروجی",
+    description: "خلاصه سهم‌ها و گزارش",
     permission: "users:manage",
   },
   {
     to: "/panel/admin/audit",
-    title: "مرور سوابق تغییرات",
-    description: "لاگ تغییرات سیستم",
+    title: "سوابق تغییرات",
+    description: "مرور لاگ تغییرات سیستم",
     permission: "audit:read",
+  },
+  {
+    to: "/panel/admin/period-statement",
+    title: "صورت وضعیت دوره",
+    description: "پیش‌نویس، تأیید و قفل دوره",
+    permissions: ["users:manage", "settlement:read", "coop:manage"],
+  },
+  {
+    to: "/panel/admin/users",
+    title: "مدیریت کاربران",
+    description: "نقش‌ها و دسترسی",
+    permission: "users:manage",
   },
 ];
 
-export function homeSectionsForUser(can: (required: string | string[]) => boolean): PanelHomeSection[] {
-  return PANEL_HOME_SECTIONS.filter((s) => {
+export type PanelHomeSectionView = PanelHomeSection & { canAccess: boolean };
+
+export function allHomeSectionsWithAccess(
+  can: (required: string | string[]) => boolean,
+): PanelHomeSectionView[] {
+  return PANEL_HOME_SECTIONS.map((s) => {
     const item: NavItem = {
       to: s.to,
       label: s.title,
       permission: s.permission,
       permissions: s.permissions,
     };
-    return navItemAllowed(item, can);
+    return { ...s, canAccess: navItemAllowed(item, can) };
   });
 }
