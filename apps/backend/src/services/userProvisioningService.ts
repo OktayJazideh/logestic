@@ -100,11 +100,15 @@ export function assertRoleAllowedForUnit(
   }
 }
 
-export function resolveUnitTypeForRequester(role: UserRole, bodyUnit?: ProvisioningUnitType): ProvisioningUnitType {
+export function resolveUnitTypeForRequester(
+  role: UserRole,
+  bodyUnit?: ProvisioningUnitType,
+  requestId?: string,
+): ProvisioningUnitType {
   const n = normalizeRole(role);
   if (n === "COOP_ADMIN") return "COOPERATIVE";
   if (n === "OPERATION_ADMIN") return bodyUnit ?? "MINE_OPS";
-  throw new Error("unsupported_requester");
+  throw new ApiError({ statusCode: 403, code: "forbidden", message: "Unsupported requester role", requestId });
 }
 
 export async function createProvisioningRequest(input: {
@@ -120,7 +124,8 @@ export async function createProvisioningRequest(input: {
   note?: string;
   requestId?: string;
 }) {
-  const unit_type = input.unit_type ?? resolveUnitTypeForRequester(input.requesterRole);
+  const unit_type =
+    input.unit_type ?? resolveUnitTypeForRequester(input.requesterRole, input.unit_type, input.requestId);
   assertRoleAllowedForUnit(unit_type, input.target_role, input.requestId);
 
   const n = normalizeRole(input.requesterRole);
@@ -150,11 +155,24 @@ export async function createProvisioningRequest(input: {
         requestId: input.requestId,
       });
     }
-    await workspaceRepo.assertOperationalMineAccess({
-      userId: input.requesterUserId,
-      userRole: input.requesterRole,
-      mineId: mine_id,
-    });
+    try {
+      await workspaceRepo.assertOperationalMineAccess({
+        userId: input.requesterUserId,
+        userRole: input.requesterRole,
+        mineId: mine_id,
+      });
+    } catch (e) {
+      const code = (e as { code?: string }).code;
+      if (code === "workspace_access_denied") {
+        throw new ApiError({
+          statusCode: 403,
+          code: "workspace_access_denied",
+          message: "Workspace access denied for this mine",
+          requestId: input.requestId,
+        });
+      }
+      throw e;
+    }
   }
 
   if (isCoopScopedRole(input.target_role) && !cooperative_id) {

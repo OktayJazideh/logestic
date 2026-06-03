@@ -50,8 +50,10 @@ export default function UserRequestForm() {
     const res = await apiGetData<{ requests: RequestRow[] }>("/user-provisioning/requests");
     if (!res.ok) {
       setError(apiErrorMessageFa(res.code, res.message));
+      setRequests([]);
       return;
     }
+    setError(null);
     setRequests(res.data.requests);
   }, []);
 

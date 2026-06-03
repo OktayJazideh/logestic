@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type NextFunction } from "express";
 import { z } from "zod";
 import type { ProvisioningUnitType } from "@prisma/client";
 import { authMiddleware, type AuthContext } from "../middleware/authMiddleware";
@@ -10,14 +10,23 @@ import { isCoopScopedRole, normalizeRole, UserRoles, type UserRole } from "../ty
 import * as provisioningRepo from "../repositories/userProvisioningRepository";
 import * as provisioningService from "../services/userProvisioningService";
 import { appContext } from "../appContext";
+import { prismaToApiError } from "../lib/prismaErrors";
 
 const router = Router();
 const requireAuth = authMiddleware(resolveAuthContext);
 
-function getAuth(req: { auth?: AuthContext }): AuthContext {
+function getAuth(req: { auth?: AuthContext }, requestId?: string): AuthContext {
   const auth = req.auth;
-  if (!auth) throw new Error("missing auth");
+  if (!auth) {
+    throw new ApiError({ statusCode: 401, code: "unauthorized", message: "Not authenticated", requestId });
+  }
   return auth;
+}
+
+function forwardError(e: unknown, next: NextFunction, requestId?: string) {
+  const mapped = prismaToApiError(e, requestId);
+  if (mapped) return next(mapped);
+  next(e);
 }
 
 function mapRequest(r: provisioningRepo.ProvisioningRequestRow) {
@@ -86,7 +95,7 @@ router.post(
       return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid input", requestId }));
     }
     try {
-      const auth = getAuth(req as { auth?: AuthContext });
+      const auth = getAuth(req as { auth?: AuthContext }, requestId);
       const role = auth.user.role as UserRole;
       const n = normalizeRole(role);
       const cooperativeId =
@@ -113,7 +122,7 @@ router.post(
 
       return res.json(success({ request: mapRequest(created) }, requestId));
     } catch (e) {
-      next(e);
+      forwardError(e, next, requestId);
     }
   },
 );
@@ -126,25 +135,21 @@ router.get(
     const requestId = (req as { requestId?: string }).requestId;
     const status = z.enum(["PENDING", "APPROVED", "REJECTED"]).optional().safeParse(req.query.status);
     try {
-      const auth = getAuth(req as { auth?: AuthContext });
+      const auth = getAuth(req as { auth?: AuthContext }, requestId);
       const role = normalizeRole(auth.user.role as UserRole);
       let requests: provisioningRepo.ProvisioningRequestRow[];
 
       if (role === "COOP_ADMIN") {
         const coopId = auth.scope?.cooperativeId ?? auth.user.cooperative_id;
-        if (!coopId) {
-          return next(
-            new ApiError({
-              statusCode: 403,
-              code: "cooperative_required",
-              message: "No cooperative scope",
-              requestId,
-            }),
-          );
+        if (coopId) {
+          requests = await provisioningRepo.listProvisioningRequestsForCooperative(coopId, {
+            status: status.success ? status.data : undefined,
+          });
+        } else {
+          requests = await provisioningRepo.listProvisioningRequestsForRequester(auth.user.id, {
+            status: status.success ? status.data : undefined,
+          });
         }
-        requests = await provisioningRepo.listProvisioningRequestsForCooperative(coopId, {
-          status: status.success ? status.data : undefined,
-        });
       } else if (role === "OPERATION_ADMIN") {
         const mineId = auth.mineId;
         if (!mineId) {
@@ -168,7 +173,7 @@ router.get(
 
       return res.json(success({ requests: requests.map(mapRequest) }, requestId));
     } catch (e) {
-      next(e);
+      forwardError(e, next, requestId);
     }
   },
 );
@@ -186,7 +191,7 @@ router.get(
       });
       return res.json(success({ requests: requests.map(mapRequest) }, requestId));
     } catch (e) {
-      next(e);
+      forwardError(e, next, requestId);
     }
   },
 );
@@ -202,7 +207,7 @@ router.post(
       return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid id", requestId }));
     }
     try {
-      const auth = getAuth(req as { auth?: AuthContext });
+      const auth = getAuth(req as { auth?: AuthContext }, requestId);
       const result = await provisioningService.approveProvisioningRequest(id.data, auth.user.id, requestId);
       if (!result.request) {
         return next(new ApiError({ statusCode: 500, code: "approve_failed", message: "Approve failed", requestId }));
@@ -221,7 +226,7 @@ router.post(
         success({ request: mapRequest(result.request), user: mapUser(result.user) }, requestId),
       );
     } catch (e) {
-      next(e);
+      forwardError(e, next, requestId);
     }
   },
 );
@@ -238,7 +243,7 @@ router.post(
       return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid input", requestId }));
     }
     try {
-      const auth = getAuth(req as { auth?: AuthContext });
+      const auth = getAuth(req as { auth?: AuthContext }, requestId);
       const existing = await provisioningRepo.findProvisioningRequestById(id.data);
       if (!existing || existing.status !== "PENDING") {
         return next(
@@ -251,7 +256,7 @@ router.post(
       }
       return res.json(success({ request: mapRequest(updated) }, requestId));
     } catch (e) {
-      next(e);
+      forwardError(e, next, requestId);
     }
   },
 );

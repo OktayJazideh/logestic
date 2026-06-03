@@ -31,6 +31,7 @@ import { fleetOwnerRouter } from "./routes/fleetOwner";
 import { webhooksRouter } from "./routes/webhooks";
 import { ApiError } from "./http/errors";
 import { failure } from "./http/apiResponse";
+import { prismaToApiError } from "./lib/prismaErrors";
 
 export function createApp() {
   const app = express();
@@ -90,6 +91,14 @@ export function createApp() {
     if (err instanceof ApiError) {
       res.status(err.statusCode).json(
         failure(err.code, err.message, err.details, err.requestId ?? requestId),
+      );
+      return;
+    }
+
+    const prismaErr = prismaToApiError(err, requestId);
+    if (prismaErr) {
+      res.status(prismaErr.statusCode).json(
+        failure(prismaErr.code, prismaErr.message, prismaErr.details, prismaErr.requestId ?? requestId),
       );
       return;
     }

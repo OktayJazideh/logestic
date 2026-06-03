@@ -6,9 +6,13 @@ const CODE_FA: Record<string, string> = {
   national_id_unavailable: "کد ملی در سیستم موجود است و قابل استفاده نیست.",
   invalid_national_id: "کد ملی نامعتبر است.",
   invalid_mobile: "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود.",
-  cooperative_required: "شناسه تعاونی برای این نقش الزامی است.",
-  mine_required: "ابتدا فضای کاری (معدن) را انتخاب کنید.",
+  cooperative_required: "کاربر تعاونی به هیچ تعاونی متصل نیست یا شناسه تعاونی الزامی است.",
+  mine_required: "ابتدا فضای کاری (معدن) را از منوی بالا انتخاب کنید.",
   self_delete: "نمی‌توانید حساب خود را حذف کنید.",
+  schema_not_ready:
+    "پایگاه‌داده به‌روز نیست. روی سرور دستور prisma migrate deploy (migration 0045) را اجرا کنید و API را restart کنید.",
+  internal_error: "خطای داخلی سرور. اگر تازه deploy کرده‌اید، migration و restart سرویس را بررسی کنید.",
+  workspace_access_denied: "دسترسی به فضای کاری این معدن برای شما مجاز نیست.",
 };
 
 export function apiErrorMessageFa(code?: string, fallback?: string): string {
