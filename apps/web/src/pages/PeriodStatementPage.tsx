@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { StatusBadge } from "../components/simple/StatusBadge";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
+import { labelFa, STATEMENT_STATUS_FA } from "../lib/uiLabels";
 import { apiGetData, apiPostData, getStoredToken } from "../api";
 import { JalaliMonthPicker } from "../components/JalaliMonthPicker";
 import { formatMoney } from "../lib/formatMoney";
 import { formatJalaliDate, formatJalaliDateTime, formatPeriodKeyYm, todayGregorianYm } from "../lib/jalaliDate";
-import { labelFa, STATEMENT_STATUS_FA } from "../lib/uiLabels";
 
 type PeriodStatementLine = {
   id: number;
@@ -104,11 +106,20 @@ export default function PeriodStatementPage() {
   }
 
   return (
-    <PageFrame title="صورت وضعیت دوره">
-      <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 16 }}>
-        جریان: پیش‌نویس → بررسی → تأیید دوطرفه (تعاونی + عملیات معدن) → قفل مالی. پس از قفل، معدن فقط به شبای
-        رسمی تعاونی واریز می‌کند.
-      </p>
+    <SimplePageLayout
+      title="صورت وضعیت دوره"
+      subtitle="پیش‌نویس → تأیید → قفل — وضعیت دوره را اینجا ببینید."
+      breadcrumb={breadcrumbsForPath("/panel/admin/period-statement")}
+    >
+      {statement && (
+        <div style={{ marginBottom: 16 }}>
+          <StatusBadge
+            label={labelFa(STATEMENT_STATUS_FA, statement.status)}
+            tone={statement.status === "LOCKED" ? "success" : statement.status === "DRAFT" ? "neutral" : "warn"}
+            size="lg"
+          />
+        </div>
+      )}
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 16, alignItems: "center" }}>
         <JalaliMonthPicker
@@ -317,6 +328,6 @@ export default function PeriodStatementPage() {
           </table>
         </div>
       )}
-    </PageFrame>
+    </SimplePageLayout>
   );
 }

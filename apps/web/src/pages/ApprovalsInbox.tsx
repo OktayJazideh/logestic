@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { StatusBadge } from "../components/simple/StatusBadge";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
 import { apiGetData } from "../api";
 import { formatJalaliDateTime } from "../lib/jalaliDate";
 
@@ -76,8 +79,10 @@ export default function ApprovalsInbox() {
   const visible = useMemo(() => items.filter((i) => i.type === tab), [items, tab]);
 
   return (
-    <PageFrame
+    <SimplePageLayout
       title="صندوق تأییدها"
+      subtitle="کارهای در انتظار تأیید شما — روی هر مورد بروید و اقدام کنید."
+      breadcrumb={breadcrumbsForPath("/panel/approvals")}
       expectedRoles={["COOP_ADMIN", "OPERATION_ADMIN"]}
       intro={
         <div
@@ -119,15 +124,11 @@ export default function ApprovalsInbox() {
       </div>
 
       {err && (
-        <div style={{ padding: 12, background: "#FEF2F2", color: "#B91C1C", borderRadius: 8, marginBottom: 12 }}>
-          {err}
-          {err.includes("mine") && (
-            <span>
-              {" "}
-              — ابتدا معدن/workspace را از بالای پنل انتخاب کنید.
-            </span>
-          )}
-        </div>
+        <ErrorBanner
+          message={err}
+          actionHint="ابتدا محل کار (معدن) را انتخاب کنید، سپس «بروزرسانی»."
+          onRetry={() => void load()}
+        />
       )}
 
       {loading && <p style={{ color: "#6B7280", fontSize: 13 }}>در حال بارگذاری…</p>}
@@ -152,18 +153,7 @@ export default function ApprovalsInbox() {
               <tr key={`${item.type}-${item.id}-${item.entity_kind ?? ""}`}>
                 <td style={td}>{item.title}</td>
                 <td style={td}>
-                  <span
-                    style={{
-                      display: "inline-block",
-                      padding: "2px 8px",
-                      borderRadius: 6,
-                      background: "#FEF3C7",
-                      color: "#92400E",
-                      fontSize: 12,
-                    }}
-                  >
-                    {item.status}
-                  </span>
+                  <StatusBadge label={item.status} tone="warn" />
                 </td>
                 <td style={td}>{formatWaitingSince(item.waiting_since)}</td>
                 <td style={td}>
@@ -197,6 +187,6 @@ export default function ApprovalsInbox() {
           </tbody>
         </table>
       )}
-    </PageFrame>
+    </SimplePageLayout>
   );
 }

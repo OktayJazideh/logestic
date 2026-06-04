@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { StatusBadge } from "../components/simple/StatusBadge";
 import { MineScope } from "../components/MineScope";
 import { apiGetData, apiPostData, getStoredToken } from "../api";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { useFieldValidation } from "../hooks/useFieldValidation";
 import { fieldErrorStyle } from "../components/FormField";
 import { minLength, positiveNumber, required, runValidators } from "../lib/validation";
-import { labelFa, MANUAL_REASON_FA, WEIGHBRIDGE_STATUS_FA } from "../lib/uiLabels";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
+import { labelFa, MANUAL_REASON_FA, simpleLabel, WEIGHBRIDGE_STATUS_FA } from "../lib/uiLabels";
 import {
   alertStyle,
   brand,
@@ -256,16 +259,17 @@ export default function WeighbridgePage() {
   const approveAllowed =
     approvable && canApproveTicket && (!needsSupervisor || isOpAdmin);
 
+  const showWeightForm = canEnterWeight(me?.role) && weightsEditable;
+  const showApprovePrimary = approveAllowed && (!isHold || !isOpAdmin || isOpAdmin);
+  const primaryApproveLabel =
+    isHold && isOpAdmin ? (needsSupervisor ? "تأیید دستی" : "آزادسازی از نگهداری") : "تأیید تیکت";
+
   return (
-    <PageFrame
+    <SimplePageLayout
       title="باسکول"
+      subtitle="وزن خالی و پر را ثبت کنید — وزن خالص فقط نمایش داده می‌شود."
+      breadcrumb={breadcrumbsForPath("/panel/weighbridge")}
       expectedRoles={["COOP_ADMIN", "COOP_OPERATOR", "OPERATION_ADMIN", "ADMIN"]}
-      intro={
-        <p style={{ margin: 0, lineHeight: 1.75 }}>
-          اپراتور باسکول وزن خالی و پر را ثبت می‌کند. در صورت خرابی باسکول، مدیر عملیات ثبت دستی با
-          دلیل انجام می‌دهد. راننده وزن وارد نمی‌کند.
-        </p>
-      }
     >
       <MineScope onMineSelected={() => setMineKey((k) => k + 1)} />
 
@@ -293,7 +297,9 @@ export default function WeighbridgePage() {
         </button>
       </div>
 
-      {err && <div style={alertWarn}>{err}</div>}
+      {err && (
+        <ErrorBanner message={err} actionHint="«بروزرسانی لیست» را بزنید." onRetry={() => void loadTickets()} />
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 1fr) minmax(300px, 1fr)", gap: 16 }}>
         <section>
@@ -338,13 +344,19 @@ export default function WeighbridgePage() {
           {!selectedId && <p style={{ color: brand.textMuted, fontSize: 14 }}>یک تیکت از لیست انتخاب کنید.</p>}
           {detail && (
             <>
-              <div style={{ fontSize: 13, color: brand.textMuted, marginBottom: 10, lineHeight: 1.7 }}>
-                <div>
-                  <strong>{detail.ticket_number}</strong> — ماموریت #{detail.mission_id}
+              <div className="simple-status-hero" data-testid="wb-status-hero">
+                <div style={{ fontSize: 14, color: brand.textMuted, marginBottom: 8 }}>
+                  {detail.ticket_number} — مأموریت #{detail.mission_id}
                 </div>
-                <div>
-                  وضعیت:{" "}
-                  <strong data-testid="wb-ticket-status">{labelFa(WEIGHBRIDGE_STATUS_FA, detail.status)}</strong>
+                <StatusBadge
+                  label={labelFa(WEIGHBRIDGE_STATUS_FA, detail.status)}
+                  tone={isHold ? "warn" : detail.status === "LOADED_REGISTERED" ? "success" : "primary"}
+                  size="lg"
+                />
+                <div className="simple-status-hero__value" style={{ marginTop: 12 }} data-testid="wb-ticket-status">
+                  {detail.net_weight != null
+                    ? `${Number(detail.net_weight).toLocaleString("fa-IR")} کیلو — ${simpleLabel("netTons")}`
+                    : "وزن خالص هنوز محاسبه نشده"}
                 </div>
               </div>
 
@@ -381,7 +393,7 @@ export default function WeighbridgePage() {
               )}
 
               {canManualOverride && (
-                <form onSubmit={(e) => void submitManualWeights(e)} style={{ marginBottom: 14 }}>
+                <form id="wb-manual-form" onSubmit={(e) => void submitManualWeights(e)} style={{ marginBottom: 14 }}>
                   <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
                     ثبت دستی — فقط مدیر عملیات
                   </div>
@@ -414,19 +426,11 @@ export default function WeighbridgePage() {
                       style={{ ...inputStyle, minWidth: "100%", resize: "vertical" }}
                     />
                   </label>
-                  <button
-                    data-testid="wb-submit-manual"
-                    type="submit"
-                    disabled={!weightsEditable || busy != null}
-                    style={{ ...btnPrimary, background: brand.warn, borderColor: brand.warnBorder }}
-                  >
-                    {busy === "manual" ? "…" : "ثبت دستی"}
-                  </button>
                 </form>
               )}
 
               {canEnterWeight(me?.role) && (
-                <form onSubmit={(e) => void submitWeights(e)} style={{ marginBottom: 14 }}>
+                <form id="wb-weights-form" onSubmit={(e) => void submitWeights(e)} style={{ marginBottom: 14 }}>
                   <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>ثبت وزن (kg)</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
                     <label style={labelBlock}>
@@ -466,14 +470,6 @@ export default function WeighbridgePage() {
                       />
                     </label>
                   </div>
-                  <button
-                    data-testid="wb-submit-weights"
-                    type="submit"
-                    disabled={!weightsEditable || busy != null}
-                    style={btnPrimary}
-                  >
-                    {busy === "weights" ? "…" : "ثبت وزن"}
-                  </button>
                   {!weightsEditable && (
                     <span style={{ marginRight: 8, fontSize: 12, color: brand.textMuted }}>
                       ثبت وزن فقط وقتی تیکت در انتظار وزن خالی یا وزن خالی ثبت‌شده باشد.
@@ -488,49 +484,70 @@ export default function WeighbridgePage() {
                 </p>
               )}
               {approveAllowed && (
-                <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-start" }}>
-                  {isHold && isOpAdmin && (
-                    <button
-                      data-testid="wb-release-hold"
-                      type="button"
-                      disabled={busy != null}
-                      onClick={() => void approveTicket()}
-                      style={{ ...btnPrimary, background: brand.warn, borderColor: brand.warnBorder }}
-                    >
-                      {busy === "approve" ? "…" : needsSupervisor ? "تأیید دستی" : "آزادسازی از نگهداری"}
-                    </button>
-                  )}
-                  {(!isHold || !isOpAdmin) && !needsSupervisor && (
-                    <button
-                      data-testid="wb-approve"
-                      type="button"
-                      disabled={busy != null}
-                      onClick={() => void approveTicket()}
-                      style={btnPrimary}
-                    >
-                      {busy === "approve" ? "…" : "تأیید (Approve)"}
-                    </button>
-                  )}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <input
-                      data-testid="wb-reject-reason"
-                      value={rejectReason}
-                      onChange={(e) => setRejectReason(e.target.value)}
-                      placeholder="دلیل رد (حداقل ۳ کاراکتر)"
-                      style={{ ...inputStyle, minWidth: 200 }}
-                    />
-                    <button
-                      data-testid="wb-reject"
-                      type="button"
-                      disabled={busy != null}
-                      onClick={() => void rejectTicket()}
-                      style={btnDanger}
-                    >
-                      {busy === "reject" ? "…" : "رد (Reject)"}
-                    </button>
-                  </div>
+                <div style={{ marginTop: 12 }}>
+                  <input
+                    data-testid="wb-reject-reason"
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="دلیل رد (حداقل ۳ کاراکتر)"
+                    style={{ ...inputStyle, minWidth: "100%", marginBottom: 8 }}
+                  />
+                  <button
+                    data-testid="wb-reject"
+                    type="button"
+                    disabled={busy != null}
+                    onClick={() => void rejectTicket()}
+                    style={{ ...btnDanger, width: "100%", minHeight: 44 }}
+                  >
+                    {busy === "reject" ? "…" : "رد تیکت"}
+                  </button>
                 </div>
               )}
+
+              <div className="simple-footer-cta" style={{ marginTop: 16, paddingTop: 12, borderTop: `1px solid ${brand.border}` }}>
+                {showWeightForm && (
+                  <button
+                    data-testid="wb-submit-weights"
+                    type="button"
+                    disabled={busy != null}
+                    className="simple-footer-btn simple-footer-btn--primary"
+                    style={{ width: "100%" }}
+                    onClick={() => {
+                      const form = document.getElementById("wb-weights-form") as HTMLFormElement | null;
+                      form?.requestSubmit();
+                    }}
+                  >
+                    {busy === "weights" ? "…" : "ثبت وزن"}
+                  </button>
+                )}
+                {canManualOverride && weightsEditable && !showWeightForm && (
+                  <button
+                    data-testid="wb-submit-manual"
+                    type="button"
+                    disabled={busy != null}
+                    className="simple-footer-btn simple-footer-btn--danger"
+                    style={{ width: "100%" }}
+                    onClick={() => {
+                      const form = document.getElementById("wb-manual-form") as HTMLFormElement | null;
+                      form?.requestSubmit();
+                    }}
+                  >
+                    {busy === "manual" ? "…" : "ثبت دستی"}
+                  </button>
+                )}
+                {showApprovePrimary && !showWeightForm && (
+                  <button
+                    data-testid={isHold && isOpAdmin ? "wb-release-hold" : "wb-approve"}
+                    type="button"
+                    disabled={busy != null}
+                    className="simple-footer-btn simple-footer-btn--primary"
+                    style={{ width: "100%" }}
+                    onClick={() => void approveTicket()}
+                  >
+                    {busy === "approve" ? "…" : primaryApproveLabel}
+                  </button>
+                )}
+              </div>
 
               {actionMsg && (
                 <div data-testid="wb-action-msg" style={{ marginTop: 12, fontSize: 13, color: brand.textMuted }}>
@@ -541,7 +558,7 @@ export default function WeighbridgePage() {
           )}
         </section>
       </div>
-    </PageFrame>
+    </SimplePageLayout>
   );
 }
 

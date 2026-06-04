@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiGetData, apiPostData, getStoredToken, setStoredToken } from "../api";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { simpleLabel } from "../lib/uiLabels";
 import { brand, btnSecondary } from "../theme";
 
 export type WorkspaceRow = {
@@ -41,16 +43,6 @@ const sectionTitleStyle: React.CSSProperties = {
   color: "#374151",
 };
 
-const workspaceButtonStyle: React.CSSProperties = {
-  textAlign: "right",
-  padding: "14px 16px",
-  borderRadius: 10,
-  border: "1px solid #E5E7EB",
-  background: "#FFFFFF",
-  cursor: "pointer",
-  width: "100%",
-};
-
 function WorkspaceButton({
   ws,
   busy,
@@ -65,24 +57,25 @@ function WorkspaceButton({
       ? `workspace-community-${ws.cooperative_id ?? ws.mine_id}`
       : `workspace-operational-${ws.mine_id}`;
 
+  const kindTitle = ws.membership_kind === "COMMUNITY" ? "تعاونی" : "معدن";
+  const kindDesc =
+    ws.membership_kind === "COMMUNITY"
+      ? `عضویت در تعاونی — ${ws.mine_name}`
+      : `کار عملیاتی در ${ws.mine_name}`;
+
   return (
     <button
       key={`${ws.membership_kind}-${ws.mine_id}-${ws.cooperative_id ?? 0}`}
       type="button"
+      className="workspace-kind-card"
       data-testid={testId}
       disabled={busy}
       onClick={() => onSelect(ws)}
-      style={{
-        ...workspaceButtonStyle,
-        cursor: busy ? "not-allowed" : "pointer",
-        background: busy ? "#F3F4F6" : "#FFFFFF",
-      }}
     >
-      <div style={{ fontWeight: 700, color: "#111827" }}>{ws.subtitle}</div>
-      <div style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>
-        {ws.membership_kind === "COMMUNITY" ? `معدن: ${ws.mine_name}` : ws.mine_name}
-      </div>
-      <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{ws.roles.join(" · ")}</div>
+      <div className="workspace-kind-card__title">{kindTitle}</div>
+      <div className="workspace-kind-card__desc">{kindDesc}</div>
+      <div style={{ fontSize: 13, color: brand.textMuted, marginTop: 8 }}>{ws.subtitle}</div>
+      <div style={{ fontSize: 12, color: brand.textSoft, marginTop: 4 }}>{ws.roles.join(" · ")}</div>
     </button>
   );
 }
@@ -156,7 +149,7 @@ export default function WorkspaceSelectPage() {
     <div dir="rtl" style={pageStyle}>
       <div style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 8 }}>
-          <h1 style={{ margin: 0, fontSize: 20, color: "#0E3B13" }}>انتخاب فضای کاری</h1>
+          <h1 style={{ margin: 0, fontSize: 22, color: brand.primaryDark }}>{simpleLabel("workspace")}</h1>
           <button
             type="button"
             data-testid="workspace-logout"
@@ -169,44 +162,35 @@ export default function WorkspaceSelectPage() {
             خروج از حساب
           </button>
         </div>
-        <p style={{ margin: "0 0 20px", fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>
-          عضویت تعاونی و کار عملیاتی در معدن جدا هستند — فقط یکی را برای این نشست انتخاب کنید.
+        <p style={{ margin: "0 0 20px", fontSize: 15, color: brand.textMuted, lineHeight: 1.6 }}>
+          الان کجا کار می‌کنید؟ یک کارت «معدن» یا «تعاونی» را بزنید.
         </p>
 
         {error && (
-          <div
-            role="alert"
-            style={{
-              marginBottom: 16,
-              padding: "10px 12px",
-              borderRadius: 8,
-              background: "#FEF2F2",
-              border: "1px solid #FECACA",
-              color: "#B91C1C",
-              fontSize: 13,
-            }}
-          >
-            {error}
-          </div>
+          <ErrorBanner
+            message={error}
+            actionHint="دوباره همان کارت را انتخاب کنید یا از حساب خارج شوید."
+            onRetry={() => setError(null)}
+          />
         )}
 
         {workspaces.length === 0 ? (
           <p style={{ color: "#B45309", fontSize: 13 }}>فضای کاری فعالی برای حساب شما ثبت نشده است.</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {community.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {operational.length > 0 && (
               <>
-                <div style={sectionTitleStyle}>عضویت در تعاونی</div>
-                {community.map((w) => (
-                  <WorkspaceButton key={`c-${w.cooperative_id}-${w.mine_id}`} ws={w} busy={busy} onSelect={selectWorkspace} />
+                <div style={sectionTitleStyle}>معدن — کار عملیاتی</div>
+                {operational.map((w) => (
+                  <WorkspaceButton key={`o-${w.mine_id}`} ws={w} busy={busy} onSelect={selectWorkspace} />
                 ))}
               </>
             )}
-            {operational.length > 0 && (
+            {community.length > 0 && (
               <>
-                <div style={sectionTitleStyle}>کار در معدن</div>
-                {operational.map((w) => (
-                  <WorkspaceButton key={`o-${w.mine_id}`} ws={w} busy={busy} onSelect={selectWorkspace} />
+                <div style={sectionTitleStyle}>تعاونی — عضویت</div>
+                {community.map((w) => (
+                  <WorkspaceButton key={`c-${w.cooperative_id}-${w.mine_id}`} ws={w} busy={busy} onSelect={selectWorkspace} />
                 ))}
               </>
             )}

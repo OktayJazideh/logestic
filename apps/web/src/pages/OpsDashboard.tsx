@@ -10,7 +10,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { StatusBadge } from "../components/simple/StatusBadge";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
 import { apiGetData } from "../api";
 import { formatJalaliDate, formatJalaliDateTime, formatPeriodKeyYm } from "../lib/jalaliDate";
 import { labelFa, MISSION_STATUS_FA } from "../lib/uiLabels";
@@ -113,9 +116,10 @@ export default function OpsDashboard() {
     })) ?? [];
 
   return (
-    <PageFrame
+    <SimplePageLayout
       title="داشبورد عملیاتی"
-      intro="خلاصه وضعیت معدن انتخاب‌شده. برای اقدام از میانبرهای زیر استفاده کنید."
+      subtitle="خلاصه مأموریت‌ها و هشدارها — برای اقدام از میانبرها استفاده کنید."
+      breadcrumb={breadcrumbsForPath("/panel/ops")}
       expectedRoles={["OPERATION_ADMIN", "ADMIN"]}
     >
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
@@ -130,9 +134,7 @@ export default function OpsDashboard() {
       </div>
 
       {error && (
-        <div style={{ color: brand.warn, marginBottom: 12, fontSize: 14 }} data-testid="ops-dash-error">
-          {error}
-        </div>
+        <ErrorBanner message={error} actionHint="«بروزرسانی» را بزنید." onRetry={() => void load()} testId="ops-dash-error" />
       )}
 
       {dash && (
@@ -235,7 +237,9 @@ export default function OpsDashboard() {
                     <td style={td}>
                       <Link to={`/panel/missions/${m.id}`}>{m.id.toLocaleString("fa-IR")}</Link>
                     </td>
-                    <td style={td}>{labelFa(MISSION_STATUS_FA, m.status)}</td>
+                    <td style={td}>
+                      <StatusBadge label={labelFa(MISSION_STATUS_FA, m.status)} tone="primary" />
+                    </td>
                     <td style={td}>{m.driver_name}</td>
                     <td style={td}>{formatTons(m.tons)}</td>
                   </tr>
@@ -245,6 +249,6 @@ export default function OpsDashboard() {
           </div>
         </>
       )}
-    </PageFrame>
+    </SimplePageLayout>
   );
 }

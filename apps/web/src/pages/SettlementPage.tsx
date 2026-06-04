@@ -1,15 +1,18 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { PageFrame } from "../components/PageFrame";
-import { apiGetData, apiPostData, getStoredToken, pollJobUntilDone, API_BASE } from "../api";
-import { formatMoney } from "../lib/formatMoney";
-import { JalaliMonthPicker } from "../components/JalaliMonthPicker";
-import { formatJalaliDate, formatPeriodKeyYm, todayGregorianYm } from "../lib/jalaliDate";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
 import {
   COMMUNITY_POOL_STATUS_FA,
   labelFa,
   SETTLEMENT_BATCH_STATUS_FA,
   STATEMENT_STATUS_FA,
+  simpleLabel,
 } from "../lib/uiLabels";
+import { apiGetData, apiPostData, getStoredToken, pollJobUntilDone, API_BASE } from "../api";
+import { formatMoney } from "../lib/formatMoney";
+import { JalaliMonthPicker } from "../components/JalaliMonthPicker";
+import { formatJalaliDate, formatPeriodKeyYm, todayGregorianYm } from "../lib/jalaliDate";
 import { Button } from "../components/ui";
 import {
   brand,
@@ -267,8 +270,13 @@ export default function SettlementPage() {
   }
 
   return (
-    <PageFrame title="تسویه ماهانه" expectedRoles={["ADMIN", "CONSULTANT", "OPERATION_ADMIN"]}>
-      {err && <div style={{ color: "#B45309", marginBottom: 10 }}>{err}</div>}
+    <SimplePageLayout
+      title={simpleLabel("settlement")}
+      subtitle="بسته تسویه ماهانه — وضعیت پیش‌نویس تا قفل را اینجا ببینید."
+      breadcrumb={breadcrumbsForPath("/panel/settlement")}
+      expectedRoles={["ADMIN", "CONSULTANT", "OPERATION_ADMIN"]}
+    >
+      {err && <ErrorBanner message={err} actionHint="پارامترها را بررسی و دوباره تلاش کنید." onRetry={() => setErr(null)} />}
       {msg && <div style={{ color: "#065F46", marginBottom: 10 }}>{msg}</div>}
 
       <section
@@ -589,6 +597,6 @@ export default function SettlementPage() {
           </table>
         </>
       )}
-    </PageFrame>
+    </SimplePageLayout>
   );
 }

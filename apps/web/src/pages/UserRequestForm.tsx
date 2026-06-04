@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
+import { simpleLabel } from "../lib/uiLabels";
 import { apiGetData, apiPostData } from "../api";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { FormField } from "../components/FormField";
@@ -118,22 +121,30 @@ export default function UserRequestForm() {
   }
 
   return (
-    <PageFrame
-      title="ثبت درخواست کاربر جدید"
-      intro={`پس از تأیید ADMIN، کاربر با همان موبایل می‌تواند وارد شود. ${PROVISIONING_HINT_FA}`}
+    <SimplePageLayout
+      title={simpleLabel("provisioning")}
+      subtitle={`پس از تأیید مدیر، کاربر با همان موبایل وارد می‌شود. ${PROVISIONING_HINT_FA}`}
+      breadcrumb={breadcrumbsForPath("/panel/user-requests")}
+      footer={[
+        {
+          label: busy ? "در حال ارسال…" : "ارسال درخواست",
+          variant: "primary",
+          busy,
+          disabled: busy,
+          type: "submit",
+          testId: "user-request-submit",
+          onClick: () => {
+            const form = document.getElementById("user-request-form") as HTMLFormElement | null;
+            form?.requestSubmit();
+          },
+        },
+      ]}
     >
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && <ErrorBanner message={error} actionHint="فیلدها را بررسی و دوباره ارسال کنید." onRetry={() => setError(null)} />}
       {ok && <Alert variant="success">{ok}</Alert>}
 
-      <FormRow
-        as="form"
-        onSubmit={(e) => void submit(e)}
-        actions={
-          <Button type="submit" disabled={busy}>
-            {busy ? "در حال ارسال…" : "ثبت درخواست"}
-          </Button>
-        }
-      >
+      <form id="user-request-form" noValidate onSubmit={(e) => void submit(e)}>
+      <FormRow>
         {isOp && (
           <FilterField minWidth={160}>
             <FormField label="نوع واحد">
@@ -180,6 +191,7 @@ export default function UserRequestForm() {
           </FormField>
         </FilterField>
       </FormRow>
+      </form>
 
       <h3 style={{ fontSize: 15, marginBottom: 8 }}>درخواست‌های قبلی</h3>
       {requests.length === 0 ? (
@@ -223,7 +235,7 @@ export default function UserRequestForm() {
           );
         })
       )}
-    </PageFrame>
+    </SimplePageLayout>
   );
 }
 

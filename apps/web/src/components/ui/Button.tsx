@@ -1,5 +1,5 @@
 import React from "react";
-import { btnDanger, btnGhost, btnPrimary, btnSecondary } from "../../theme";
+import { btnDanger, btnGhost, btnPrimary, btnSecondary, touchMin } from "../../theme";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -16,12 +16,14 @@ const variants: Record<Variant, React.CSSProperties> = {
 };
 
 export function Button({ variant = "primary", fullWidth, style, disabled, children, type = "button", ...rest }: Props) {
+  const minHeight = variant === "primary" ? touchMin : undefined;
   return (
     <button
       type={type}
       disabled={disabled}
       style={{
         ...variants[variant],
+        minHeight,
         width: fullWidth ? "100%" : undefined,
         opacity: disabled ? 0.55 : 1,
         cursor: disabled ? "not-allowed" : "pointer",

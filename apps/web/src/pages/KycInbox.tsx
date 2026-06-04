@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { SimpleConfirmDialog } from "../components/simple/SimpleConfirmDialog";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
+import { simpleLabel } from "../lib/uiLabels";
 import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData, apiPostData } from "../api";
@@ -406,15 +409,15 @@ export default function KycInbox() {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <PageFrame
-      title={title}
-      expectedRoles={["COOP_ADMIN", "COOP_OPERATOR", "ADMIN"]}
-      intro={
-        <p style={{ margin: 0 }}>
-          درخواست‌های {inboxStatus === "PENDING" ? "در انتظار تأیید" : "نیاز به اصلاح"} تعاونی شما. هر اقدام در
-          audit ثبت می‌شود.
-        </p>
+    <SimplePageLayout
+      title={simpleLabel("kyc")}
+      subtitle={
+        inboxStatus === "PENDING"
+          ? "درخواست‌های در انتظار را تأیید یا رد کنید — دلیل رد الزامی است."
+          : "درخواست‌های نیاز به اصلاح را پیگیری کنید."
       }
+      breadcrumb={breadcrumbsForPath("/panel/kyc")}
+      expectedRoles={["COOP_ADMIN", "COOP_OPERATOR", "ADMIN"]}
     >
       <InboxTabs
         inboxStatus={inboxStatus}
@@ -615,25 +618,15 @@ export default function KycInbox() {
         </div>
       )}
 
-      {bulkConfirm && (
-        <div style={modalOverlay} role="dialog" aria-modal="true">
-          <div style={modalPanel}>
-            <h3 style={{ margin: "0 0 8px", fontSize: 16 }}>تأیید گروهی</h3>
-            <p style={{ margin: "0 0 12px", fontSize: 13, color: "#4B5563" }}>
-              {selected.size} مورد به‌صورت متوالی تأیید می‌شود (حداکثر {BULK_MAX}). ادامه می‌دهید؟
-            </p>
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button type="button" onClick={() => setBulkConfirm(false)} style={modalCancelBtn}>
-                انصراف
-              </button>
-              <button type="button" onClick={bulkApprove} style={modalConfirmBtn}>
-                تأیید
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </PageFrame>
+      <SimpleConfirmDialog
+        open={bulkConfirm}
+        title="مطمئنید؟"
+        message={`${selected.size} مورد به‌صورت متوالی تأیید می‌شود (حداکثر ${BULK_MAX}).`}
+        confirmLabel="تأیید گروهی"
+        onConfirm={bulkApprove}
+        onCancel={() => setBulkConfirm(false)}
+      />
+    </SimplePageLayout>
   );
 }
 

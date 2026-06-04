@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
+import { simpleLabel } from "../lib/uiLabels";
 import { apiGetData, apiPostData } from "../api";
 import { apiErrorMessageFa } from "../lib/apiErrorsFa";
 import { Alert } from "../components/ui/Alert";
@@ -93,10 +96,11 @@ export default function AdminUserRequests() {
   }
 
   return (
-    <PageFrame
-      title="صندوق درخواست کاربر"
+    <SimplePageLayout
+      title={`صندوق ${simpleLabel("provisioning")}`}
+      subtitle="درخواست‌های جدید را تأیید یا با دلیل رد کنید."
+      breadcrumb={breadcrumbsForPath("/panel/admin/user-requests")}
       expectedRoles={["ADMIN"]}
-      intro="درخواست‌های ثبت‌شده از تعاونی و عملیات معدن — پس از تأیید، کاربر می‌تواند با OTP وارد شود."
     >
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
         {(["PENDING", "REJECTED", "APPROVED", "ALL"] as const).map((s) => (
@@ -110,7 +114,7 @@ export default function AdminUserRequests() {
           </Button>
         ))}
       </div>
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && <ErrorBanner message={error} actionHint="دوباره تلاش کنید." onRetry={() => void load()} />}
       {!error && requests.length === 0 ? (
         <Card>
           <p style={{ margin: 0, color: "#6B7280" }}>
@@ -175,6 +179,6 @@ export default function AdminUserRequests() {
           </Card>
         ))
       ) : null}
-    </PageFrame>
+    </SimplePageLayout>
   );
 }

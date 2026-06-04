@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
 import { MineScope } from "../components/MineScope";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
+import { brand } from "../theme";
 import { fieldBorderStyle, fieldErrorStyle } from "../components/FormField";
 import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostData, getStoredToken } from "../api";
@@ -28,7 +31,28 @@ export default function EmployerNeed() {
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [submitOk, setSubmitOk] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
   const { getError, validateAll, validateField } = useFieldValidation();
+
+  function validateStep1(): boolean {
+    return validateAll({
+      villageId: { value: villageId === "" ? "" : String(villageId), validators: [required("روستای مقصد")] },
+    });
+  }
+
+  function validateStep2(): boolean {
+    if (tab === "haul") {
+      return validateAll({
+        materialType: { value: materialType, validators: [required("نوع ماده"), minLength(1, "نوع ماده")] },
+        tons: { value: tons, validators: [required("حجم تن"), positiveNumber("حجم تن")] },
+      });
+    }
+    return validateAll({
+      equipmentType: { value: equipmentType, validators: [required("نوع تجهیز"), minLength(2, "نوع تجهیز")] },
+      locationText: { value: locationText, validators: [required("محل عملیات"), minLength(3, "محل عملیات")] },
+      estimatedHours: { value: estimatedHours, validators: [optionalPositiveNumber("ساعات تخمینی")] },
+    });
+  }
 
   const inputBase: React.CSSProperties = {
     width: "100%",
@@ -153,26 +177,75 @@ export default function EmployerNeed() {
     fontSize: 14,
   });
 
+  const villageName = villages.find((v) => v.id === villageId)?.name ?? "—";
+
   return (
-    <PageFrame
-      title="ثبت نیاز عملیاتی — کارفرما"
+    <SimplePageLayout
+      title="ثبت نیاز کارفرما"
+      subtitle="نیاز حمل یا کار ساعتی را در سه مرحله ثبت کنید."
+      breadcrumb={breadcrumbsForPath("/panel/employer")}
       expectedRoles={["EMPLOYER", "ADMIN"]}
-      intro={
-        <>
-          نقش EMPLOYER: تعیین معدن فعال، انتخاب روستای مقصد و ثبت نیاز حمل تنی یا عملیات ساعتی.{" "}
-          <Link to="/panel/employer/inbox" style={{ color: "#1B5E20", fontWeight: 600 }}>
-            مشاهده دفترچه نیازها
-          </Link>
-        </>
+      footer={
+        wizardStep < 3
+          ? [
+              ...(wizardStep > 1
+                ? [
+                    {
+                      label: "مرحله قبل",
+                      variant: "secondary" as const,
+                      onClick: () => setWizardStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3) : s)),
+                    },
+                  ]
+                : []),
+              {
+                label: wizardStep === 1 ? "ادامه" : "مرور و تأیید",
+                variant: "primary" as const,
+                onClick: () => {
+                  if (wizardStep === 1 && validateStep1()) setWizardStep(2);
+                  else if (wizardStep === 2 && validateStep2()) setWizardStep(3);
+                },
+              },
+            ]
+          : [
+              {
+                label: "مرحله قبل",
+                variant: "secondary" as const,
+                onClick: () => setWizardStep(2),
+              },
+              {
+                label: busy ? "در حال ثبت…" : tab === "haul" ? "ثبت نیاز حمل" : "ثبت نیاز ساعتی",
+                variant: "primary" as const,
+                busy,
+                disabled: busy,
+                testId: "employer-submit",
+                type: "submit",
+                onClick: () => {
+                  const form = document.getElementById("employer-wizard-form") as HTMLFormElement | null;
+                  form?.requestSubmit();
+                },
+              },
+            ]
       }
     >
+      <div className="simple-wizard-steps" data-testid="employer-wizard-step">
+        <span className={wizardStep === 1 ? "simple-wizard-steps__item--active" : ""}>مرحله ۱ از ۳ — نوع و مقصد</span>
+        <span>·</span>
+        <span className={wizardStep === 2 ? "simple-wizard-steps__item--active" : ""}>جزئیات</span>
+        <span>·</span>
+        <span className={wizardStep === 3 ? "simple-wizard-steps__item--active" : ""}>ثبت</span>
+      </div>
+
+      <p style={{ margin: "0 0 12px", fontSize: 14 }}>
+        <Link to="/panel/employer/inbox" style={{ color: brand.primary, fontWeight: 600 }}>
+          پیگیری نیازهای قبلی
+        </Link>
+      </p>
+
       <MineScope onMineSelected={() => loadVillages()} />
 
-      {vilErr && <div style={{ color: "#B45309", marginBottom: 12, fontSize: 14 }}>{vilErr}</div>}
+      {vilErr && <ErrorBanner message={vilErr} actionHint="معدن فعال را در بالا انتخاب کنید." onRetry={() => loadVillages()} />}
       {submitErr && (
-        <div style={{ color: "#B91C1C", marginBottom: 12, fontSize: 14, padding: 12, background: "#FEF2F2", borderRadius: 8 }}>
-          {submitErr}
-        </div>
+        <ErrorBanner message={submitErr} actionHint="اطلاعات را اصلاح کنید و دوباره ثبت کنید." onRetry={() => setSubmitErr(null)} />
       )}
       {submitOk && (
         <div style={{ color: "#166534", marginBottom: 12, fontSize: 14, padding: 12, background: "#F0FDF4", borderRadius: 8 }}>
@@ -197,34 +270,35 @@ export default function EmployerNeed() {
 
       <div
         style={{
-          maxWidth: 480,
-          border: "1px solid #E5E7EB",
-          borderRadius: 10,
-          background: "#FAFAFA",
+          maxWidth: 520,
+          border: `1px solid ${brand.border}`,
+          borderRadius: 12,
+          background: brand.panel,
           overflow: "hidden",
         }}
       >
-        <div style={{ display: "flex", borderBottom: "1px solid #E5E7EB" }}>
-          <button
-            type="button"
-            data-testid="employer-tab-haul"
-            style={tabStyle(tab === "haul")}
-            onClick={() => setTab("haul")}
-          >
-            حمل تنی
-          </button>
-          <button
-            type="button"
-            data-testid="employer-tab-hourly"
-            style={tabStyle(tab === "hourly")}
-            onClick={() => setTab("hourly")}
-          >
-            عملیات ساعتی
-          </button>
-        </div>
-
-        <form style={{ padding: 16 }} noValidate onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 12 }}>
+        <form id="employer-wizard-form" style={{ padding: 16 }} noValidate onSubmit={handleSubmit}>
+          {wizardStep === 1 && (
+            <>
+              <div style={{ display: "flex", borderBottom: `1px solid ${brand.border}`, marginBottom: 16 }}>
+                <button
+                  type="button"
+                  data-testid="employer-tab-haul"
+                  style={tabStyle(tab === "haul")}
+                  onClick={() => setTab("haul")}
+                >
+                  حمل تنی
+                </button>
+                <button
+                  type="button"
+                  data-testid="employer-tab-hourly"
+                  style={tabStyle(tab === "hourly")}
+                  onClick={() => setTab("hourly")}
+                >
+                  عملیات ساعتی
+                </button>
+              </div>
+              <div style={{ marginBottom: 12 }}>
             <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
               روستای مقصد <span style={{ color: "#DC2626" }}>*</span>
             </label>
@@ -250,9 +324,11 @@ export default function EmployerNeed() {
               ))}
             </select>
             {getError("villageId") && <div role="alert" style={fieldErrorStyle}>{getError("villageId")}</div>}
-          </div>
+              </div>
+            </>
+          )}
 
-          {tab === "haul" ? (
+          {wizardStep === 2 && tab === "haul" ? (
             <>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
@@ -292,7 +368,7 @@ export default function EmployerNeed() {
                 {getError("tons") && <div role="alert" style={fieldErrorStyle}>{getError("tons")}</div>}
               </div>
             </>
-          ) : (
+          ) : wizardStep === 2 ? (
             <>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
@@ -360,35 +436,42 @@ export default function EmployerNeed() {
                 {getError("estimatedHours") && <div role="alert" style={fieldErrorStyle}>{getError("estimatedHours")}</div>}
               </div>
             </>
+          ) : null}
+
+          {wizardStep === 2 && (
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>یادداشت</label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={3}
+                style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", resize: "vertical" as const }}
+              />
+            </div>
           )}
 
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>یادداشت</label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={3}
-              style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", resize: "vertical" as const }}
-            />
-          </div>
-          <button
-            data-testid="employer-submit"
-            type="submit"
-            disabled={busy}
-            style={{
-              padding: "10px 18px",
-              borderRadius: 8,
-              border: "none",
-              background: busy ? "#9CA3AF" : "#1B5E20",
-              color: "#fff",
-              fontWeight: 700,
-              cursor: busy ? "not-allowed" : "pointer",
-            }}
-          >
-            {busy ? "در حال ثبت…" : tab === "haul" ? "ثبت نیاز حمل" : "ثبت نیاز ساعتی"}
-          </button>
+          {wizardStep === 3 && (
+            <div style={{ fontSize: 15, lineHeight: 1.8, color: brand.text }}>
+              <p style={{ margin: "0 0 12px", fontWeight: 700, color: brand.primaryDark }}>خلاصه قبل از ثبت</p>
+              <div>نوع: {tab === "haul" ? "حمل تنی" : "عملیات ساعتی"}</div>
+              <div>روستا: {villageName}</div>
+              {tab === "haul" ? (
+                <>
+                  <div>ماده: {materialType}</div>
+                  <div>حجم: {tons} تن</div>
+                </>
+              ) : (
+                <>
+                  <div>تجهیز: {equipmentType}</div>
+                  <div>محل: {locationText}</div>
+                  {estimatedHours && <div>ساعات: {estimatedHours}</div>}
+                </>
+              )}
+              {note && <div>یادداشت: {note}</div>}
+            </div>
+          )}
         </form>
       </div>
-    </PageFrame>
+    </SimplePageLayout>
   );
 }

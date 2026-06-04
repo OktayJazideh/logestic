@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { StatusBadge } from "../components/simple/StatusBadge";
 import { apiGetData, apiPostData, newIdempotencyKey } from "../api";
 import { formatJalaliDateTime } from "../lib/jalaliDate";
-import { labelFa, MISSION_STATUS_FA, OPERATION_TYPE_FA, WEIGHBRIDGE_STATUS_FA } from "../lib/uiLabels";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
+import { labelFa, MISSION_STATUS_FA, OPERATION_TYPE_FA, simpleLabel, WEIGHBRIDGE_STATUS_FA } from "../lib/uiLabels";
 import { Button } from "../components/ui";
 import { brand, radius, space } from "../theme";
 
@@ -172,14 +175,11 @@ export default function DispatchBoard() {
   const cols = board?.columns;
 
   return (
-    <PageFrame
-      title="بورد تخصیص (Kanban)"
+    <SimplePageLayout
+      title={simpleLabel("dispatch")}
+      subtitle="نیازهای معطل را ببینید و با یک دکمه تخصیص خودکار را اجرا کنید."
+      breadcrumb={breadcrumbsForPath("/panel/dispatch-board")}
       expectedRoles={["OPERATION_ADMIN", "ADMIN"]}
-      intro={
-        <p style={{ margin: 0 }}>
-          پایپ‌لاین نیاز → مأموریت برای معدن انتخاب‌شده. تخصیص فقط سیستمی — بدون انتخاب دستی راننده.
-        </p>
-      }
     >
       <div
         style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}
@@ -196,9 +196,12 @@ export default function DispatchBoard() {
       </div>
 
       {err && (
-        <div style={{ color: brand.danger, marginBottom: 12, fontSize: 14 }} data-testid="dispatch-board-error">
-          {err}
-        </div>
+        <ErrorBanner
+          message={err}
+          actionHint="دوباره «بروزرسانی» را بزنید."
+          onRetry={() => void load()}
+          testId="dispatch-board-error"
+        />
       )}
 
       {toast && toast.missionIds.length > 0 && (
@@ -237,7 +240,9 @@ export default function DispatchBoard() {
           {COLUMN_META.map(({ key, title, hint }) => (
             <div key={key} style={columnShell} data-testid={`dispatch-column-${key}`}>
               <div style={columnHeader}>{title}</div>
-              <div style={{ fontSize: 11, color: brand.textMuted, marginBottom: 10 }}>{hint}</div>
+              <div style={{ marginBottom: 10 }}>
+                <StatusBadge label={hint} tone="warn" size="md" />
+              </div>
 
               {key === "PENDING_NEEDS" &&
                 cols.PENDING_NEEDS.map((n) => {
@@ -265,7 +270,7 @@ export default function DispatchBoard() {
                         onClick={() => void autoDispatch(n.need_id)}
                         style={{ marginTop: 10 }}
                       >
-                        {dispatchBusy === n.need_id ? "در حال تخصیص…" : "تخصیص خودکار"}
+                        {dispatchBusy === n.need_id ? "در حال تخصیص…" : "اجرای تخصیص"}
                       </Button>
                       {dispatchErr[n.need_id] && (
                         <div style={{ fontSize: 11, color: brand.danger, marginTop: 6 }}>{dispatchErr[n.need_id]}</div>
@@ -360,6 +365,6 @@ export default function DispatchBoard() {
           ))}
         </div>
       )}
-    </PageFrame>
+    </SimplePageLayout>
   );
 }

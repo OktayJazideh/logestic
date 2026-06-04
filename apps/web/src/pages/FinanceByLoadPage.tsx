@@ -1,6 +1,10 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { PageFrame } from "../components/PageFrame";
+import { SimplePageLayout } from "../components/simple/SimplePageLayout";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { StatusBadge } from "../components/simple/StatusBadge";
+import { breadcrumbsForPath } from "../lib/panelBreadcrumbs";
+import { simpleLabel } from "../lib/uiLabels";
 import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { apiGetData } from "../api";
@@ -210,32 +214,20 @@ export default function FinanceByLoadPage() {
     URL.revokeObjectURL(url);
   }
 
+  const sample = data?.items[0];
+
   return (
-    <PageFrame
-      title="مالی به ازای هر بار"
+    <SimplePageLayout
+      title="مالی هر بار"
+      subtitle="مأموریت تأییدشده — ناخالص، کسور، بلوکه و آزاد."
+      breadcrumb={breadcrumbsForPath("/panel/admin/finance/by-load")}
       expectedRoles={["ADMIN"]}
-      intro="مأموریت‌های تأییدشده — کرایه عملیاتی و سهم جامعه (تن×نرخ، مستقل از کرایه)."
     >
       <p style={{ marginBottom: 16, fontSize: 13 }}>
         <Link to="/panel/admin/finance">← داشبورد مالی تجمیعی</Link>
       </p>
 
-      {error && (
-        <div
-          role="alert"
-          style={{
-            marginBottom: 12,
-            padding: 12,
-            borderRadius: 10,
-            border: "1px solid #FCA5A5",
-            background: "#FEF2F2",
-            color: "#991B1B",
-            fontSize: 13,
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <ErrorBanner message={error} actionHint="بازه تاریخ و معدن را بررسی کنید." onRetry={() => void load()} />}
 
       <section style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
@@ -250,7 +242,7 @@ export default function FinanceByLoadPage() {
               style={{ ...inputStyle, width: 80 }}
             />
           </label>
-          <button type="button" style={btnPrimary} disabled={busy} onClick={() => void load()}>
+          <button type="button" className="simple-footer-btn simple-footer-btn--secondary" disabled={busy} onClick={() => void load()}>
             بارگذاری
           </button>
           <button
@@ -264,6 +256,26 @@ export default function FinanceByLoadPage() {
           </button>
         </div>
       </section>
+
+      {sample && (
+        <div className="finance-load-rows" data-testid="finance-by-load-summary">
+          <div className="finance-load-row">
+            <span className="finance-load-row__label">ناخالص (کرایه عملیاتی)</span>
+            <span className="finance-load-row__amount">{formatMoney(sample.operational_fare_rial)}</span>
+          </div>
+          <div className="finance-load-row">
+            <span className="finance-load-row__label">سهم جامعه</span>
+            <span className="finance-load-row__amount">{formatMoney(sample.community_contribution_rial)}</span>
+          </div>
+          <div className="finance-load-row">
+            <span className="finance-load-row__label">{simpleLabel("hold")}</span>
+            <span className="finance-load-row__amount">
+              {sample.payment_hold ? formatMoney(sample.hold_amount_rial) : "آزاد"}
+              {sample.payment_hold ? <StatusBadge label="نگهداری" tone="warn" /> : <StatusBadge label="آزاد" tone="success" />}
+            </span>
+          </div>
+        </div>
+      )}
 
       <DataTable
         columns={columns}
@@ -300,6 +312,6 @@ export default function FinanceByLoadPage() {
           </div>
         </div>
       )}
-    </PageFrame>
+    </SimplePageLayout>
   );
 }

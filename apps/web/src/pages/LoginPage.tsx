@@ -9,7 +9,9 @@ import { DemoLoginPanel } from "../components/DemoLoginPanel";
 import { isDemoLoginEnabled } from "../demo/demoUsers";
 import { loginErrorMessage } from "../lib/authMessages";
 import { brandNames } from "../brand";
-import { Alert, Button, Input } from "../components/ui";
+import { ErrorBanner } from "../components/simple/ErrorBanner";
+import { Button, Input } from "../components/ui";
+import { simpleLabel } from "../lib/uiLabels";
 import { brand, cardStyle, inputStyle, radius, shadow, space } from "../theme";
 
 const MOBILE_DOWNLOADS = [
@@ -195,19 +197,31 @@ export default function LoginPage() {
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
           <BrandLogo variant="full" size={44} />
         </div>
-        <h1 style={{ margin: "0 0 4px", fontSize: 18, color: brand.primaryDark, fontWeight: 700, textAlign: "center" }}>
-          {brandNames.panel.title}
+        <h1 style={{ margin: "0 0 4px", fontSize: 22, color: brand.primaryDark, fontWeight: 700, textAlign: "center" }}>
+          ورود
         </h1>
-        <p style={{ margin: "0 0 16px", fontSize: 13, color: brand.textMuted, textAlign: "center" }}>
-          {brandNames.tagline} — ورود با موبایل
+        <p style={{ margin: "0 0 8px", fontSize: 14, color: brand.textMuted, textAlign: "center" }}>
+          {brandNames.panel.title} — {brandNames.tagline}
         </p>
-        <p style={{ margin: "0 0 20px", fontSize: 13, color: brand.textMuted, lineHeight: 1.6 }}>
+        <p style={{ margin: "0 0 20px", fontSize: 15, color: brand.textMuted, lineHeight: 1.6, textAlign: "center" }}>
           {step === 1
-            ? "شماره موبایل خود را وارد کنید تا کد یک‌بارمصرف ارسال شود."
+            ? `شماره موبایل را وارد کنید تا ${simpleLabel("otp")} ارسال شود.`
             : `کد ارسال‌شده به ${mobile} را وارد کنید.`}
         </p>
 
-        {error && <Alert variant="danger">{error}</Alert>}
+        {error && (
+          <ErrorBanner
+            message={error}
+            actionHint={step === 2 ? "در صورت انقضا، «ارسال مجدد کد» را بزنید." : "شماره را بررسی کنید و دوباره تلاش کنید."}
+            onRetry={
+              step === 2
+                ? () => void requestOtp()
+                : () => {
+                    setError(null);
+                  }
+            }
+          />
+        )}
 
         {step === 1 ? (
           <form
@@ -305,7 +319,8 @@ export default function LoginPage() {
                 onBlur={() => validateField("otp", otp, otpValidators)}
                 disabled={busy}
                 aria-invalid={!!otpError}
-                style={fieldBorderStyle({ ...inputStyle, letterSpacing: 6, textAlign: "center" }, otpError)}
+                className="login-otp-input"
+                style={fieldBorderStyle({ ...inputStyle, letterSpacing: 8, textAlign: "center", fontSize: 24, minHeight: 56 }, otpError)}
               />
             </FormField>
             <Button data-testid="login-verify" type="submit" fullWidth disabled={busy || !otpValid}>

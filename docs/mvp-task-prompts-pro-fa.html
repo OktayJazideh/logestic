@@ -44,13 +44,12 @@
   <strong>P0 الان:</strong> production sahman (staging ✓). داده پایلوت در seed نیست — از پنل ADMIN.<br />
   <strong>تازه ✓:</strong> FIN-NO-HARDCODE-1 — <code>loadMineFinanceConfig</code> · 400 «تنظیمات معدن ناقص» · <a href="architecture/dynamic-config-fa.md">dynamic-config-fa.md</a><br />
   <strong>P1 UX (قبل UAT میدانی):</strong> ریدیزاین «بدون فکر کردن» — کاربر عادی دکمه/بخش لازم را پیدا کند؛ رنگ و چیدمان مغزپسند · <strong>اسکلت وایرفریم حفظ شود</strong> — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a><br />
-  <strong>تازه ✓:</strong> UX-SIMPLE-SPEC-1 — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a> v1.1 · SIMPLE_LABELS · SemanticColors · MINE-SETTINGS-UI-1 · FIN-NO-HARDCODE-1.
+  <strong>تازه ✓:</strong> UX-WEB-SIMPLE-1 — ریدیزاین پنل وب P1 · <a href="ux/web-screenshots/README.md">web-screenshots</a> · UX-SIMPLE-SPEC-1 · MINE-SETTINGS-UI-1 · FIN-NO-HARDCODE-1.
 </div>
 
 <nav class="toc">
   <strong>باقی‌مانده — اولویت اجرا (بالا → پایین)</strong>
   <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">P0 = blocker UAT · P1 = مهم پس از staging · P2/P3 = فاز بعد</em>
-  <a href="#ux-web-simple-1"><span class="p1">P1</span> UX-WEB-SIMPLE-1 — وب + وایرفریم ۹–۱۱</a>
   <a href="#ux-mobile-simple-1"><span class="p1">P1</span> UX-MOBILE-SIMPLE-1 — موبایل + وایرفریم ۱–۸</a>
   <a href="#tenant-onboard-1"><span class="p1">P1</span> TENANT-ONBOARD-1 — onboarding معدن بدون seed</a>
   <a href="#deploy-sahman-1"><span class="p0">P0</span> DEPLOY-SAHMAN-1 — production + دامنه</a>
@@ -62,6 +61,7 @@
   <a href="#tenant-rls-1"><span class="p3">P3</span> TENANT-RLS-1</a>
   <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
   <strong>تازه انجام‌شده ✓</strong>
+  <a href="#ux-web-simple-1">UX-WEB-SIMPLE-1 ✅</a>
   <a href="#ux-simple-spec-1">UX-SIMPLE-SPEC-1 ✅</a>
   <a href="#fin-no-hardcode-1">FIN-NO-HARDCODE-1 ✅</a>
   <a href="#mine-settings-ui-1">MINE-SETTINGS-UI-1 ✅</a>
@@ -83,90 +83,10 @@
   <a href="#pilot-taftan-1">PILOT-TAFTAN-1 ✅</a>
   <a href="#fin-seed-99-1">FIN-SEED-99-1 ✅</a>
   <a href="#hold-settlement-1">HOLD-SETTLEMENT-1 ✅</a>
-  <a href="#tasks-done">… همه ۸۲ کارت پایین صفحه</a>
+  <a href="#tasks-done">… همه ۸۳ کارت پایین صفحه</a>
 </nav>
 
-<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۱۰)</h2>
-
-<article class="task" id="ux-web-simple-1">
-  <h2><span class="badge">UX-WEB-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین پنل وب — بدون فکر کردن + وایرفریم</h2>
-  <div class="ctx"><strong>پیش‌نیاز:</strong> UX-SIMPLE-SPEC-1 · <strong>هدف:</strong> اپراتور/کارفرما/تعاونی بدون آموزش کار کند — هر صفحه در ۳ ثانیه «کجام / چکار کنم» را جواب دهد. <strong>چیدمان</strong> نزدیک <code>9.png</code> (عملیات) · <code>10.*</code> (KYC) · <code>11.*</code> (مالی).</div>
-  <h3>وایرفریم → صفحه وب</h3>
-  <table>
-    <thead><tr><th>وایرفریم</th><th>صفحه</th><th>اسکلت حفظ‌شونده</th></tr></thead>
-    <tbody>
-      <tr><td><code>9.png</code></td><td><code>OpsDashboard.tsx</code></td><td>KPI بالا · کارت مأموریت/هشدار · رنگ وضعیت</td></tr>
-      <tr><td><code>10.*</code></td><td><code>KycInbox.tsx</code> · Approvals</td><td>جدول→کارت موبایل · تأیید/رد بزرگ + دلیل</td></tr>
-      <tr><td><code>11.*</code></td><td>Finance per-load</td><td>ردیف ناخالص/کسور/بلوکه/آزاد · badge بزرگ</td></tr>
-      <tr><td>—</td><td>Login · Workspace · Weighbridge · Need · Dispatch · Settlement</td><td>یک CTA · فیلد بزرگ · wizard گام‌دار</td></tr>
-    </tbody>
-  </table>
-  <h3>محدودیت‌ها</h3>
-  <ul>
-    <li>فقط UI/copy/layout — API و قوانین مالی دست نخورند.</li>
-    <li>RTL · WCAG AA · nav ≤۵ · home = کارت بزرگ با آیکون+متن (نه لیست لینک خشک).</li>
-    <li>Dispatch: مشاهده + «اجرای تخصیص» — <strong>بدون</strong> drag انتخاب راننده (تعارض وایرفریم ۹.۷).</li>
-  </ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul>
-    <li><code>docs/ux/simple-ui-spec-fa.md</code></li>
-    <li><code>apps/web/src/components/PageFrame.tsx</code> · <code>panelHomeSections.ts</code></li>
-    <li><code>apps/web/src/pages/</code> — Login، WorkspaceSelect، Weighbridge، KycInbox، EmployerNeed، Dispatch، Settlement، UserRequest</li>
-  </ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — UX-WEB-SIMPLE-1 (P1)
-
-## مرجع (الزامی بخوان)
-- docs/ux/simple-ui-spec-fa.md (§۲ اصول · §۳ وایرفریم · §۴ واژگان · §۷ چک‌لیست)
-- docs/wireframes-review/wireframe Screenshots/9.png 10.* 11.*
-- apps/web/src/lib/uiLabels.ts → SIMPLE_LABELS
-
-## هدف
-ریدیزاین پنل وب: کاربر عادی بدون آموزش دکمه/بخش لازم را پیدا کند.
-نه redesign آزاد — **اسکلت وایرفریم حفظ**، copy و اندازه و وضوح بهتر.
-
-## قوانین UX (هر صفحه)
-1. H1 فارسی ساده + زیرعنوان یک خط (الان چه کاری؟)
-2. حداکثر **یک** دکمه primary (سبز) — خطر قرمز جدا
-3. وضعیت: badge رنگی + متن (نه فقط رنگ)
-4. خطا: یک جمله + «چکار کنم؟» + دکمه «دوباره» — بدون error_code
-5. جدول admin: در viewport باریک → کارت (همان داده)
-
-## گام ۱ — Shell
-- PageFrame: nav ثابت ≤5 · breadcrumb «خانه › باسکول»
-- Home نقش‌محور: ۳–۵ کارت بزرگ (آیکون+عنوان+یک خط) مثل داشبورد وایرفریم
-
-## گام ۲ — صفحات (ترتیب · هر کدام قبل/after screenshot)
-LoginPage (OTP بزرگ، دمو، APK)
-→ WorkspaceSelect (۲ کارت «معدن» / «تعاونی»)
-→ WeighbridgePage (وضعیت empty/loaded بزرگ · net فقط نمایش · یک «ثبت»)
-→ KycInbox / ApprovalsInbox (10.* — تأیید/رد + دلیل)
-→ EmployerNeedForm (wizard ۳ گام · «مرحله ۱ از ۳»)
-→ DispatchBoard (وضعیت رنگی · یک action «اجرای تخصیص»)
-→ Settlement / period (badge پیش‌نویس/قفل)
-→ UserRequestForm · AdminUserRequests
-
-## گام ۳ — کامپوننت مشترک
-- SimplePageLayout (title · subtitle · content · footer CTA)
-- SimpleConfirmDialog («مطمئنید؟»)
-- ErrorBanner
-
-## آنتی‌پترن
-- کاربر مجبور به حدس منو شود
-- بیش از ۱ primary در صفحه
-- table-only بدون card mobile
-- اصطلاح انگلیسی در دکمه
-
-## DoD
-- ۸ صفحه P1 + Ops/KYC/Finance هم‌تراز وایرفریم
-- npm -w @app/web run test:e2e -- uat-haul
-- docs/ux/web-screenshots/ before/after
-- چک‌لیست §۷: ۱۰/۱۰ روی staging</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>۸+ صفحه UAT · اسکلت نزدیک وایرفریم</li><li>e2e pass</li><li>چک‌لیست §۷</li></ul>
-  <h3>تست</h3>
-  <ul><li><code>npm -w @app/web run test:e2e -- uat-haul</code></li><li>manual staging + screenshot diff وایرفریم</li></ul>
-</article>
+<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۹)</h2>
 
 <article class="task" id="ux-mobile-simple-1">
   <h2><span class="badge">UX-MOBILE-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین Flutter — راننده + تعاونی + وایرفریم</h2>
@@ -510,7 +430,25 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <ul><li>npm -w @app/backend run test:tenant-rls1</li><li>manual DBA review</li></ul>
 </article>
 
-<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۲)</h2>
+<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۳)</h2>
+
+<article class="task task-done" id="ux-web-simple-1">
+  <h2><span class="badge">UX-WEB-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین پنل وب — بدون فکر کردن + وایرفریم</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۵ · <a href="ux/web-screenshots/README.md">web-screenshots</a> · <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a></p>
+  <div class="ctx"><strong>خروجی:</strong> <code>SimplePageLayout</code> · <code>ErrorBanner</code> · <code>SimpleConfirmDialog</code> · nav ≤۵ + «بیشتر» · خانه ۳–۵ کارت · ۱۱+ صفحه P1 · <code>DataTable</code> کارت موبایل.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>apps/web/src/components/simple/</code> · <code>apps/web/src/styles/simple-ui.css</code></li>
+    <li><code>apps/web/src/config/panelNav.ts</code> · <code>panelHomeSections.ts</code> · <code>PanelShell.tsx</code></li>
+    <li>صفحات: Login، WorkspaceSelect، Weighbridge، Dispatch، EmployerNeed، Kyc، Ops، Finance، Settlement، Period، UserRequest</li>
+  </ul>
+  <h3>تست</h3>
+  <ul>
+    <li><code>npm -w @app/web run test</code> · <code>npm -w @app/web run build</code> PASS</li>
+    <li><code>npm -w @app/web run test:e2e -- uat-haul</code> — با backend+seed</li>
+    <li>چک‌لیست §۷: ۱۰/۱۰ در <a href="ux/web-screenshots/README.md">README</a></li>
+  </ul>
+</article>
 
 <article class="task task-done" id="ux-simple-spec-1">
   <h2><span class="badge">UX-SIMPLE-SPEC-1</span> <span class="p1">P1</span> سند UX — «بدون فکر کردن» + توکن بصری</h2>

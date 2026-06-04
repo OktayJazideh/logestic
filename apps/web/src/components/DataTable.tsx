@@ -7,6 +7,8 @@ export type DataTableColumn<T> = {
   sortable?: boolean;
   sortKey?: string;
   width?: string | number;
+  /** در کارت موبایل نمایش داده شود (پیش‌فرض: همه به‌جز actions خالی) */
+  cardVisible?: boolean;
   render: (row: T) => React.ReactNode;
 };
 
@@ -24,6 +26,8 @@ export type DataTableProps<T> = {
   rowTitle?: (row: T) => string | undefined;
   emptyMessage?: string;
   testId?: string;
+  /** محتوای اضافی پایین هر کارت موبایل (مثلاً دکمه‌های action) */
+  cardActions?: (row: T) => React.ReactNode;
 };
 
 export function DataTable<T>({
@@ -40,12 +44,16 @@ export function DataTable<T>({
   rowTitle,
   emptyMessage = "موردی یافت نشد.",
   testId,
+  cardActions,
 }: DataTableProps<T>) {
   const allKeys = rows.map(rowKey);
   const allSelected = allKeys.length > 0 && allKeys.every((k) => selectedKeys?.has(k));
 
+  const cardColumns = columns.filter((c) => c.cardVisible !== false);
+
   return (
     <div
+      className="data-table-wrap"
       style={{
         overflowX: "auto",
         border: `1px solid ${brand.border}`,
@@ -53,84 +61,125 @@ export function DataTable<T>({
         background: brand.panel,
       }}
     >
-      <table
-        data-testid={testId}
-        style={{ width: "100%", borderCollapse: "collapse", fontSize: fontSize.base }}
-      >
-        <thead>
-          <tr>
-            {selectable && (
-              <th style={tableThStyle}>
-                <input
-                  type="checkbox"
-                  aria-label="انتخاب همه"
-                  checked={allSelected}
-                  onChange={(e) => onToggleAll?.(e.target.checked)}
-                />
-              </th>
-            )}
-            {columns.map((col) => (
-              <th key={col.key} style={{ ...tableThStyle, width: col.width }}>
-                {col.sortable && onSort ? (
-                  <button
-                    type="button"
-                    onClick={() => onSort(col.sortKey ?? col.key)}
-                    style={sortBtnStyle}
-                    aria-label={`مرتب‌سازی ${col.key}`}
-                  >
-                    {col.header}
-                    {sort?.field === (col.sortKey ?? col.key) ? (sort.dir === "asc" ? " ↑" : " ↓") : ""}
-                  </button>
-                ) : (
-                  col.header
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 && (
+      <div className="data-table-table">
+        <table
+          data-testid={testId}
+          style={{ width: "100%", borderCollapse: "collapse", fontSize: fontSize.base }}
+        >
+          <thead>
             <tr>
-              <td
-                colSpan={columns.length + (selectable ? 1 : 0)}
-                style={{ ...tableTdStyle, color: brand.textMuted, textAlign: "center", padding: 24 }}
-              >
-                {emptyMessage}
-              </td>
+              {selectable && (
+                <th style={tableThStyle}>
+                  <input
+                    type="checkbox"
+                    aria-label="انتخاب همه"
+                    checked={allSelected}
+                    onChange={(e) => onToggleAll?.(e.target.checked)}
+                  />
+                </th>
+              )}
+              {columns.map((col) => (
+                <th key={col.key} style={{ ...tableThStyle, width: col.width }}>
+                  {col.sortable && onSort ? (
+                    <button
+                      type="button"
+                      onClick={() => onSort(col.sortKey ?? col.key)}
+                      style={sortBtnStyle}
+                      aria-label={`مرتب‌سازی ${col.key}`}
+                    >
+                      {col.header}
+                      {sort?.field === (col.sortKey ?? col.key) ? (sort.dir === "asc" ? " ↑" : " ↓") : ""}
+                    </button>
+                  ) : (
+                    col.header
+                  )}
+                </th>
+              ))}
             </tr>
-          )}
-          {rows.map((row, i) => {
+          </thead>
+          <tbody>
+            {rows.length === 0 && (
+              <tr>
+                <td
+                  colSpan={columns.length + (selectable ? 1 : 0)}
+                  style={{ ...tableTdStyle, color: brand.textMuted, textAlign: "center", padding: 24 }}
+                >
+                  {emptyMessage}
+                </td>
+              </tr>
+            )}
+            {rows.map((row, i) => {
+              const key = rowKey(row);
+              return (
+                <tr
+                  key={key}
+                  data-testid={`${testId ?? "data-table"}-row-${key}`}
+                  style={{
+                    background: i % 2 === 1 ? brand.surfaceRowStripe : brand.panel,
+                    ...rowStyle?.(row),
+                  }}
+                  title={rowTitle?.(row)}
+                >
+                  {selectable && (
+                    <td style={tableTdStyle}>
+                      <input
+                        type="checkbox"
+                        aria-label={`انتخاب ${key}`}
+                        checked={selectedKeys?.has(key) ?? false}
+                        onChange={(e) => onToggleRow?.(key, e.target.checked)}
+                      />
+                    </td>
+                  )}
+                  {columns.map((col) => (
+                    <td key={col.key} style={tableTdStyle}>
+                      {col.render(row)}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="data-table-cards" aria-hidden={rows.length === 0 ? undefined : undefined}>
+        {rows.length === 0 ? (
+          <div style={{ padding: 24, textAlign: "center", color: brand.textMuted }}>{emptyMessage}</div>
+        ) : (
+          rows.map((row) => {
             const key = rowKey(row);
             return (
-              <tr
+              <article
                 key={key}
-                data-testid={`${testId ?? "data-table"}-row-${key}`}
-                style={{
-                  background: i % 2 === 1 ? brand.surfaceRowStripe : brand.panel,
-                  ...rowStyle?.(row),
-                }}
+                className="data-table-card"
+                data-testid={`${testId ?? "data-table"}-card-${key}`}
                 title={rowTitle?.(row)}
               >
                 {selectable && (
-                  <td style={tableTdStyle}>
-                    <input
-                      type="checkbox"
-                      aria-label={`انتخاب ${key}`}
-                      checked={selectedKeys?.has(key) ?? false}
-                      onChange={(e) => onToggleRow?.(key, e.target.checked)}
-                    />
-                  </td>
+                  <div className="data-table-card__row">
+                    <span className="data-table-card__label">انتخاب</span>
+                    <span className="data-table-card__value">
+                      <input
+                        type="checkbox"
+                        aria-label={`انتخاب ${key}`}
+                        checked={selectedKeys?.has(key) ?? false}
+                        onChange={(e) => onToggleRow?.(key, e.target.checked)}
+                      />
+                    </span>
+                  </div>
                 )}
-                {columns.map((col) => (
-                  <td key={col.key} style={tableTdStyle}>
-                    {col.render(row)}
-                  </td>
+                {cardColumns.map((col) => (
+                  <div key={col.key} className="data-table-card__row">
+                    <span className="data-table-card__label">{col.header}</span>
+                    <span className="data-table-card__value">{col.render(row)}</span>
+                  </div>
                 ))}
-              </tr>
+                {cardActions?.(row)}
+              </article>
             );
-          })}
-        </tbody>
-      </table>
+          })
+        )}
+      </div>
     </div>
   );
 }
