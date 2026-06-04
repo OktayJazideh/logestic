@@ -72,9 +72,25 @@ export const fontSize = {
   sm: 13,
   base: 14,
   md: 15,
+  body: 16,
+  caption: 14,
   lg: 18,
   xl: 22,
   title: 24,
+} as const;
+
+/** حداقل ارتفاع/لمس CTA — UX-SIMPLE-SPEC-1 */
+export const touchMin = 48;
+
+/** رنگ معنایی — هم‌راستا global.css و mineral_ui SemanticColors */
+export const semantic = {
+  success: brand.success,
+  successBg: brand.successBg,
+  danger: brand.danger,
+  dangerBg: brand.dangerBg,
+  warn: brand.warn,
+  warnBg: brand.warnBg,
+  muted: brand.textMuted,
 } as const;
 
 export const inputHeight = 44;

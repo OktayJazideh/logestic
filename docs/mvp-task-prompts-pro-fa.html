@@ -35,7 +35,7 @@
 <div class="wrap">
 <header>
   <h1>پرامپت‌های حرفه‌ای MVP — logestic</h1>
-  <p><strong>۱۱ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۱ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
+  <p><strong>۱۰ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۲ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
   <p>مرجع: <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a> · <a href="gozaresh-tahvil-karfarma-mvp-fa.html">تحویل کارفرما</a> · <a href="demo-users-and-deploy-fa.md">دمو + Deploy</a></p>
 </header>
 
@@ -43,16 +43,15 @@
   <strong>اصل محصول (۱۴۰۵/۰۳/۱۲):</strong> هیچ عدد/تنظیم business در کد ثابت نماند — همه از DB + پنل (قرارداد، Rate Card، تنظیمات معدن). seed فقط دمو UAT است.<br />
   <strong>P0 الان:</strong> production sahman (staging ✓). داده پایلوت در seed نیست — از پنل ADMIN.<br />
   <strong>تازه ✓:</strong> FIN-NO-HARDCODE-1 — <code>loadMineFinanceConfig</code> · 400 «تنظیمات معدن ناقص» · <a href="architecture/dynamic-config-fa.md">dynamic-config-fa.md</a><br />
-  <strong>P1 UX (قبل UAT میدانی):</strong> ریدیزاین «فوق‌ساده» — قابل استفاده برای کسی که تکنولوژی نمی‌شناسد (وب + موبایل).<br />
-  <strong>تازه ✓:</strong> MINE-SETTINGS-UI-1 · CLIENT-DATA-PILOT (waived دمو) · USER-UNIQUE · SEED-MINIMAL · VALIDATION-FA · DEPLOY-VPS-STAGING.
+  <strong>P1 UX (قبل UAT میدانی):</strong> ریدیزاین «بدون فکر کردن» — کاربر عادی دکمه/بخش لازم را پیدا کند؛ رنگ و چیدمان مغزپسند · <strong>اسکلت وایرفریم حفظ شود</strong> — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a><br />
+  <strong>تازه ✓:</strong> UX-SIMPLE-SPEC-1 — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a> v1.1 · SIMPLE_LABELS · SemanticColors · MINE-SETTINGS-UI-1 · FIN-NO-HARDCODE-1.
 </div>
 
 <nav class="toc">
   <strong>باقی‌مانده — اولویت اجرا (بالا → پایین)</strong>
   <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">P0 = blocker UAT · P1 = مهم پس از staging · P2/P3 = فاز بعد</em>
-  <a href="#ux-simple-spec-1"><span class="p1">P1</span> UX-SIMPLE-SPEC-1 — اصول UI فوق‌ساده (سند + توکن)</a>
-  <a href="#ux-web-simple-1"><span class="p1">P1</span> UX-WEB-SIMPLE-1 — ریدیزاین پنل وب</a>
-  <a href="#ux-mobile-simple-1"><span class="p1">P1</span> UX-MOBILE-SIMPLE-1 — ریدیزاین اپ‌های Flutter</a>
+  <a href="#ux-web-simple-1"><span class="p1">P1</span> UX-WEB-SIMPLE-1 — وب + وایرفریم ۹–۱۱</a>
+  <a href="#ux-mobile-simple-1"><span class="p1">P1</span> UX-MOBILE-SIMPLE-1 — موبایل + وایرفریم ۱–۸</a>
   <a href="#tenant-onboard-1"><span class="p1">P1</span> TENANT-ONBOARD-1 — onboarding معدن بدون seed</a>
   <a href="#deploy-sahman-1"><span class="p0">P0</span> DEPLOY-SAHMAN-1 — production + دامنه</a>
   <a href="#brand-sahman-1"><span class="p1">P1</span> BRAND-SAHMAN-1</a>
@@ -63,6 +62,7 @@
   <a href="#tenant-rls-1"><span class="p3">P3</span> TENANT-RLS-1</a>
   <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
   <strong>تازه انجام‌شده ✓</strong>
+  <a href="#ux-simple-spec-1">UX-SIMPLE-SPEC-1 ✅</a>
   <a href="#fin-no-hardcode-1">FIN-NO-HARDCODE-1 ✅</a>
   <a href="#mine-settings-ui-1">MINE-SETTINGS-UI-1 ✅</a>
   <a href="#user-prov-1">USER-PROV-1 ✅</a>
@@ -83,144 +83,117 @@
   <a href="#pilot-taftan-1">PILOT-TAFTAN-1 ✅</a>
   <a href="#fin-seed-99-1">FIN-SEED-99-1 ✅</a>
   <a href="#hold-settlement-1">HOLD-SETTLEMENT-1 ✅</a>
-  <a href="#tasks-done">… همه ۸۱ کارت پایین صفحه</a>
+  <a href="#tasks-done">… همه ۸۲ کارت پایین صفحه</a>
 </nav>
 
-<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۱۱)</h2>
-
-<article class="task" id="ux-simple-spec-1">
-  <h2><span class="badge">UX-SIMPLE-SPEC-1</span> <span class="p1">P1</span> سند UX فوق‌ساده — «مثل برای بچه ۷ ساله»</h2>
-  <div class="ctx"><strong>زمینه:</strong> UAT میدانی با راننده، خانوار، اپراتور باسکول — بسیاری کاربر تکنولوژی نمی‌شناسند. قبل از UX-WEB و UX-MOBILE این سند قفل می‌شود.</div>
-  <h3>اصول (الزامی در همه صفحات)</h3>
-  <ul>
-    <li><strong>یک کار در هر صفحه</strong> — یک دکمه اصلی بزرگ (CTA) · بقیه ثانویه</li>
-    <li><strong>زبان محاوره‌ای</strong> — نه «Provisioning» · بلکه «درخواست کاربر جدید»</li>
-    <li><strong>آیکون + متن</strong> — هر action مهم هر دو را داشته باشد</li>
-    <li><strong>فونت بزرگ</strong> — body ≥16px وب · ۱۸sp موبایل · دکمه ≥48px touch</li>
-    <li><strong>رنگ معنی‌دار</strong> — سبز=ادامه · قرمز=خطر/رد · خاکستری=غیرفعال · بدون تکیه به رنگ تنها</li>
-    <li><strong>خطاها</strong> — یک جمله + «چکار کنم؟» · نه کد خطا برای کاربر</li>
-    <li><strong>پیشرفت</strong> — «مرحله ۲ از ۴» · stepper برای FSM راننده</li>
-    <li><strong>بدون منوی پیچیده</strong> — حداکثر ۵ آیتم در nav · بقیه در «بیشتر»</li>
-  </ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul>
-    <li><code>docs/ux/simple-ui-spec-fa.md</code> (جدید)</li>
-    <li><code>apps/mobile/packages/mineral_ui/lib/src/theme/mineral_theme.dart</code></li>
-    <li><code>apps/web/src/lib/uiLabels.ts</code></li>
-    <li><code>apps/web/src/index.css</code> یا theme tokens</li>
-  </ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — UX-SIMPLE-SPEC-1 (P1 — قبل UX-WEB / UX-MOBILE)
-
-## هدف
-سند docs/ux/simple-ui-spec-fa.md + به‌روزرسانی توکن‌های مشترک mineral_ui و وب.
-
-## مخاطب
-کاربر بدون آشنایی با تکنولوژی (راننده، سرپرست خانوار، اپراتور باسکول).
-
-## محتوای سند
-1. اصول بالا (یک صفحه یک کار، فونت، رنگ، خطا)
-2. واژگان فارسی ساده — جدول جایگزین اصطلاحات فنی
-3. الگوی صفحه: Header ساده · Body · یک CTA پایین ثابت (موبایل)
-4. Empty state / Loading / Error — متن نمونه copy-paste
-5. نقش‌به‌نقش: DRIVER · HOUSEHOLD · COOP_OPERATOR · COOP_ADMIN · EMPLOYER
-6. چک‌لیست «تست مادربزرگ» — ۱۰ سؤال بله/خیر
-
-## خروجی کد (حداقل)
-- mineral_ui: typography scale (title 22, body 18, caption 14)
-- mineral_ui: SemanticColors success/warn/error
-- uiLabels.ts: export SIMPLE_LABELS map (فارسی ساده)
-- web: CSS vars --font-size-body, --touch-min 48px
-
-## DoD
-- سند commit در docs/ux/
-- uiLabels و theme هم‌خوان سند
-- v4 report لینک به سند</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>simple-ui-spec-fa.md</li><li>theme tokens web+mobile</li><li>SIMPLE_LABELS</li></ul>
-  <h3>تست</h3>
-  <ul><li>review با checklist §6 — هر ۱۰ مورد باید pass شود روی mockup</li></ul>
-</article>
+<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۱۰)</h2>
 
 <article class="task" id="ux-web-simple-1">
-  <h2><span class="badge">UX-WEB-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین پنل وب — ساده برای همه نقش‌ها</h2>
-  <div class="ctx"><strong>پیش‌نیاز:</strong> UX-SIMPLE-SPEC-1 · <strong>هدف:</strong> پنل وب بدون آموزش قبلی قابل استفاده — تمرکز UAT: لاگین، باسکول، KYC، dispatch، settlement.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
+  <h2><span class="badge">UX-WEB-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین پنل وب — بدون فکر کردن + وایرفریم</h2>
+  <div class="ctx"><strong>پیش‌نیاز:</strong> UX-SIMPLE-SPEC-1 · <strong>هدف:</strong> اپراتور/کارفرما/تعاونی بدون آموزش کار کند — هر صفحه در ۳ ثانیه «کجام / چکار کنم» را جواب دهد. <strong>چیدمان</strong> نزدیک <code>9.png</code> (عملیات) · <code>10.*</code> (KYC) · <code>11.*</code> (مالی).</div>
+  <h3>وایرفریم → صفحه وب</h3>
+  <table>
+    <thead><tr><th>وایرفریم</th><th>صفحه</th><th>اسکلت حفظ‌شونده</th></tr></thead>
+    <tbody>
+      <tr><td><code>9.png</code></td><td><code>OpsDashboard.tsx</code></td><td>KPI بالا · کارت مأموریت/هشدار · رنگ وضعیت</td></tr>
+      <tr><td><code>10.*</code></td><td><code>KycInbox.tsx</code> · Approvals</td><td>جدول→کارت موبایل · تأیید/رد بزرگ + دلیل</td></tr>
+      <tr><td><code>11.*</code></td><td>Finance per-load</td><td>ردیف ناخالص/کسور/بلوکه/آزاد · badge بزرگ</td></tr>
+      <tr><td>—</td><td>Login · Workspace · Weighbridge · Need · Dispatch · Settlement</td><td>یک CTA · فیلد بزرگ · wizard گام‌دار</td></tr>
+    </tbody>
+  </table>
+  <h3>محدودیت‌ها</h3>
   <ul>
-    <li>منطق business/API عوض نشود — فقط UI/UX/copy/layout.</li>
-    <li>RTL فارسی · contrast WCAG AA.</li>
-    <li>جدول‌های admin → کارت‌محور برای موبایل وب (responsive).</li>
-    <li>بدون hamburger عمیق ۳ سطح — flat nav per role.</li>
+    <li>فقط UI/copy/layout — API و قوانین مالی دست نخورند.</li>
+    <li>RTL · WCAG AA · nav ≤۵ · home = کارت بزرگ با آیکون+متن (نه لیست لینک خشک).</li>
+    <li>Dispatch: مشاهده + «اجرای تخصیص» — <strong>بدون</strong> drag انتخاب راننده (تعارض وایرفریم ۹.۷).</li>
   </ul>
-  <h3>صفحات P1 (اولویت UAT)</h3>
-  <ol>
-    <li><code>LoginPage</code> — OTP بزرگ · دمو واضح · لینک APK</li>
-    <li><code>WorkspaceSelectPage</code> — دو کارت بزرگ «کار معدن» / «کار تعاونی»</li>
-    <li><code>WeighbridgePage</code> — empty/loaded بزرگ · net فقط نمایش · یک دکمه «ثبت»</li>
-    <li><code>ApprovalsInbox</code> / KYC — تأیید/رد با دلیل پیشنهادی</li>
-    <li><code>EmployerNeedForm</code> — wizard ۳ مرحله</li>
-    <li><code>DispatchBoard</code> — وضعیت رنگی + یک action</li>
-    <li>Settlement / period statement — «پیش‌نویس» vs «قفل‌شده» با badge بزرگ</li>
-    <li><code>UserRequestForm</code> · <code>AdminUserRequests</code></li>
-  </ol>
   <h3>فایل‌های کلیدی</h3>
   <ul>
-    <li><code>apps/web/src/components/PageFrame.tsx</code></li>
-    <li><code>apps/web/src/lib/panelHomeSections.ts</code></li>
-    <li><code>apps/web/src/pages/*.tsx</code> (لیست بالا)</li>
     <li><code>docs/ux/simple-ui-spec-fa.md</code></li>
+    <li><code>apps/web/src/components/PageFrame.tsx</code> · <code>panelHomeSections.ts</code></li>
+    <li><code>apps/web/src/pages/</code> — Login، WorkspaceSelect، Weighbridge، KycInbox، EmployerNeed، Dispatch، Settlement، UserRequest</li>
   </ul>
   <h3>پرامپت کپی — paste در Cursor</h3>
   <pre>پروژه: logestic — UX-WEB-SIMPLE-1 (P1)
 
-## مرجع
-docs/ux/simple-ui-spec-fa.md · uiLabels SIMPLE_LABELS
+## مرجع (الزامی بخوان)
+- docs/ux/simple-ui-spec-fa.md (§۲ اصول · §۳ وایرفریم · §۴ واژگان · §۷ چک‌لیست)
+- docs/wireframes-review/wireframe Screenshots/9.png 10.* 11.*
+- apps/web/src/lib/uiLabels.ts → SIMPLE_LABELS
 
 ## هدف
-ریدیزain پنل وب طبق اصول UX-SIMPLE-SPEC — یک CTA · فونت بزرگ · copy ساده.
+ریدیزاین پنل وب: کاربر عادی بدون آموزش دکمه/بخش لازم را پیدا کند.
+نه redesign آزاد — **اسکلت وایرفریم حفظ**، copy و اندازه و وضوح بهتر.
 
-## گام ۱ — shell
-- PageFrame: nav ساده (≤5 item) · breadcrumb فارسی
-- Home per role: کارت‌های بزرگ با آیکون — نه لیست لینک
+## قوانین UX (هر صفحه)
+1. H1 فارسی ساده + زیرعنوان یک خط (الان چه کاری؟)
+2. حداکثر **یک** دکمه primary (سبز) — خطر قرمز جدا
+3. وضعیت: badge رنگی + متن (نه فقط رنگ)
+4. خطا: یک جمله + «چکار کنم؟» + دکمه «دوباره» — بدون error_code
+5. جدول admin: در viewport باریک → کارت (همان داده)
 
-## گام ۲ — صفحات UAT (ترتیب)
-LoginPage → WorkspaceSelect → WeighbridgePage → ApprovalsInbox → EmployerNeed → DispatchBoard → Settlement views → UserRequest/AdminUserRequests
+## گام ۱ — Shell
+- PageFrame: nav ثابت ≤5 · breadcrumb «خانه › باسکول»
+- Home نقش‌محور: ۳–۵ کارت بزرگ (آیکون+عنوان+یک خط) مثل داشبورد وایرفریم
 
-## گام ۳ — الگوهای مشترک
-- SimplePageLayout: title + subtitle یک خط + content + sticky footer CTA
-- SimpleConfirmDialog: «مطمئنید؟» + دلیل اختیاری
-- ErrorBanner: جمله ساده + دکمه «دوباره»
+## گام ۲ — صفحات (ترتیب · هر کدام قبل/after screenshot)
+LoginPage (OTP بزرگ، دمو، APK)
+→ WorkspaceSelect (۲ کارت «معدن» / «تعاونی»)
+→ WeighbridgePage (وضعیت empty/loaded بزرگ · net فقط نمایش · یک «ثبت»)
+→ KycInbox / ApprovalsInbox (10.* — تأیید/رد + دلیل)
+→ EmployerNeedForm (wizard ۳ گام · «مرحله ۱ از ۳»)
+→ DispatchBoard (وضعیت رنگی · یک action «اجرای تخصیص»)
+→ Settlement / period (badge پیش‌نویس/قفل)
+→ UserRequestForm · AdminUserRequests
+
+## گام ۳ — کامپوننت مشترک
+- SimplePageLayout (title · subtitle · content · footer CTA)
+- SimpleConfirmDialog («مطمئنید؟»)
+- ErrorBanner
 
 ## آنتی‌پترن
-- table-only بدون mobile card view
-- error codes در UI کاربر
-- بیش از ۲ دکمه primary در یک صفحه
+- کاربر مجبور به حدس منو شود
+- بیش از ۱ primary در صفحه
+- table-only بدون card mobile
+- اصطلاح انگلیسی در دکمه
 
 ## DoD
-- 8 صفحه P1 refactor
-- e2e uat-haul still pass
-- screenshot before/after در docs/ux/web-screenshots/</pre>
+- ۸ صفحه P1 + Ops/KYC/Finance هم‌تراز وایرفریم
+- npm -w @app/web run test:e2e -- uat-haul
+- docs/ux/web-screenshots/ before/after
+- چک‌لیست §۷: ۱۰/۱۰ روی staging</pre>
   <h3>Definition of Done</h3>
-  <ul><li>8 صفحه UAT ساده‌شده</li><li>e2e pass</li><li>responsive mobile web</li></ul>
+  <ul><li>۸+ صفحه UAT · اسکلت نزدیک وایرفریم</li><li>e2e pass</li><li>چک‌لیست §۷</li></ul>
   <h3>تست</h3>
-  <ul><li>npm -w @app/web run test:e2e -- uat-haul</li><li>manual: checklist مادربزرگ روی staging</li></ul>
+  <ul><li><code>npm -w @app/web run test:e2e -- uat-haul</code></li><li>manual staging + screenshot diff وایرفریم</li></ul>
 </article>
 
 <article class="task" id="ux-mobile-simple-1">
-  <h2><span class="badge">UX-MOBILE-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین اپ Flutter — راننده + تعاونی</h2>
-  <div class="ctx"><strong>پیش‌نیاز:</strong> UX-SIMPLE-SPEC-1 · <strong>هدف:</strong> راننده و خانوار بدون آموزش — FSM مأموریت مثل «مرحله بعد» بازی‌وار ساده.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
+  <h2><span class="badge">UX-MOBILE-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین Flutter — راننده + تعاونی + وایرفریم</h2>
+  <div class="ctx"><strong>پیش‌نیاز:</strong> UX-SIMPLE-SPEC-1 · <strong>هدف:</strong> راننده در جاده — یک نگاه: «قدم بعدی چیه؟» · CTA پایین ثابت · استپر مثل <code>3.png</code> · خانه مثل <code>2.png</code>. خانوار: کیف پول و ثبت‌نام بدون jargon.</div>
+  <h3>وایرفریم → صفحه Flutter</h3>
+  <table>
+    <thead><tr><th>فایل</th><th>screen</th><th>نکته ریدیزاین</th></tr></thead>
+    <tbody>
+      <tr><td><code>1.png</code></td><td><code>login_screen.dart</code></td><td>OTP ۶ خانه بزرگ · Pending/Suspended جدا</td></tr>
+      <tr><td><code>2.png</code></td><td><code>driver_home_screen.dart</code></td><td>پروفایل+آمار بالا · یک CTA حالت‌محور</td></tr>
+      <tr><td><code>3.png</code></td><td><code>mission_detail_screen.dart</code></td><td>کارت مسیر · استپر ۷ عمودی · «مرحله بعد»</td></tr>
+      <tr><td><code>4.png</code>,<code>7.png</code></td><td>mine/factory entry</td><td>فاصله متر برجسته · نقشه جمع‌شونده</td></tr>
+      <tr><td><code>5.png</code></td><td>weighbridge read</td><td>فقط نمایش وزن — بدون ورود دستی</td></tr>
+      <tr><td><code>6.png</code></td><td><code>in_transit_screen.dart</code></td><td>read-only + CTA کارخانه</td></tr>
+      <tr><td><code>8.png</code></td><td><code>unload_confirm_screen.dart</code></td><td>checkbox + CTA قفل</td></tr>
+    </tbody>
+  </table>
+  <h3>محدودیت‌ها</h3>
   <ul>
-    <li>mineral_ui shared — driver_app + community_app هر دو.</li>
-    <li>LogoutAppBarButton در <strong>همه</strong> صفحات authenticated (FSM میانی هم).</li>
-    <li>Geofence: نقشه اختیاری · متن «به محدوده نزدیک شوید» + فاصله.</li>
-    <li>بدون فرم چند ستونه · یک فیلد در هر ردیف.</li>
+    <li>mineral_ui مشترک — driver + community.</li>
+    <li>خروج در <strong>همه</strong> صفحات authenticated.</li>
+    <li>FSM/API عوض نشود — ۹ state → ۷ گام UI (جدول سند §۶).</li>
+    <li>یک فیلد per row · CTA پایین SafeArea.</li>
   </ul>
-  <h3>صفحات P1</h3>
-  <p><strong>driver_app:</strong> login · workspace · home · missions · mission_detail · mine/factory entry · in_transit · unload · ticket_status · weighbridge_read</p>
-  <p><strong>community_app:</strong> login · workspace · home_shell · register · wallet · kyc_inbox · members · objection</p>
   <h3>فایل‌های کلیدی</h3>
   <ul>
+    <li><code>docs/ux/simple-ui-spec-fa.md</code> · <code>docs/wireframes-review/</code></li>
     <li><code>apps/mobile/packages/mineral_ui/</code></li>
     <li><code>apps/mobile/driver_app/lib/ui/screens/</code></li>
     <li><code>apps/mobile/community_app/lib/ui/screens/</code></li>
@@ -229,35 +202,52 @@ LoginPage → WorkspaceSelect → WeighbridgePage → ApprovalsInbox → Employe
   <pre>پروژه: logestic — UX-MOBILE-SIMPLE-1 (P1)
 
 ## مرجع
-docs/ux/simple-ui-spec-fa.md
+- docs/ux/simple-ui-spec-fa.md (کامل)
+- وایرفریم 1.png–8.png در docs/wireframes-review/
+- mission_stepper.dart / mission_detail — اسکلت فعلی را حفظ، وضوح را بالا ببر
 
-## mineral_ui — کامپوننت‌های جدید/تقویت
-- SimpleScaffold: title + body + bottom primary (SafeArea)
-- StepProgressBar: «مرحله ۳ از ۵»
-- BigActionButton: full-width 56px height
-- SimpleStatusCard: رنگ + آیکون + یک خط توضیح
-- PlainLanguageError: از API message → فارسی ساده map
+## هدف
+راننده/خانوار بدون آموزش و بدون «نقشه ذهنی» کار کنند.
+هر صفحه: StatusCard + یک CTA پایین «مرحله بعد» / اقدام اصلی.
 
-## driver_app
-- هر صفحه FSM: فقط یک دکمه «مرحله بعد» + «نیاز به کمک؟»
-- mission_detail: timeline عمودی ساده (✓ انجام شد · ○ الان · ○ بعد)
-- LogoutAppBarButton همه screens (grep screens بدون logout → fix)
-- geofence: فاصله به متر · بدون اصطلاح API
+## mineral_ui (قبل از screens)
+- SimpleScaffold: AppBar عنوان · body · bottom primary ثابت
+- StepProgressBar: «مرحله ۳ از ۷» + استپر عمودی (✓ ● ○ قفل)
+- BigActionButton: full-width min 56dp
+- SimpleStatusCard: رنگ معنی‌دار + آیکون + یک خط
+- PlainLanguageError: map کد API → جمله فارسی + «چکار کنم؟»
+
+## driver_app — صفحه‌به‌صفحه (diff با وایرفریم)
+1.png login: OTP بزرگ، خطا واضح
+2.png home: کارت پروفایل، آمار روز، **یک** CTA (شروع/ادامه)
+3.png mission_detail: MSN/مسیر + timeline 7 + CTA پایین
+4/7 geofence: «فاصله شما: X متر» — نقشه Collapsible
+5 weighbridge: فقط نمایش — «منتظر ثبت باسکول»
+6 in_transit: read-only
+8 unload: checkbox اجباری + تأیید
+همه screens: LogoutAppBarButton (grep و fix جاافتاده)
 
 ## community_app
-- register: wizard روستا → نام → کدملی → شبا (یک فیلد per step)
-- wallet: «موجودی شما» عدد بزرگ · «آخرین واریز» · بدون jargon ledger
 - home_shell: ۳ کارت بزرگ (کیف پول · اعضا · درخواست)
+- register wizard: یک فیلد per step + «مرحله N از M»
+- wallet: «موجودی شما» عدد بزرگ — بدون ledger
+
+## آنتی‌پترن
+- صفحه‌ای که فقط نقشه باشد بدون متن راهنما
+- چند دکمه سبز هم‌سطح
+- اصطلاح Geofence/FSM در UI
 
 ## DoD
-- mineral_ui widgets export
-- driver + community P1 screens refactor
+- widgets در mineral_ui export
+- driver P1 screens + community P1
 - flutter analyze clean
-- manual APK: راننده demo 09000000003 — FSM بدون سردرگمی</pre>
+- APK manual 09000000003: FSM بدون سردرگمی
+- screenshot کنار 1–8.png در docs/ux/mobile-screenshots/
+- چک‌لیست §۷: ۱۰/۱۰</pre>
   <h3>Definition of Done</h3>
-  <ul><li>SimpleScaffold + StepProgressBar</li><li>logout همه screens</li><li>driver FSM timeline</li><li>community register wizard</li></ul>
+  <ul><li>SimpleScaffold + استپر ۷ گام · اسکلت وایرفریم</li><li>logout همه screens</li><li>چک‌لیست §۷</li></ul>
   <h3>تست</h3>
-  <ul><li>flutter analyze (driver_app + community_app)</li><li>APK manual UAT checklist</li></ul>
+  <ul><li><code>flutter analyze</code> (driver + community)</li><li>APK UAT + مقایسه تصویری وایرفریم</li></ul>
 </article>
 
 <article class="task" id="tenant-onboard-1">
@@ -520,7 +510,25 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <ul><li>npm -w @app/backend run test:tenant-rls1</li><li>manual DBA review</li></ul>
 </article>
 
-<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۱)</h2>
+<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۲)</h2>
+
+<article class="task task-done" id="ux-simple-spec-1">
+  <h2><span class="badge">UX-SIMPLE-SPEC-1</span> <span class="p1">P1</span> سند UX — «بدون فکر کردن» + توکن بصری</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۵ · <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a> v1.1 قفل.</p>
+  <div class="ctx"><strong>خروجی:</strong> <code>SIMPLE_LABELS</code> + <code>simpleLabel()</code> · <code>global.css</code> توکن semantic/touch · <code>theme.ts</code> · <code>SemanticColors</code> + typography 22/18/14 در <code>mineral_theme.dart</code>.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>docs/ux/simple-ui-spec-fa.md</code></li>
+    <li><code>apps/web/src/lib/uiLabels.ts</code> · <code>apps/web/src/styles/global.css</code> · <code>apps/web/src/theme.ts</code></li>
+    <li><code>apps/mobile/packages/mineral_ui/lib/mineral_theme.dart</code></li>
+  </ul>
+  <h3>تست</h3>
+  <ul>
+    <li><code>npm -w @app/web run test</code> — uiLabels.test.ts</li>
+    <li><code>npm -w @app/web run build</code></li>
+    <li><code>flutter analyze</code> در mineral_ui / driver_app</li>
+  </ul>
+</article>
 
 <article class="task task-done" id="user-prov-1">
   <h2><span class="badge">USER-PROV-1</span> <span class="p0">P0</span> User Provisioning — درخواست کاربر + تأیید ADMIN</h2>
@@ -610,7 +618,7 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۲.</p>
   <div class="ctx"><strong>زمینه:</strong> MineralTheme.buttonHeight = 48.</div>
   <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>apps/mobile/packages/mineral_ui/lib/src/theme/mineral_theme.dart</code></li></ul>
+  <ul><li><code>apps/mobile/packages/mineral_ui/lib/mineral_theme.dart</code></li></ul>
 </article>
 
 <article class="task task-done" id="deploy-vps-win-1">

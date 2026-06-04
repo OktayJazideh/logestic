@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// رنگ معنایی — همیشه همراه آیکون/متن (UX-SIMPLE-SPEC-1)
+class SemanticColors {
+  static const Color success = Color(0xFF1B5E20);
+  static const Color danger = Color(0xFF7F1D1D);
+  static const Color warn = Color(0xFFB45309);
+  static const Color muted = Color(0xFF5A5650);
+  static const Color info = Color(0xFF1E3A2F);
+}
+
 /// همسهمان — پالت رسمی، هم‌راستا با apps/web/src/theme.ts
 class MineralTheme {
   static const String fontFamily = 'Vazirmatn';
@@ -16,23 +25,51 @@ class MineralTheme {
   static const Color primaryMuted = Color(0xFFD4E4DC);
 
   static const Color accent = Color(0xFF6B5B4F);
-  static const Color danger = Color(0xFF7F1D1D);
-  static const Color muted = Color(0xFF5A5650);
+  static const Color danger = SemanticColors.danger;
+  static const Color muted = SemanticColors.muted;
 
   static const double radiusSm = 8;
   static const double radiusMd = 12;
   static const double radiusLg = 14;
+
+  /// UX-SIMPLE-SPEC-1 typography
+  static const double fontSizeTitle = 22;
+  static const double fontSizeBody = 18;
+  static const double fontSizeCaption = 14;
 
   /// Primary / outlined buttons — login, demo panel, forms.
   static const double buttonHeight = 48;
 
   static TextTheme _textTheme(Color body) {
     return TextTheme(
-      headlineSmall: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w700, color: primaryDark, fontSize: 22),
-      titleMedium: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w600, color: primaryDark, fontSize: 16),
-      bodyMedium: TextStyle(fontFamily: fontFamily, color: body, fontSize: 15, height: 1.5),
-      bodySmall: const TextStyle(fontFamily: fontFamily, color: muted, fontSize: 13),
-      labelLarge: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w600, fontSize: 14),
+      headlineSmall: const TextStyle(
+        fontFamily: fontFamily,
+        fontWeight: FontWeight.w700,
+        color: primaryDark,
+        fontSize: fontSizeTitle,
+      ),
+      titleMedium: const TextStyle(
+        fontFamily: fontFamily,
+        fontWeight: FontWeight.w600,
+        color: primaryDark,
+        fontSize: 16,
+      ),
+      bodyMedium: TextStyle(
+        fontFamily: fontFamily,
+        color: body,
+        fontSize: fontSizeBody,
+        height: 1.5,
+      ),
+      bodySmall: const TextStyle(
+        fontFamily: fontFamily,
+        color: muted,
+        fontSize: fontSizeCaption,
+      ),
+      labelLarge: const TextStyle(
+        fontFamily: fontFamily,
+        fontWeight: FontWeight.w600,
+        fontSize: fontSizeCaption,
+      ),
     );
   }
 
@@ -78,7 +115,11 @@ class MineralTheme {
         minimumSize: const Size(0, buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusMd)),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-        textStyle: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w600, fontSize: 15),
+        textStyle: const TextStyle(
+          fontFamily: fontFamily,
+          fontWeight: FontWeight.w600,
+          fontSize: fontSizeCaption,
+        ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -100,7 +141,7 @@ class MineralTheme {
       filled: true,
       fillColor: panel,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      labelStyle: const TextStyle(fontFamily: fontFamily, color: muted, fontSize: 14),
+      labelStyle: const TextStyle(fontFamily: fontFamily, color: muted, fontSize: fontSizeCaption),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusMd),
         borderSide: const BorderSide(color: border),

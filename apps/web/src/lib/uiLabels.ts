@@ -1,5 +1,26 @@
 /** برچسب‌های فارسی برای enumها و کدهای API — فقط نمایش UI */
 
+/** واژگان ساده UI — هم‌خوان docs/ux/simple-ui-spec-fa.md §۴ */
+export const SIMPLE_LABELS = {
+  provisioning: "درخواست کاربر جدید",
+  workspace: "انتخاب محل کار",
+  dispatch: "تخصیص بار",
+  settlement: "تسویه",
+  hold: "مبلغ بلوکه‌شده",
+  kyc: "تأیید هویت",
+  otp: "کد پیامکی",
+  geofence: "محدوده معدن / کارخانه",
+  netTons: "وزن خالص (تن)",
+  mission: "مأموریت",
+  load: "بار",
+} as const;
+
+export type SimpleLabelKey = keyof typeof SIMPLE_LABELS;
+
+export function simpleLabel(key: SimpleLabelKey): string {
+  return SIMPLE_LABELS[key];
+}
+
 export function labelFa(map: Record<string, string>, code: string | undefined | null): string {
   if (!code) return "—";
   return map[code] ?? code;

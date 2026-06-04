@@ -24,6 +24,19 @@
   --shadow-md: 0 4px 12px rgba(21, 41, 33, 0.08);
   --space-md: 16px;
   --space-lg: 24px;
+
+  /* UX-SIMPLE-SPEC-1 — typography + touch + semantic (هم‌راستا theme.ts) */
+  --font-size-title: 22px;
+  --font-size-body: 16px;
+  --font-size-caption: 14px;
+  --touch-min: 48px;
+  --semantic-success: #2f4f3e;
+  --semantic-success-bg: #f0f6f2;
+  --semantic-danger: #7f1d1d;
+  --semantic-danger-bg: #fbf4f4;
+  --semantic-warn: #6b5a2e;
+  --semantic-warn-bg: #fbf9f4;
+  --semantic-muted: #5a5650;
 }
 
 *,
