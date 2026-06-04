@@ -262,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                     const SizedBox(height: 24),
                     SizedBox(
-                      height: 48,
+                      height: MineralTheme.buttonHeight,
                       child: ElevatedButton(
                         onPressed: _loading ? null : (_otpRequested ? _verifyOtp : _requestOtp),
                         style: ElevatedButton.styleFrom(

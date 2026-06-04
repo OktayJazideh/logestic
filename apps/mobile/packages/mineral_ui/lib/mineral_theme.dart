@@ -23,6 +23,9 @@ class MineralTheme {
   static const double radiusMd = 12;
   static const double radiusLg = 14;
 
+  /// Primary / outlined buttons — login, demo panel, forms.
+  static const double buttonHeight = 48;
+
   static TextTheme _textTheme(Color body) {
     return TextTheme(
       headlineSmall: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w700, color: primaryDark, fontSize: 22),
@@ -72,9 +75,9 @@ class MineralTheme {
         backgroundColor: primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        minimumSize: const Size(0, 48),
+        minimumSize: const Size(0, buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusMd)),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
         textStyle: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w600, fontSize: 15),
       ),
     ),
@@ -82,7 +85,7 @@ class MineralTheme {
       style: OutlinedButton.styleFrom(
         foregroundColor: primaryDark,
         side: const BorderSide(color: border),
-        minimumSize: const Size(0, 48),
+        minimumSize: const Size(0, buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusMd)),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),

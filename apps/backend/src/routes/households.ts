@@ -6,7 +6,8 @@ import { authMiddleware, type AuthContext } from "../middleware/authMiddleware";
 import { ApiError } from "../http/errors";
 import { success } from "../http/apiResponse";
 import { resolveAuthContext } from "../lib/authContext";
-import { normalizeIban, validateIranIbanChecksum } from "../lib/iban";
+import { assertIbanAvailable } from "../lib/ibanEnforcement";
+import { persianNameSchema } from "../lib/persianText";
 import { recordIbanAudit } from "../lib/ibanAudit";
 import { recordKycAudit } from "../lib/kycWorkflow";
 import * as householdsRepo from "../repositories/householdsRepository";
@@ -31,7 +32,7 @@ const registerSchema = z.object({
   village_id: z.number().int().positive(),
   national_id: z.string().min(5).max(20),
   bank_iban: z.string().min(15),
-  head_name: z.string().min(2),
+  head_name: persianNameSchema,
 });
 
 const ibanPatchSchema = z.object({
@@ -191,16 +192,11 @@ router.post("/households/register", requireAuth, async (req, res, next) => {
       );
     }
 
-    const iban = normalizeIban(body.data.bank_iban);
-    if (!validateIranIbanChecksum(iban)) {
-      return next(
-        new ApiError({
-          statusCode: 400,
-          code: "invalid_iban",
-          message: "Invalid Iranian IBAN checksum",
-          requestId,
-        }),
-      );
+    let iban: string;
+    try {
+      iban = await assertIbanAvailable("household", body.data.bank_iban, undefined, prisma, requestId);
+    } catch (e) {
+      return next(e);
     }
 
     const normalizedNationalId = normalizeNationalId(body.data.national_id);
@@ -399,16 +395,11 @@ router.patch("/households/me/iban", requireAuth, async (req, res, next) => {
       );
     }
 
-    const iban = normalizeIban(body.data.bank_iban);
-    if (!validateIranIbanChecksum(iban)) {
-      return next(
-        new ApiError({
-          statusCode: 400,
-          code: "invalid_iban",
-          message: "Invalid Iranian IBAN checksum",
-          requestId,
-        }),
-      );
+    let iban: string;
+    try {
+      iban = await assertIbanAvailable("household", body.data.bank_iban, before.id, prisma, requestId);
+    } catch (e) {
+      return next(e);
     }
 
     const updated = await householdsRepo.updateHouseholdIban(before.id, iban);

@@ -27,6 +27,47 @@ export function mobileNumber(): FieldValidator {
   };
 }
 
+/** Provisioning / admin user create: 09 + 9 digits. */
+export function provisioningMobile(): FieldValidator {
+  return (value) => {
+    const m = value.trim();
+    if (!/^09\d{9}$/.test(m)) {
+      return "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود.";
+    }
+    return undefined;
+  };
+}
+
+const PERSIAN_NAME_PATTERN = /^[\u0600-\u06FF\u200c\s]+$/;
+
+function normalizePersianText(value: string): string {
+  return value
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\u064A/g, "\u06CC")
+    .replace(/\u0643/g, "\u06A9");
+}
+
+export function persianName(label = "نام"): FieldValidator {
+  return (value) => {
+    const t = value.trim();
+    if (!t) return undefined;
+    const n = normalizePersianText(t);
+    if (n.length < 2 || n.length > 200) return `${label} باید بین ۲ تا ۲۰۰ کاراکتر فارسی باشد.`;
+    if (!PERSIAN_NAME_PATTERN.test(n) || !/[\u0600-\u06FF]/.test(n)) {
+      return `${label} باید فقط با حروف فارسی نوشته شود.`;
+    }
+    return undefined;
+  };
+}
+
+export function optionalPersianName(label = "نام"): FieldValidator {
+  return (value) => {
+    if (!value.trim()) return undefined;
+    return persianName(label)(value);
+  };
+}
+
 export function otpCode(): FieldValidator {
   return (value) => (/^\d{6}$/.test(value.trim()) ? undefined : "کد باید دقیقاً ۶ رقم باشد.");
 }

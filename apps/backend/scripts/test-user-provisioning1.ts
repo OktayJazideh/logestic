@@ -1,6 +1,6 @@
 /**
  * USER-PROV-1: user provisioning + admin CRUD smoke tests.
- * Requires: server on TEST_BASE_URL, db:migrate (0045), db:seed.
+ * Requires: server on TEST_BASE_URL, db:migrate (0046), db:seed (minimal admin 09000000000).
  */
 import "dotenv/config";
 import { initAppContext } from "../src/lib/appInit";
@@ -44,6 +44,24 @@ async function main() {
   assert(!hasPermission("COOP_ADMIN", "users:manage"), "COOP_ADMIN no users:manage");
 
   const adminToken = await loginAs("09000000000");
+
+  async function ensureRoleUser(mobile: string, role: string, cooperative_id?: number) {
+    const res = await http("/api/admin/users", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({
+        mobile_number: mobile,
+        role,
+        ...(cooperative_id != null ? { cooperative_id } : {}),
+        is_active: true,
+      }),
+    });
+    assert(res.status === 201 || res.status === 409, `ensure ${role} ${mobile}: ${res.status}`);
+  }
+
+  await ensureRoleUser("09000000001", "COOP_ADMIN", 1);
+  await ensureRoleUser("09000000002", "OPERATION_ADMIN");
+
   const coopToken = await loginAs("09000000001");
   const opToken = await loginAs("09000000002");
 
@@ -57,11 +75,28 @@ async function main() {
       mobile_number: mobileNew,
       national_id: nationalNew,
       role: "OPERATOR",
-      full_name: "Test Operator",
+      full_name: "اپراتور تست",
       is_active: true,
     }),
   });
   assert(createRes.status === 201, `admin create user: ${createRes.status} ${JSON.stringify(createRes.json)}`);
+
+  const mobileNoNat = "09000000997";
+  const noNatRes = await http("/api/admin/users", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({
+      mobile_number: mobileNoNat,
+      role: "CONSULTANT",
+      is_active: true,
+    }),
+  });
+  assert(noNatRes.status === 201, `admin create without national_id: ${noNatRes.status}`);
+  const noNatUserId = noNatRes.json?.data?.user?.id;
+  await http(`/api/admin/users/${noNatUserId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${adminToken}` },
+  });
 
   const dupMobile = await http("/api/admin/users", {
     method: "POST",
@@ -83,7 +118,7 @@ async function main() {
     target_role: "COOP_OPERATOR",
     mobile_number: "09000000998",
     national_id: nationalIdFromSeed("998000001"),
-    full_name: "Pending Coop Op",
+    full_name: "اپراتور تعاونی",
     note: "test request",
   };
   const coopReq = await http("/api/user-provisioning/requests", {

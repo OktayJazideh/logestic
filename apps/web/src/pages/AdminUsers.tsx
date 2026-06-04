@@ -4,7 +4,8 @@ import { PageFrame } from "../components/PageFrame";
 import { FormField } from "../components/FormField";
 import { apiDeleteData, apiGetData, apiPatchData, apiPostData } from "../api";
 import { apiErrorMessageFa } from "../lib/apiErrorsFa";
-import { positiveInt } from "../lib/validation";
+import { optionalPersianName, positiveInt, provisioningMobile, runValidators } from "../lib/validation";
+import { ADMIN_CREATE_HINT_FA } from "../lib/identityFieldRules";
 import { Alert, Button, Card, FormRow, FilterField, Input, Select } from "../components/ui";
 
 type AdminUser = {
@@ -106,14 +107,21 @@ export default function AdminUsers() {
 
   async function createUser(e: React.FormEvent) {
     e.preventDefault();
+    const mobileErr = runValidators(newMobile, [provisioningMobile()]);
+    const nameErr = runValidators(newName, [optionalPersianName("نام")]);
+    if (mobileErr || nameErr) {
+      setError(mobileErr ?? nameErr ?? null);
+      return;
+    }
     setBusy(-1);
     const body: Record<string, unknown> = {
       mobile_number: newMobile.trim(),
-      national_id: newNationalId.trim(),
       role: newRole,
       full_name: newName.trim() || undefined,
       is_active: true,
     };
+    const nat = newNationalId.trim();
+    if (nat) body.national_id = nat;
     if (COOP_ROLES.has(newRole)) {
       const coopErr = positiveInt("cooperative_id")(newCoop);
       if (coopErr) {
@@ -168,6 +176,7 @@ export default function AdminUsers() {
 
       {showCreate && (
         <Card style={{ marginBottom: 16 }}>
+          <p style={{ margin: "0 0 12px", fontSize: 13, color: "#6B7280" }}>{ADMIN_CREATE_HINT_FA}</p>
           <FormRow
             as="form"
             onSubmit={(e) => void createUser(e)}
@@ -183,7 +192,7 @@ export default function AdminUsers() {
               </FormField>
             </FilterField>
             <FilterField minWidth={140}>
-              <FormField label="کد ملی" required>
+              <FormField label="کد ملی (اختیاری)">
                 <Input value={newNationalId} onChange={(e) => setNewNationalId(e.target.value)} />
               </FormField>
             </FilterField>
@@ -206,7 +215,7 @@ export default function AdminUsers() {
               </FilterField>
             )}
             <FilterField minWidth={140}>
-              <FormField label="نام">
+              <FormField label="نام (فارسی، اختیاری)">
                 <Input value={newName} onChange={(e) => setNewName(e.target.value)} />
               </FormField>
             </FilterField>

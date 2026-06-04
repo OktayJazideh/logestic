@@ -2,6 +2,8 @@ import type { ProvisioningUnitType } from "@prisma/client";
 import { ApiError } from "../http/errors";
 import { assertNationalIdFreeForUserAccount } from "../lib/nationalIdEnforcement";
 import { normalizeNationalId } from "../lib/nationalId";
+import { normalizeOptionalNationalId } from "../lib/identityPolicy";
+import { optionalPersianName } from "../lib/persianText";
 import { isCoopScopedRole, normalizeRole, type UserRole } from "../types/userRole";
 import * as usersRepo from "../repositories/usersRepository";
 import * as provisioningRepo from "../repositories/userProvisioningRepository";
@@ -58,28 +60,31 @@ export async function assertMobileAvailable(
 
 export async function assertProvisioningIdentityAvailable(
   mobile: string,
-  nationalId: string,
+  nationalId?: string | null,
   excludeUserId?: number,
   requestId?: string,
   excludeProvisioningRequestId?: number,
-): Promise<{ mobile: string; national_id: string }> {
+): Promise<{ mobile: string; national_id: string | null }> {
   const mobileNorm = validateMobile(mobile, requestId);
   await assertMobileAvailable(mobileNorm, excludeUserId, requestId, excludeProvisioningRequestId);
-  const national_id = await assertNationalIdFreeForUserAccount(nationalId, excludeUserId, undefined, requestId);
 
-  const pending = await provisioningRepo.findPendingByMobileOrNationalId(
-    mobileNorm,
-    national_id,
-    excludeProvisioningRequestId,
-  );
-  if (pending) {
-    const code = pending.mobile_number === mobileNorm ? "mobile_pending" : "national_id_pending";
-    throw new ApiError({
-      statusCode: 409,
-      code,
-      message: "A pending provisioning request already exists for this identity",
-      requestId,
-    });
+  const natRaw = normalizeOptionalNationalId(nationalId);
+  let national_id: string | null = null;
+
+  if (natRaw) {
+    national_id = await assertNationalIdFreeForUserAccount(natRaw, excludeUserId, undefined, requestId);
+    const pendingNat = await provisioningRepo.findPendingByNationalId(
+      national_id,
+      excludeProvisioningRequestId,
+    );
+    if (pendingNat) {
+      throw new ApiError({
+        statusCode: 409,
+        code: "national_id_pending",
+        message: "A pending provisioning request already exists for this national ID",
+        requestId,
+      });
+    }
   }
 
   return { mobile: mobileNorm, national_id };
@@ -125,7 +130,7 @@ export async function createProvisioningRequest(input: {
   unit_type?: ProvisioningUnitType;
   target_role: UserRole;
   mobile_number: string;
-  national_id: string;
+  national_id?: string | null;
   full_name?: string;
   note?: string;
   requestId?: string;
@@ -197,6 +202,8 @@ export async function createProvisioningRequest(input: {
     input.requestId,
   );
 
+  const full_name = optionalPersianName(input.full_name, input.requestId);
+
   return provisioningRepo.createProvisioningRequest({
     unit_type,
     requester_user_id: input.requesterUserId,
@@ -205,14 +212,14 @@ export async function createProvisioningRequest(input: {
     target_role: input.target_role,
     mobile_number: identity.mobile,
     national_id: identity.national_id,
-    full_name: input.full_name?.trim() || undefined,
+    full_name,
     note: input.note?.trim() || undefined,
   });
 }
 
 export async function createUserDirect(input: {
   mobile_number: string;
-  national_id: string;
+  national_id?: string | null;
   role: UserRole;
   cooperative_id?: number | null;
   full_name?: string;
@@ -237,6 +244,8 @@ export async function createUserDirect(input: {
     input.excludeProvisioningRequestId,
   );
 
+  const full_name = optionalPersianName(input.full_name, input.requestId);
+
   const existing = await provisioningRepo.findUserByMobileIncludingDeleted(identity.mobile);
   if (existing) {
     if (existing.deleted_at) {
@@ -245,7 +254,7 @@ export async function createUserDirect(input: {
         national_id: identity.national_id,
         role: input.role,
         cooperative_id: input.cooperative_id ?? null,
-        full_name: input.full_name ?? null,
+        full_name: full_name ?? null,
         is_active: input.is_active ?? true,
       });
       if (!restored) {
@@ -271,7 +280,7 @@ export async function createUserDirect(input: {
     national_id: identity.national_id,
     role: input.role,
     cooperative_id: input.cooperative_id ?? undefined,
-    full_name: input.full_name,
+    full_name,
     is_active: input.is_active ?? true,
   });
 }
@@ -333,7 +342,7 @@ export async function updateUserAdmin(
     cooperative_id?: number | null;
     is_active?: boolean;
     full_name?: string | null;
-    national_id?: string;
+    national_id?: string | null;
     mobile_number?: string;
   },
   httpRequestId?: string,
@@ -346,8 +355,10 @@ export async function updateUserAdmin(
   if (patch.mobile_number && patch.mobile_number !== existing.mobile_number) {
     await assertMobileAvailable(patch.mobile_number, userId, httpRequestId);
   }
-  if (patch.national_id) {
-    await assertNationalIdFreeForUserAccount(patch.national_id, userId, undefined, httpRequestId);
+
+  const natPatch = patch.national_id !== undefined ? normalizeOptionalNationalId(patch.national_id) : undefined;
+  if (natPatch) {
+    await assertNationalIdFreeForUserAccount(natPatch, userId, undefined, httpRequestId);
   }
 
   const role = patch.role ?? existing.role;
@@ -367,16 +378,24 @@ export async function updateUserAdmin(
     });
   }
 
-  const national_id = patch.national_id
-    ? normalizeNationalId(patch.national_id)
-    : existing.national_id;
+  let full_name: string | null | undefined = patch.full_name;
+  if (patch.full_name !== undefined) {
+    full_name = patch.full_name === null ? null : (optionalPersianName(patch.full_name, httpRequestId) ?? null);
+  }
+
+  const national_id =
+    patch.national_id !== undefined
+      ? natPatch
+        ? normalizeNationalId(natPatch)
+        : null
+      : undefined;
 
   return usersRepo.updateUser(userId, {
     role: patch.role,
     cooperative_id,
     is_active: patch.is_active,
-    full_name: patch.full_name,
-    national_id: patch.national_id ? national_id : undefined,
+    full_name,
+    national_id,
   });
 }
 

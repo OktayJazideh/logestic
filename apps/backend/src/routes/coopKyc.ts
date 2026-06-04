@@ -30,7 +30,8 @@ import { normalizeRole } from "../types/userRole";
 import type { Household, Driver, FleetOwner, Vehicle } from "../stores/entitiesStore";
 import { assertNationalIdAvailable } from "../lib/nationalIdEnforcement";
 import { recordIbanAudit } from "../lib/ibanAudit";
-import { normalizeIban, validateIranIbanChecksum } from "../lib/iban";
+import { assertIbanAvailable } from "../lib/ibanEnforcement";
+import { persianNameSchema } from "../lib/persianText";
 import { prisma } from "../db/prisma";
 import { toBig } from "../repositories/id";
 import * as householdApprovalsRepo from "../repositories/householdApprovalsRepository";
@@ -188,7 +189,7 @@ router.get(
 const householdRequestSchema = z.object({
   cooperative_id: z.number().int().positive(),
   village_id: z.number().int().positive(),
-  head_name: z.string().min(2),
+  head_name: persianNameSchema,
   national_id: z.string().min(5),
   bank_iban: z.string().min(15).optional(),
 });
@@ -209,13 +210,23 @@ router.post("/coop/households/request", requireAuth, async (req, res, next) => {
       prisma,
       requestId,
     );
+    let bank_iban: string | undefined;
+    if (body.data.bank_iban) {
+      bank_iban = await assertIbanAvailable(
+        "household",
+        body.data.bank_iban,
+        before?.id,
+        prisma,
+        requestId,
+      );
+    }
     const row = await appContext.entities.upsertHousehold({
       user_id: auth.user.id,
       village_id: body.data.village_id,
       cooperative_id: body.data.cooperative_id,
       head_name: body.data.head_name,
       national_id: nationalId,
-      bank_iban: body.data.bank_iban,
+      bank_iban,
       status: "PENDING",
     });
     await recordKycAudit({
@@ -433,7 +444,7 @@ router.post(
 // --- Drivers ---
 const driverRequestSchema = z.object({
   cooperative_id: z.number().int().positive(),
-  full_name: z.string().min(2),
+  full_name: persianNameSchema,
   license_number: z.string().min(2),
   license_file_url: z.string().url(),
   identity_file_url: z.string().url(),
@@ -568,7 +579,7 @@ router.post(
 // --- Fleet owners ---
 const fleetOwnerRequestSchema = z.object({
   cooperative_id: z.number().int().positive(),
-  full_name: z.string().min(2),
+  full_name: persianNameSchema,
   national_id: z.string().min(5),
   bank_iban: z.string().min(15).optional(),
   ownership_doc_url: z.string().url(),
@@ -842,7 +853,7 @@ router.post(
 
 const householdResubmitSchema = z
   .object({
-    head_name: z.string().min(2).optional(),
+    head_name: persianNameSchema.optional(),
   })
   .strict()
   .refine((d) => d.head_name != null, { message: "At least one field required" });
@@ -854,7 +865,7 @@ const bankAccountBodySchema = z.object({
 
 const driverResubmitSchema = z
   .object({
-    full_name: z.string().min(2).optional(),
+    full_name: persianNameSchema.optional(),
     license_number: z.string().min(2).optional(),
     license_file_url: z.string().url().optional(),
     identity_file_url: z.string().url().optional(),
@@ -871,7 +882,7 @@ const driverResubmitSchema = z
 
 const fleetOwnerResubmitSchema = z
   .object({
-    full_name: z.string().min(2).optional(),
+    full_name: persianNameSchema.optional(),
     ownership_doc_url: z.string().url().optional(),
     insurance_doc_url: z.string().url().optional(),
   })
@@ -1240,16 +1251,11 @@ function bankAccountRoute<
       if (!access.ok) {
         return next(new ApiError({ statusCode: 403, code: "forbidden", message: access.message, requestId }));
       }
-      const iban = normalizeIban(body.data.bank_iban);
-      if (!validateIranIbanChecksum(iban)) {
-        return next(
-          new ApiError({
-            statusCode: 400,
-            code: "invalid_iban",
-            message: "Invalid Iranian IBAN checksum",
-            requestId,
-          }),
-        );
+      let iban: string;
+      try {
+        iban = await assertIbanAvailable(entityType, body.data.bank_iban, id.data, prisma, requestId);
+      } catch (e) {
+        return next(e);
       }
       const updated = await updateIban(id.data, iban);
       if (!updated) {

@@ -9,6 +9,7 @@ import { ApiError } from "../http/errors";
 import { isCoopScopedRole, normalizeRole, UserRoles, type UserRole } from "../types/userRole";
 import * as provisioningRepo from "../repositories/userProvisioningRepository";
 import * as provisioningService from "../services/userProvisioningService";
+import { optionalNationalIdSchema, optionalPersianNameSchema, provisioningMobileSchema } from "../lib/identityPolicy";
 import { appContext } from "../appContext";
 import { prismaToApiError } from "../lib/prismaErrors";
 
@@ -76,9 +77,9 @@ function mapUser(u: {
 const createRequestSchema = z.object({
   unit_type: z.enum(["COOPERATIVE", "MINE_OPS", "PLATFORM_SUPPORT"]).optional(),
   target_role: z.enum(UserRoles as unknown as [string, ...string[]]),
-  mobile_number: z.string().min(11).max(11),
-  national_id: z.string().min(5).max(20),
-  full_name: z.string().max(200).optional(),
+  mobile_number: provisioningMobileSchema,
+  national_id: optionalNationalIdSchema,
+  full_name: optionalPersianNameSchema,
   note: z.string().max(500).optional(),
   cooperative_id: z.number().int().positive().optional(),
   mine_id: z.number().int().positive().optional(),

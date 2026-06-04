@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { appContext } from "../appContext";
 import * as provisioningService from "../services/userProvisioningService";
-import { nationalIdFromSeed } from "../lib/nationalId";
+import { optionalNationalIdSchema, optionalPersianNameSchema } from "../lib/identityPolicy";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { requirePermission } from "../middleware/rbac";
 import { ApiError } from "../http/errors";
@@ -163,8 +163,8 @@ router.post(
     const body = z
       .object({
         mobile_number: z.string().regex(/^09\d{9}$/),
-        national_id: z.string().min(5).max(20).optional(),
-        full_name: z.string().max(200).optional(),
+        national_id: optionalNationalIdSchema,
+        full_name: optionalPersianNameSchema,
         role: z.enum(["COOP_ADMIN", "COOP_OPERATOR"]),
       })
       .safeParse(req.body);
@@ -176,11 +176,9 @@ router.post(
       if (!cooperative) {
         return next(new ApiError({ statusCode: 404, code: "not_found", message: "Cooperative not found", requestId }));
       }
-      const national_id =
-        body.data.national_id?.trim() || nationalIdFromSeed(body.data.mobile_number.slice(-9));
       const user = await provisioningService.createUserDirect({
         mobile_number: body.data.mobile_number,
-        national_id,
+        national_id: body.data.national_id,
         role: body.data.role as UserRole,
         cooperative_id: cooperative.id,
         full_name: body.data.full_name,

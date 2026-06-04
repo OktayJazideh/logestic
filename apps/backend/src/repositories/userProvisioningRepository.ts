@@ -12,7 +12,7 @@ export type ProvisioningRequestRow = {
   mine_id?: number;
   target_role: UserRole;
   mobile_number: string;
-  national_id: string;
+  national_id?: string;
   full_name?: string;
   note?: string;
   rejection_reason?: string;
@@ -32,7 +32,7 @@ function mapRow(row: {
   mine_id: bigint | null;
   target_role: UserRole;
   mobile_number: string;
-  national_id: string;
+  national_id: string | null;
   full_name: string | null;
   note: string | null;
   rejection_reason: string | null;
@@ -51,7 +51,7 @@ function mapRow(row: {
     mine_id: row.mine_id != null ? toNum(row.mine_id) : undefined,
     target_role: row.target_role,
     mobile_number: row.mobile_number,
-    national_id: row.national_id,
+    national_id: row.national_id ?? undefined,
     full_name: row.full_name ?? undefined,
     note: row.note ?? undefined,
     rejection_reason: row.rejection_reason ?? undefined,
@@ -70,7 +70,7 @@ export async function createProvisioningRequest(input: {
   mine_id?: number;
   target_role: UserRole;
   mobile_number: string;
-  national_id: string;
+  national_id?: string | null;
   full_name?: string;
   note?: string;
 }): Promise<ProvisioningRequestRow> {
@@ -82,7 +82,7 @@ export async function createProvisioningRequest(input: {
       mine_id: input.mine_id != null ? toBig(input.mine_id) : null,
       target_role: input.target_role,
       mobile_number: input.mobile_number,
-      national_id: input.national_id,
+      national_id: input.national_id ?? null,
       full_name: input.full_name ?? null,
       note: input.note ?? null,
     },
@@ -148,15 +148,14 @@ export async function listProvisioningRequestsAdmin(opts?: {
   return rows.map(mapRow);
 }
 
-export async function findPendingByMobileOrNationalId(
-  mobile: string,
+export async function findPendingByNationalId(
   nationalId: string,
   excludeRequestId?: number,
 ): Promise<ProvisioningRequestRow | null> {
   const row = await prisma.user_provisioning_requests.findFirst({
     where: {
       status: "PENDING",
-      OR: [{ mobile_number: mobile }, { national_id: nationalId }],
+      national_id: nationalId,
       ...(excludeRequestId != null ? { NOT: { id: toBig(excludeRequestId) } } : {}),
     },
   });

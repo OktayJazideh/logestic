@@ -100,6 +100,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
+  Future<void> _logout() async {
+    await widget.sessionStore.clearSession();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final dash = _dashboard;
@@ -119,6 +125,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 arguments: widget.token,
               ),
             ),
+            LogoutAppBarButton(onLogout: _logout),
           ],
         ),
         body: RefreshIndicator(

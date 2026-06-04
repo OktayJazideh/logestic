@@ -255,7 +255,7 @@ model user_provisioning_requests {
   mine_id             BigInt?
   target_role         UserRole
   mobile_number       String
-  national_id         String
+  national_id         String?
   full_name           String?
   note                String?
   rejection_reason    String?
@@ -365,9 +365,12 @@ model mines {
   // Nullable → finance_rules; new mines use DEFAULT_PLATFORM_FEE_VALUE (0.01) in app
   platform_fee_value              Decimal? @db.Decimal(8, 6)
   allow_legacy_community_percent  Boolean  @default(false)
+  // null → DISPATCH_MODE env; manual | auto
+  dispatch_mode                   String?
   created_at                      DateTime @default(now())
   updated_at                      DateTime @updatedAt
 
+  mine_settings_audit mine_settings_audit[]
   villages villages[]
   cooperatives cooperatives[]
   loads loads[]
@@ -382,6 +385,21 @@ model mines {
   workspace_memberships user_workspace_memberships[]
   period_statements period_statements[]
   user_provisioning_requests user_provisioning_requests[]
+}
+
+model mine_settings_audit {
+  id                   BigInt   @id @default(autoincrement())
+  mine_id              BigInt
+  before_value         Json?
+  after_value          Json?
+  performed_by_user_id BigInt?
+  reason               String?
+  created_at           DateTime @default(now())
+
+  mines mines @relation(fields: [mine_id], references: [id], onDelete: Cascade)
+
+  @@index([mine_id])
+  @@index([created_at])
 }
 
 model service_contracts {

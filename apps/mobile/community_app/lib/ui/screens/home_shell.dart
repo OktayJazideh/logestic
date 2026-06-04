@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/community_api_client.dart';
 import '../../core/community_roles.dart';
@@ -95,11 +96,7 @@ class _HomeShellState extends State<HomeShell> {
         appBar: AppBar(
           title: Text('پنل ${roleLabelFa(widget.role)}'),
           actions: [
-            IconButton(
-              tooltip: 'خروج',
-              onPressed: _logout,
-              icon: const Icon(Icons.logout),
-            ),
+            LogoutAppBarButton(onLogout: _logout),
           ],
         ),
         body: IndexedStack(

@@ -64,32 +64,53 @@ Invoke-RestMethod "http://localhost:4000/api/auth/__dev/otp?mobile_number=090000
 
 ---
 
-## ۳. جدول کاربران — یک نفر برای هر نقش (پایلوت TAFTAN)
+## ۳. Seed مینیمال vs لیست پایلوت (افراد)
 
-همه پس از `db:seed` فعال هستند. راننده + مالک + وسیله **KYC APPROVED** دارند.
+### بعد از `db:seed` (پیش‌فرض — بدون PII)
 
-| نقش | موبایل | کجا login | workspace | کار اصلی |
-|-----|--------|-----------|-----------|----------|
-| **ADMIN** (پلتفرم) | `09000000000` | **وب** | OPERATIONAL · mine 1 | audit، period statement، register-mine-payment |
-| **EMPLOYER** (کارفرما/معدن) | `09000000007` | **وب** | OPERATIONAL · mine 1 | ثبت نیاز حمل |
-| **OPERATION_ADMIN** | `09000000002` | **وب** | OPERATIONAL · mine 1 | dispatch، تأیید باسکول، monthly-close |
-| **OPERATION_LOCKER** | `09000000103` | **وب** | OPERATIONAL · mine 1 | lock settlement (پس از پرداخت معدن) |
-| **COOP_ADMIN** | `09000000001` | **وب** + **community app** | COMMUNITY · mine 1 | KYC، تأیید صورت‌وضعیت، اعضا |
-| **COOP_OPERATOR** | `09000000111` | **وب** WeighbridgePage | OPERATIONAL · mine 1 | **ثبت دستی وزن باسکول** (مسیر اصلی فاز ۱) |
-| **DRIVER** | `09000000003` | **driver app** | OPERATIONAL · mine 1 | FSM مأموریت (بدون ورود وزن) |
-| **FLEET_OWNER** | `09000000004` | **وب** (پنل مالک) | OPERATIONAL · mine 1 | کیف پول / ناوگان |
-| **HOUSEHOLD** (pending) | `09000000005` | **community app** | COMMUNITY · mine 1 | ثبت‌نام خانوار |
-| **HOUSEHOLD** (approved) | `09000001001` | **community app** | COMMUNITY · mine 1 | wallet + سهم (KYC تأییدشده) |
-| **CONSULTANT** | `09000000006` | **وب** | OPERATIONAL · mine 1 | تأیید کار ساعتی (فاز ۲+) |
-| **OPERATOR** (ساعتی) | `09000000008` | **وب** | OPERATIONAL · mine 1 | START/END ساعتی (فاز ۲+) |
+| چه چیزی | وضعیت |
+|---------|--------|
+| معدن تفتان + بتا، روستاها، تعاونی‌ها | ✓ در DB |
+| Rate card + قرارداد HAUL (99/1 + Community placeholder) | ✓ |
+| **یک ADMIN** | ✓ موبایل پیش‌فرض `09000000000` (یا `SEED_ADMIN_MOBILE`) — **بدون** کد ملی/نام در seed |
+| کاربران پایلوت (راننده، تعاونی، …) | **خالی** — شما از پنل اضافه می‌کنید |
 
-### نقش‌های اضافی (multi-mine / تست)
+```powershell
+# فقط برای تست خودکار قدیمی (۱۵ حساب 09000000* + KYC ساختگی):
+$env:SEED_UAT_ENTITIES="1"
+npm -w @app/backend run db:seed
+```
 
-| نقش | موبایل | معدن |
-|-----|--------|------|
-| COOP_ADMIN بتا | `09000000102` | mine 2 |
-| COOP_OPERATOR بتا | `09000000112` | mine 2 |
-| HOUSEHOLD بتا | `09000001002` | mine 2 |
+### چک‌لیست نقش‌های UAT تفتان (لیست پایلوت شما)
+
+از **پنل ADMIN → مدیریت کاربران** (`/panel/admin/users`) هر نقش را با موبایل واقعی بسازید. کد ملی و نام **اختیاری** در ایجاد حساب؛ شبا **فقط** در ثبت/KYC خانوار و ناوگان. هر موبایل/کد ملی/شبا باید **یکتا** باشد.
+
+| نقش | موبایل (پر کنید) | cooperative_id | workspace | کار اصلی |
+|-----|------------------|----------------|-----------|----------|
+| **ADMIN** | (همان seed) | — | OPERATIONAL · mine 1 | کاربران، تأیید درخواست‌ها |
+| **EMPLOYER** | | — | OPERATIONAL · mine 1 | ثبت نیاز حمل |
+| **OPERATION_ADMIN** | | — | OPERATIONAL · mine 1 | dispatch، تأیید باسکول |
+| **OPERATION_ADMIN** (lock) | | — | OPERATIONAL · mine 1 | lock settlement |
+| **COOP_ADMIN** | | `1` | COMMUNITY · mine 1 | KYC، اعضا |
+| **COOP_OPERATOR** | | `1` | OPERATIONAL · mine 1 | **وزن دستی باسکول** |
+| **DRIVER** | | `1` | OPERATIONAL · mine 1 | FSM در اپ راننده |
+| **FLEET_OWNER** | | `1` | OPERATIONAL · mine 1 | ناوگان + KYC + شبا |
+| **HOUSEHOLD** | | `1` | COMMUNITY · mine 1 | ثبت خانوار + KYC + شبا |
+| **CONSULTANT** | | — | OPERATIONAL · mine 1 | ساعتی (فاز ۲+) |
+| **OPERATOR** | | — | OPERATIONAL · mine 1 | ساعتی (فاز ۲+) |
+
+> **CLIENT-DATA-PILOT-1 ✓ (دمو):** gate بسته شد — seed فقط ساختار + placeholder؛ افراد از پنل. Community/IBAN/روستای واقعی را هنگام UAT میدانی از پنل قرارداد و KYC وارد کنید.
+
+### حساب‌های دمو قدیمی (فقط با `SEED_UAT_ENTITIES=1`)
+
+| نقش | موبایل |
+|-----|--------|
+| EMPLOYER | `09000000007` |
+| OPERATION_ADMIN | `09000000002` |
+| COOP_ADMIN | `09000000001` |
+| COOP_OPERATOR | `09000000111` |
+| DRIVER | `09000000003` |
+| … | جدول کامل در git history / seed `seedUatPilotUsers` |
 
 ### مسیر UAT حمل (خلاصه)
 
@@ -141,7 +162,9 @@ sudo -u logestic npm -w @app/web run build
 Staging/UAT:
 
 ```bash
-sudo -u logestic npm -w @app/backend run db:seed
+sudo -u logestic npx prisma migrate deploy   # حداقل 0046_identity_unique
+sudo -u logestic npm -w @app/backend run db:seed   # مینیمال — سپس کاربران پایلوت از پنل ADMIN
+# اختیاری دمو قدیمی: SEED_UAT_ENTITIES=1 npm -w @app/backend run db:seed
 ```
 
 ### ۴.۳ فایل env

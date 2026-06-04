@@ -6,6 +6,8 @@ export type MineRow = {
   mine_code: string;
   name: string;
   location_coordinates?: string;
+  platform_fee_value?: number;
+  dispatch_mode?: string | null;
 };
 
 export type VillageRow = {
@@ -17,23 +19,31 @@ export type VillageRow = {
 
 export async function listMines(): Promise<MineRow[]> {
   const rows = await prisma.mines.findMany({ orderBy: { id: "asc" } });
-  return rows.map((m) => ({
-    id: toNum(m.id),
-    mine_code: m.mine_code,
-    name: m.name,
-    location_coordinates: m.location_coordinates ?? undefined,
-  }));
+  return rows.map(mapMineRow);
 }
 
-export async function getMine(mineId: number): Promise<MineRow | null> {
-  const m = await prisma.mines.findUnique({ where: { id: toBig(mineId) } });
-  if (!m) return null;
+function mapMineRow(m: {
+  id: bigint;
+  mine_code: string;
+  name: string;
+  location_coordinates: string | null;
+  platform_fee_value?: { toString(): string } | null;
+  dispatch_mode?: string | null;
+}): MineRow {
   return {
     id: toNum(m.id),
     mine_code: m.mine_code,
     name: m.name,
     location_coordinates: m.location_coordinates ?? undefined,
+    platform_fee_value: m.platform_fee_value != null ? Number(m.platform_fee_value) : undefined,
+    dispatch_mode: m.dispatch_mode ?? undefined,
   };
+}
+
+export async function getMine(mineId: number): Promise<MineRow | null> {
+  const m = await prisma.mines.findUnique({ where: { id: toBig(mineId) } });
+  if (!m) return null;
+  return mapMineRow(m);
 }
 
 export async function upsertMine(data: Omit<MineRow, "id"> & { id?: number }): Promise<MineRow> {

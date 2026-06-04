@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/driver_api_client.dart';
 import '../../core/mission_flow.dart';
@@ -86,14 +86,12 @@ class _MissionsScreenState extends State<MissionsScreen> {
         appBar: AppBar(
           title: const Text('ماموریت‌های فعال'),
           actions: [
-            IconButton(
-              tooltip: 'خروج',
-              onPressed: () async {
+            LogoutAppBarButton(
+              onLogout: () async {
                 await widget.sessionStore.clearSession();
                 if (!mounted) return;
                 Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
               },
-              icon: const Icon(Icons.logout),
             ),
           ],
         ),

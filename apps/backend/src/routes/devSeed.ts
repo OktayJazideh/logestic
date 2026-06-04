@@ -44,8 +44,6 @@ router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), async (req
     const seedNational = (mobile: string) => nationalIdFromSeed(mobile.slice(-9));
     const admin = await appContext.userStore.upsertUserByMobile("09000000000", "ADMIN", {
       is_active: true,
-      national_id: seedNational("09000000000"),
-      full_name: "مدیر سیستم",
     });
     await appContext.userStore.upsertUserByMobile("09000000001", "COOP_ADMIN", {
       is_active: true,

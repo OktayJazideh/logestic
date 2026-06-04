@@ -21,6 +21,33 @@ export function prismaToApiError(err: unknown, requestId?: string): ApiError | n
         requestId,
       });
     }
+    if (err.code === "P2002") {
+      const target = String(err.meta?.target ?? "");
+      if (target.includes("bank_iban") || target.includes("iban")) {
+        return new ApiError({
+          statusCode: 409,
+          code: "iban_taken",
+          message: "Bank IBAN is already registered",
+          requestId,
+        });
+      }
+      if (target.includes("mobile_number") || target.includes("upr_pending_mobile")) {
+        return new ApiError({
+          statusCode: 409,
+          code: "mobile_pending",
+          message: "Mobile number has a pending provisioning request",
+          requestId,
+        });
+      }
+      if (target.includes("national_id") || target.includes("upr_pending_national")) {
+        return new ApiError({
+          statusCode: 409,
+          code: "national_id_pending",
+          message: "A pending provisioning request already exists for this national ID",
+          requestId,
+        });
+      }
+    }
   }
   if (err instanceof TypeError) {
     const msg = err.message;

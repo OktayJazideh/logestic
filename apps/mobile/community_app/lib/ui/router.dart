@@ -70,10 +70,8 @@ class AppRouter {
       return MaterialPageRoute(
         builder: (_) => HourlyStartScreen(
           api: api,
+          sessionStore: sessionStore,
           token: token,
-          onUnauthorized: () async {
-            await sessionStore.clearSession();
-          },
         ),
       );
     }
@@ -83,13 +81,11 @@ class AppRouter {
       return MaterialPageRoute(
         builder: (_) => HourlyEndScreen(
           api: api,
+          sessionStore: sessionStore,
           token: args['token'] as String,
           logId: args['logId'] as int,
           startedAt: DateTime.parse(args['startedAt'] as String),
           equipmentLabel: args['equipmentLabel'] as String? ?? '—',
-          onUnauthorized: () async {
-            await sessionStore.clearSession();
-          },
         ),
       );
     }

@@ -19,6 +19,7 @@
     "test:duty-db2": "tsx scripts/duty-db2.ts",
     "test:rbac": "tsx scripts/test-rbac-perm1.ts",
     "test:user-provisioning": "tsx scripts/test-user-provisioning1.ts",
+    "test:iban-unique1": "tsx scripts/test-iban-unique1.ts",
     "test:rbac-fix1": "tsx scripts/test-rbac-fix1.ts",
     "test:coop1": "tsx scripts/test-coop1.ts",
     "test:coop2": "tsx scripts/test-coop2.ts",

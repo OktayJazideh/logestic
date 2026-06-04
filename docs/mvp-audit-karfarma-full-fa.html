@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<title>ممیزی کامل چت کارفرما ↔ کد — logestic MVP</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{--bg:#FAFAF7;--panel:#fff;--text:#1F2937;--muted:#6B7280;--border:#E5E7EB;--primary:#1B5E20}
+  body{margin:0;background:var(--bg);font-family:Tahoma,sans-serif;font-size:14px;line-height:1.75;color:var(--text)}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 18px 64px}
+  header{background:linear-gradient(180deg,#0F3D17,#1B5E20);color:#fff;border-radius:14px;padding:20px;margin-bottom:16px}
+  header a{color:#D1FAE5}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+  h2{margin:0 0 10px;font-size:17px;color:#0F3D17;border-bottom:2px solid #F3F4F6;padding-bottom:6px}
+  h3{margin:12px 0 6px;font-size:14px;color:#0F3D17}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{border:1px solid var(--border);padding:6px 8px;vertical-align:top;text-align:right}
+  th{background:#F3F6F1}
+  .s{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;border:1px solid}
+  .ok{background:#ECFDF5;color:#065F46;border-color:#A7F3D0}
+  .part{background:#FFFBEB;color:#92400E;border-color:#FCD34D}
+  .wait{background:#E0F2FE;color:#075985;border-color:#7DD3FC}
+  .no{background:#FEF2F2;color:#991B1B;border-color:#FCA5A5}
+  .old{background:#F3F4F6;color:#4B5563;border-color:#D1D5DB}
+  code{background:#F1F5F9;padding:1px 4px;border-radius:3px;font-size:11.5px}
+  .legend{font-size:13px;margin:8px 0}
+  .sum{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0}
+  .sum div{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;font-size:13px}
+  .sum strong{display:block;font-size:20px}
+  @media(max-width:760px){.sum{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>ممیزی کامل چت کارفرما ↔ کد</h1>
+  <p>مرجع: فایل دسکتاپ «New Text Document (4).txt» (~۷۴۸۰ خط) · Freeze مالی ~خط ۶۳۹۶ · تحویل کارفرما ~۶۶۳۰ · Q&amp;A ~۷۴۰۷</p>
+  <p>اولویت تفسیر: <strong>Freeze آخر</strong> &gt; پاسخ‌های تو به سؤالات کارفرما &gt; متن اولیه MVP (۸۵/۱۳/۲ و ۱۳٪ دوره‌ای <span class="s old">منسوخ</span>)</p>
+  <p><a href="mvp-flow-chat-master-report-fa-v4.html">← گزارش v4</a> · <a href="mvp-task-prompts-pro-fa.html">پرامپت‌ها</a></p>
+</header>
+
+<div class="panel">
+  <h2>خلاصه آماری (۱۲۸ ردیف)</h2>
+  <div class="sum">
+    <div><strong>91</strong>✓ پیاده‌شده</div>
+    <div><strong>14</strong>△ جزئی / scaffold</div>
+    <div><strong>11</strong>⏳ gate کارفرما</div>
+    <div><strong>8</strong>✗ خارج فاز ۱ / نساخته</div>
+    <div><strong>4</strong>↻ منسوخ</div>
+  </div>
+  <p class="legend">
+    <span class="s ok">✓</span> در کد هست &nbsp;
+    <span class="s part">△</span> نیمه‌کاره یا فقط UAT محدود &nbsp;
+    <span class="s wait">⏳</span> منتظر داده/تصمیم کارفرما &nbsp;
+    <span class="s no">✗</span> عمداً خارج scope یا ندارد &nbsp;
+    <span class="s old">↻</span> جایگزین شده
+  </p>
+</div>
+
+<!-- sections generated as tables -->
+
+<div class="panel" id="A">
+<h2>A — چشم‌انداز و اصول (۱۰)</h2>
+<table><thead><tr><th>#</th><th>مورد چت</th><th>وضعیت</th><th>شواهد کد</th></tr></thead><tbody>
+<tr><td>A1</td><td>پلتفرم = زیرساخت (مثل اسنپ) نه مجری معدن</td><td><span class="s ok">✓</span></td><td>PLATFORM-LEGAL · ledger جدا · terms</td></tr>
+<tr><td>A2</td><td>فرآیند رسمی فقط داخل سیستم</td><td><span class="s ok">✓</span></td><td>audit · FSM · settlement</td></tr>
+<tr><td>A3</td><td>اعتراض خارج سیستم معتبر نیست</td><td><span class="s ok">✓</span></td><td><code>membership_objections</code> auth-only</td></tr>
+<tr><td>A4</td><td>Human Supervised Automation (نه auto-pilot کامل)</td><td><span class="s ok">✓</span></td><td>Draft→Lock→mark-paid</td></tr>
+<tr><td>A5</td><td>Multi-tenant از اول (چند معدن)</td><td><span class="s ok">✓</span></td><td>TENANT-1 · workspace · mine_id</td></tr>
+<tr><td>A6</td><td>تفکیک Ledger: Operational / Platform / Community</td><td><span class="s ok">✓</span></td><td>FIN-DUAL · ACC-FUND</td></tr>
+<tr><td>A7</td><td>Community/Operational workspace جدا (پاسخ تو Q1)</td><td><span class="s ok">✓</span></td><td>WorkspaceSelect · membershipKind</td></tr>
+<tr><td>A8</td><td>یک اکانت مرکزی + انتخاب workspace (Q2)</td><td><span class="s ok">✓</span></td><td><code>workspaces.ts</code></td></tr>
+<tr><td>A9</td><td>SLA/Escalation از معماری (Q3) — MVP ساده</td><td><span class="s part">△</span></td><td>SLA-ESCALATION-1 · cron off</td></tr>
+<tr><td>A10</td><td>Queue-based — هر کسی با همان نقش (Q4)</td><td><span class="s ok">✓</span></td><td>role inbox · نه assign-to-user</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="B">
+<h2>B — نقش‌ها (۱۱)</h2>
+<table><thead><tr><th>#</th><th>نقش چت</th><th>کد</th><th>وضعیت</th></tr></thead><tbody>
+<tr><td>B1</td><td>ADMIN</td><td><code>UserRole.ADMIN</code></td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B2</td><td>EMPLOYER</td><td><code>EMPLOYER</code></td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B3</td><td>OPERATION_ADMIN</td><td><code>OPERATION_ADMIN</code></td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B4</td><td>COOP_MANAGER</td><td><code>COOP_ADMIN</code></td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B5</td><td>COOP_OPERATOR (باسکول)</td><td><code>COOP_OPERATOR</code> · is_weighbridge_operator</td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B6</td><td>CONSULTANT/SUPERVISOR</td><td><code>CONSULTANT</code></td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B7</td><td>FLEET_OWNER</td><td><code>FLEET_OWNER</code></td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B8</td><td>DRIVER/OPERATOR</td><td><code>DRIVER</code> · <code>OPERATOR</code></td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B9</td><td>HOUSEHOLD</td><td><code>HOUSEHOLD</code></td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B10</td><td>OPERATION_LOCKER (maker/checker)</td><td><code>OPERATION_LOCKER</code></td><td><span class="s ok">✓</span></td></tr>
+<tr><td>B11</td><td>مدیر تعاونی فقط توسط ADMIN</td><td>USER-PROV</td><td><span class="s ok">✓</span></td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="C">
+<h2>C — احراز هویت و هویت (۱۲)</h2>
+<table><thead><tr><th>#</th><th>قانون</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>C1</td><td>OTP موبایل</td><td><span class="s ok">✓</span></td><td><code>routes/auth.ts</code></td></tr>
+<tr><td>C2</td><td>یک موبایل = یک کاربر</td><td><span class="s ok">✓</span></td><td>users.mobile unique</td></tr>
+<tr><td>C3</td><td>یک کدملی = یک ذینفع</td><td><span class="s ok">✓</span></td><td><code>assertNationalIdAvailable</code></td></tr>
+<tr><td>C4</td><td>تغییر کدملی بعد از ثبت ممنوع</td><td><span class="s ok">✓</span></td><td><code>national_id cannot be changed</code></td></tr>
+<tr><td>C5</td><td>checksum کدملی</td><td><span class="s ok">✓</span></td><td><code>lib/nationalId.ts</code></td></tr>
+<tr><td>C6</td><td>checksum شبا</td><td><span class="s ok">✓</span></td><td><code>lib/iban.ts</code></td></tr>
+<tr><td>C7</td><td>تغییر شبا → audit</td><td><span class="s ok">✓</span></td><td>IBAN-AUDIT-1</td></tr>
+<tr><td>C8</td><td>کیف‌پول بدون APPROVED غیرفعال</td><td><span class="s ok">✓</span></td><td><code>wallet.ts</code> · wallet_active</td></tr>
+<tr><td>C9</td><td>تطبیق کدملی↔موبایل (اختیاری)</td><td><span class="s part">△</span></td><td>env NATID_MOBILE_MATCH</td></tr>
+<tr><td>C10</td><td>USER-PROV درخواست→تأیید ADMIN</td><td><span class="s ok">✓</span></td><td>0045 migration</td></tr>
+<tr><td>C11</td><td>دمو __dev/login</td><td><span class="s ok">✓</span></td><td>web + mineral_api</td></tr>
+<tr><td>C12</td><td>404 دسترسی بدون افشای نقش</td><td><span class="s ok">✓</span></td><td>PanelNotFound</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="D">
+<h2>D — جغرافia و روستا (۶)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>D1</td><td>villages متصل به mine</td><td><span class="s ok">✓</span></td><td><code>villages.mine_id</code></td></tr>
+<tr><td>D2</td><td>خانوار فقط dropdown روستا</td><td><span class="s ok">✓</span></td><td><code>register_screen.dart</code></td></tr>
+<tr><td>D3</td><td>ورود دستی نام روستا ممنوع</td><td><span class="s ok">✓</span></td><td>API village_id required</td></tr>
+<tr><td>D4</td><td>COOP فقط محدوده مجاز</td><td><span class="s ok">✓</span></td><td>coop scope · cooperative_id</td></tr>
+<tr><td>D5</td><td>لیست روستاهای مصوب (Excel) — قفل</td><td><span class="s wait">⏳</span></td><td>seed دمو · CLIENT-DATA</td></tr>
+<tr><td>D6</td><td>عضویت بر اساس لیست نه فقط geofence</td><td><span class="s ok">✓</span></td><td>village_id · geofence برای FSM</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="E">
+<h2>E — KYC خانوار / ناوگان (۱۴)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>E1</td><td>وضعیت‌های PENDING/APPROVED/REJECTED/SUSPENDED</td><td><span class="s ok">✓</span></td><td>schema enum</td></tr>
+<tr><td>E2</td><td>NEEDS_CORRECTION + دلیل</td><td><span class="s ok">✓</span></td><td>coopKyc · audit</td></tr>
+<tr><td>E3</td><td>فقط سرپرست خانوار</td><td><span class="s ok">✓</span></td><td>households</td></tr>
+<tr><td>E4</td><td>فقط APPROVED در pool</td><td><span class="s ok">✓</span></td><td>snapshot query</td></tr>
+<tr><td>E5</td><td>رد/تعلیق با دلیل + audit</td><td><span class="s ok">✓</span></td><td>coop routes</td></tr>
+<tr><td>E6</td><td>Registration + Approval (Q5)</td><td><span class="s ok">✓</span></td><td>نه whitelist-only</td></tr>
+<tr><td>E7</td><td>bulk import Excel خانوار</td><td><span class="s ok">✓</span></td><td>HH-BULK-IMPORT-1</td></tr>
+<tr><td>E8</td><td>کمیته quorum خانوار</td><td><span class="s part">△</span></td><td><code>household_approvals</code> · pilot تک‌نفر OK</td></tr>
+<tr><td>E9</td><td>مالک/راننده/خودرو جدا تأیید</td><td><span class="s ok">✓</span></td><td>coop KYC inbox</td></tr>
+<tr><td>E10</td><td>راننده ذینفع مالی مستقیم نیست</td><td><span class="s ok">✓</span></td><td>no driver wallet credit</td></tr>
+<tr><td>E11</td><td>انواع دستگاه (کامیون، لودر، …)</td><td><span class="s ok">✓</span></td><td>vehicles.equipment_type</td></tr>
+<tr><td>E12</td><td>COOP نمی‌تواند مأموریت بسازد</td><td><span class="s ok">✓</span></td><td>RBAC</td></tr>
+<tr><td>E13</td><td>COOP_ADMIN باسکول تأیید نکند</td><td><span class="s ok">✓</span></td><td>فقط COOP_OPERATOR</td></tr>
+<tr><td>E14</td><td>COOP نرخ/تراکنش مالی نزند</td><td><span class="s ok">✓</span></td><td>permissions.ts</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="F">
+<h2>F — نیاز کارفرما و Dispatch (۱۰)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>F1</td><td>کارفرما فقط operation_need</td><td><span class="s ok">✓</span></td><td>EmployerNeedForm</td></tr>
+<tr><td>F2</td><td>بدون انتخاب راننده/دستگاه</td><td><span class="s ok">✓</span></td><td>dispatchService</td></tr>
+<tr><td>F3</td><td>نرخ از Rate Card (نه دستی)</td><td><span class="s ok">✓</span></td><td>serviceContractFareService</td></tr>
+<tr><td>F4</td><td>snapshot نرخ روی مأموریت</td><td><span class="s ok">✓</span></td><td>rate_per_ton_snapshot</td></tr>
+<tr><td>F5</td><td>dispatch manual/auto</td><td><span class="s ok">✓</span></td><td>DISPATCH_MODE · تصمیم ⏳</td></tr>
+<tr><td>F6</td><td>یک راننده یک مأموریت فعال</td><td><span class="s ok">✓</span></td><td>DISPATCH-LOCK-1</td></tr>
+<tr><td>F7</td><td>یک دستگاه یک مأموریت فعال</td><td><span class="s ok">✓</span></td><td>dispatch lock</td></tr>
+<tr><td>F8</td><td>Load ID یکتا</td><td><span class="s ok">✓</span></td><td>load_tracking_code</td></tr>
+<tr><td>F9</td><td>redispatch</td><td><span class="s ok">✓</span></td><td>REDISPATCH-1</td></tr>
+<tr><td>F10</td><td>dispatch هوشمند پیچیده</td><td><span class="s no">✗</span></td><td>خارج فاز ۱</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="G">
+<h2>G — FSM حمل و Geofence (۸)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>G1</td><td>FSM ASSIGNED→…→DELIVERED</td><td><span class="s ok">✓</span></td><td>missionStore · driver app</td></tr>
+<tr><td>G2</td><td>ترتیب مراحل قابل دور زدن نیست</td><td><span class="s ok">✓</span></td><td>transition guards</td></tr>
+<tr><td>G3</td><td>geofence ورود/خروج</td><td><span class="s ok">✓</span></td><td>WF-GEOFENCE · geofenceService</td></tr>
+<tr><td>G4</td><td>راننده درآمد مالک نبیند</td><td><span class="s ok">✓</span></td><td>mission:execute only</td></tr>
+<tr><td>G5</td><td>GPS زنده / ETA</td><td><span class="s no">✗</span></td><td>خارج فاز ۱</td></tr>
+<tr><td>G6</td><td>پلاک‌خوان کامل</td><td><span class="s no">✗</span></td><td>architecture-ready فقط</td></tr>
+<tr><td>G7</td><td>اعلام آمادگی راننده</td><td><span class="s no">✗</span></td><td>DRIVER-AVAIL P3</td></tr>
+<tr><td>G8</td><td>خروج از حساب همه صفحات FSM</td><td><span class="s part">△</span></td><td>home/missions ✓ · میانی △</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="H">
+<h2>H — باسکول (۱۶)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>H1</td><td>ماژule مستقل weighbridge_tickets</td><td><span class="s ok">✓</span></td><td>WB-1</td></tr>
+<tr><td>H2</td><td>empty + loaded → net سیستم</td><td><span class="s ok">✓</span></td><td>missionStore · WeighbridgePage</td></tr>
+<tr><td>H3</td><td>کاربر net دستی وارد نکند</td><td><span class="s ok">✓</span></td><td>read-only net در UI</td></tr>
+<tr><td>H4</td><td>وزن بعد از ثبت مستقیم edit نشود</td><td><span class="s ok">✓</span></td><td>adjustment flow</td></tr>
+<tr><td>H5</td><td>Adjustment + audit</td><td><span class="s ok">✓</span></td><td>weighbridge_adjustment_requests</td></tr>
+<tr><td>H6</td><td>فقط APPROVED → مالی</td><td><span class="s ok">✓</span></td><td>approve gate</td></tr>
+<tr><td>H7</td><td>COMPLETED بدون باسکول → پول نه</td><td><span class="s ok">✓</span></td><td>VERIFIED gate</td></tr>
+<tr><td>H8</td><td>anomaly → PENDING_HOLD</td><td><span class="s ok">✓</span></td><td>5% rule</td></tr>
+<tr><td>H9</td><td>HELD خارج settlement</td><td><span class="s ok">✓</span></td><td>HOLD-SETTLEMENT-1</td></tr>
+<tr><td>H10</td><td>Manual failover + دلیل + audit</td><td><span class="s ok">✓</span></td><td>entry_source MANUAL · WB-MANUAL</td></tr>
+<tr><td>H11</td><td>Agent ingest API + idempotency</td><td><span class="s ok">✓</span></td><td>WB-INT-1 · weighbridge-agent/</td></tr>
+<tr><td>H12</td><td>Local Agent hardware UAT</td><td><span class="s part">△</span></td><td>scaffold · UAT دستی OK</td></tr>
+<tr><td>H13</td><td>راننده وزن وارد نکند</td><td><span class="s ok">✓</span></td><td>weighbridge_read read-only</td></tr>
+<tr><td>H14</td><td>COOP_OPERATOR پنل وب</td><td><span class="s ok">✓</span></td><td>WeighbridgePage</td></tr>
+<tr><td>H15</td><td>spec باسکول از معدن</td><td><span class="s wait">⏳</span></td><td>CLIENT-DATA #5</td></tr>
+<tr><td>H16</td><td>Source of Truth = باسکول (نه دستی راننده)</td><td><span class="s ok">✓</span></td><td>architecture ✓</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="I">
+<h2>I — عملیات ساعتی (۱۰) — Freeze: خارج UAT فاز ۱</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>I1</td><td>hourly_work_logs entity</td><td><span class="s ok">✓</span></td><td>schema</td></tr>
+<tr><td>I2</td><td>raw_hours سیستم · billable مشاور</td><td><span class="s ok">✓</span></td><td>hourlyWorkLogStore</td></tr>
+<tr><td>I3</td><td>CONSULTANT فقط تأیید فنی</td><td><span class="s ok">✓</span></td><td>hourly routes</td></tr>
+<tr><td>I4</td><td>مشاور نرخ/کیف‌پول نبیند</td><td><span class="s ok">✓</span></td><td>RBAC</td></tr>
+<tr><td>I5</td><td>اپ community ساعتی start/end</td><td><span class="s ok">✓</span></td><td>hourly_*.dart</td></tr>
+<tr><td>I6</td><td>در UAT تفتان اجباری</td><td><span class="s no">✗</span></td><td>Freeze ~۶۵۲۷</td></tr>
+<tr><td>I7</td><td>Community × ساعت دستگاه (قرارداد)</td><td><span class="s part">△</span></td><td>EQUIPMENT_HOUR type · haul UAT</td></tr>
+<tr><td>I8</td><td>نیاز ساعتی کارفرما</td><td><span class="s no">✗</span></td><td>NEED-HOURLY خارج freeze</td></tr>
+<tr><td>I9</td><td>۱۳٪ شامل ساعتی (متن ~۳۱۵۱)</td><td><span class="s old">↻</span></td><td>مدل تن×ریال جایگزین</td></tr>
+<tr><td>I10</td><td>DoD قدیمی «مشاور تأیید ساعتی»</td><td><span class="s part">△</span></td><td>کد ✓ · UAT haul-only</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="J">
+<h2>J — قرارداد و Rate Card (۱۲)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>J1</td><td>service_contract versioning</td><td><span class="s ok">✓</span></td><td>SVC-CONTRACT-1</td></tr>
+<tr><td>J2</td><td>fixed_community_amount_rial_per_unit</td><td><span class="s ok">✓</span></td><td>بدون % در DB</td></tr>
+<tr><td>J3</td><td>unit: TON/LITER/HOUR/WASTE/…</td><td><span class="s ok">✓</span></td><td>serviceContractsRepository</td></tr>
+<tr><td>J4</td><td>Usage × Fixed Community Amount</td><td><span class="s ok">✓</span></td><td>computeCommunityContribution</td></tr>
+<tr><td>J5</td><td>عدد واقعی تفتان</td><td><span class="s wait">⏳</span></td><td>placeholder 400k</td></tr>
+<tr><td>J6</td><td>تغییر فقط با نسخه/الحاقیه</td><td><span class="s ok">✓</span></td><td>contract draft→activate</td></tr>
+<tr><td>J7</td><td>Dual approval قرارداد معدن+تعاونی</td><td><span class="s part">△</span></td><td>workflow جزئی · CONTRACT-VERSION-UI</td></tr>
+<tr><td>J8</td><td>Rate Card per قرارداد</td><td><span class="s ok">✓</span></td><td>service_contract.rate_card_id</td></tr>
+<tr><td>J9</td><td>تنظیمات معدن از پنل (بدون seed)</td><td><span class="s ok">✓</span></td><td>MINE-SETTINGS-UI-1 — AdminMineSettings + PATCH API</td></tr>
+<tr><td>J10</td><td>onboarding معدن دوم بدون seed</td><td><span class="s no">✗</span></td><td>TENANT-ONBOARD-1</td></tr>
+<tr><td>J11</td><td>حذف fallback عددی business</td><td><span class="s part">△</span></td><td>FIN-NO-HARDCODE-1</td></tr>
+<tr><td>J12</td><td>مدل ۸۵/۱۳/۲</td><td><span class="s old">↻</span></td><td>Freeze ~۶۴۰۱ کنار</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="K">
+<h2>K — مالی Dual Economy (۱۴)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>K1</td><td>99% owner + 1% platform از کرایه</td><td><span class="s ok">✓</span></td><td>splitOperational · pilot-taftan1</td></tr>
+<tr><td>K2</td><td>Community جدا از کرایه</td><td><span class="s ok">✓</span></td><td>COMM-TON-1</td></tr>
+<tr><td>K3</td><td>Community → pool نه wallet مستقیم خانوار</td><td><span class="s ok">✓</span></td><td>community_pools</td></tr>
+<tr><td>K4</td><td>Pool ÷ snapshot مساوی</td><td><span class="s ok">✓</span></td><td>distributePool</td></tr>
+<tr><td>K5</td><td>هر مأموریت یک‌بار مالی</td><td><span class="s ok">✓</span></td><td>ledger idempotency</td></tr>
+<tr><td>K6</td><td>Payment status جدا از mission</td><td><span class="s ok">✓</span></td><td>payment_state · HELD</td></tr>
+<tr><td>K7</td><td>تغییر مستقیم wallet ممنوع</td><td><span class="s ok">✓</span></td><td>transactions only</td></tr>
+<tr><td>K8</td><td>۱۳٪ کل درآمد دوره (متن ~۳۱۶۱)</td><td><span class="s old">↻</span></td><td>جایگزین: تن×ریال</td></tr>
+<tr><td>K9</td><td>۳ تراکنش owner/household/platform قدیم</td><td><span class="s old">↻</span></td><td>مدل dual جدید</td></tr>
+<tr><td>K10</td><td>household_shares + wallet نمایش</td><td><span class="s ok">✓</span></td><td>wallet_screen.dart</td></tr>
+<tr><td>K11</td><td>Receipt PDF</td><td><span class="s ok">✓</span></td><td>RECEIPT-PDF-1</td></tr>
+<tr><td>K12</td><td>Platform fee = service fee naming</td><td><span class="s ok">✓</span></td><td>PLATFORM-LEGAL</td></tr>
+<tr><td>K13</td><td>Restricted community fund metadata</td><td><span class="s ok">✓</span></td><td>ACC-FUND-1</td></tr>
+<tr><td>K14</td><td>ضریب منطقه‌ای community</td><td><span class="s no">✗</span></td><td>Freeze: equal only</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="L">
+<h2>L — Settlement و بانک (۱۴)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>L1</td><td>Draft صورت‌وضعیت اتومات</td><td><span class="s ok">✓</span></td><td>INVOICE-DRAFT · period_statements</td></tr>
+<tr><td>L2</td><td>Review انسانی قبل Lock</td><td><span class="s ok">✓</span></td><td>approval_tasks</td></tr>
+<tr><td>L3</td><td>Dual approval settlement (Q7)</td><td><span class="s ok">✓</span></td><td>OPERATION_LOCKER · dual_approval</td></tr>
+<tr><td>L4</td><td>معدن فقط به IBAN تعاونی</td><td><span class="s ok">✓</span></td><td>MINE-PAY-FLOW · IBAN ⏳</td></tr>
+<tr><td>L5</td><td>Excel settlement sheet</td><td><span class="s ok">✓</span></td><td>export · SET-CYCLE</td></tr>
+<tr><td>L6</td><td>mark-paid دستی + reference</td><td><span class="s ok">✓</span></td><td>settlement routes</td></tr>
+<tr><td>L7</td><td>Auto bank پس از LOCK</td><td><span class="s no">✗</span></td><td>Freeze ~۷۱۷۸ · BANK-AUTO scaffold</td></tr>
+<tr><td>L8</td><td>تسویه هفتگی مالک (متن ~۳۱۹۸)</td><td><span class="s part">△</span></td><td>ownerWeeklyClose · UAT monthly</td></tr>
+<tr><td>L9</td><td>تسویه ماهانه خانوار</td><td><span class="s ok">✓</span></td><td>monthlyClose · pool distribute</td></tr>
+<tr><td>L10</td><td>برداشت آنلاین کاربر</td><td><span class="s no">✗</span></td><td>خارج فاز ۱ ~۸۷۷</td></tr>
+<tr><td>L11</td><td>رسید بانک Community UI</td><td><span class="s no">✗</span></td><td>COMM-BANK-RECEIPT · سؤال ۱۰</td></tr>
+<tr><td>L12</td><td>تعاونی واسط — مردم طرف معدن نیستند</td><td><span class="s ok">✓</span></td><td>settlement به coop</td></tr>
+<tr><td>L13</td><td>monthly-close یک سیکل UAT</td><td><span class="s ok">✓</span></td><td>test:pilot-taftan1 · e2e</td></tr>
+<tr><td>L14</td><td>Bank API mature path (Q8)</td><td><span class="s part">△</span></td><td>bankAdapter abstraction</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="M">
+<h2>M — Audit · RBAC · Governance (۱۰)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>M1</td><td>audit_logs حساس</td><td><span class="s ok">✓</span></td><td>AuditViewer</td></tr>
+<tr><td>M2</td><td>RBAC matrix نقش‌ها</td><td><span class="s ok">✓</span></td><td>permissions.ts · EMP-PERM</td></tr>
+<tr><td>M3</td><td>Full audit از اول (Q9)</td><td><span class="s ok">✓</span></td><td>نه MVP سبک</td></tr>
+<tr><td>M4</td><td>SLA timeout فعال</td><td><span class="s part">△</span></td><td>due_at · cron off</td></tr>
+<tr><td>M5</td><td>Escalation chain فعال</td><td><span class="s part">△</span></td><td>SLA-ESCALATION phase 2</td></tr>
+<tr><td>M6</td><td>Multi-level approval modular</td><td><span class="s part">△</span></td><td>GOV-WORKFLOW · HH committee</td></tr>
+<tr><td>M7</td><td>Exception-based governance</td><td><span class="s part">△</span></td><td>HOLD · objections</td></tr>
+<tr><td>M8</td><td>رأی‌گیری / جلسات تعاونی</td><td><span class="s no">✗</span></td><td>خارج MVP ~۳۳۳۴</td></tr>
+<tr><td>M9</td><td>Idempotency-Key API</td><td><span class="s ok">✓</span></td><td>idempotency middleware</td></tr>
+<tr><td>M10</td><td>TENANT RLS Postgres</td><td><span class="s no">✗</span></td><td>TENANT-RLS P3</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="N">
+<h2>N — شفافیت اجتماعی (۶)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>N1</td><td>لیست: نام + روستا + وضعیت</td><td><span class="s ok">✓</span></td><td>MembersTransparencyPage</td></tr>
+<tr><td>N2</td><td>بدون مبلغ/شبا/تراکنش عمومی</td><td><span class="s ok">✓</span></td><td>Member type بدون iban</td></tr>
+<tr><td>N3</td><td>اعتراض عضو مشکوک</td><td><span class="s ok">✓</span></td><td>objection screens</td></tr>
+<tr><td>N4</td><td>رسیدگی اعتراض audit</td><td><span class="s ok">✓</span></td><td>coop resolve</td></tr>
+<tr><td>N5</td><td>معتمد/دهیار پیشنهاد (متن ~۳۱۵۵)</td><td><span class="s part">△</span></td><td>فرآیند دستی · بدون نقش جدا</td></tr>
+<tr><td>N6</td><td>شفافیت کنترل‌شده (نه رأی‌گیری سنگین)</td><td><span class="s ok">✓</span></td><td>طبق Freeze</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="O">
+<h2>O — وب پنل (۸)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>O1</td><td>AdminUsers + UserRequests</td><td><span class="s ok">✓</span></td><td>USER-PROV</td></tr>
+<tr><td>O2</td><td>Dispatch board</td><td><span class="s ok">✓</span></td><td>WF-DISPATCH-BOARD</td></tr>
+<tr><td>O3</td><td>WeighbridgePage</td><td><span class="s ok">✓</span></td><td>COOP_OPERATOR</td></tr>
+<tr><td>O4</td><td>AdminFinance / settlement</td><td><span class="s ok">✓</span></td><td>FO-PANEL · settlement UI</td></tr>
+<tr><td>O5</td><td>Contract version UI</td><td><span class="s ok">✓</span></td><td>CONTRACT-VERSION-UI</td></tr>
+<tr><td>O6</td><td>Consultant hourly inbox</td><td><span class="s ok">✓</span></td><td>CONSULT-UI</td></tr>
+<tr><td>O7</td><td>برند «سهمان»</td><td><span class="s wait">⏳</span></td><td>BRAND-SAHMAN-1</td></tr>
+<tr><td>O8</td><td>KPI/dashboard سنگین</td><td><span class="s no">✗</span></td><td>خارج ~۸۸۵</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="P">
+<h2>P — موبایل (۱۰)</h2>
+<table><thead><tr><th>#</th><th>مورد</th><th>وضعیت</th><th>کد</th></tr></thead><tbody>
+<tr><td>P1</td><td>Driver: FSM کامل</td><td><span class="s ok">✓</span></td><td>18 screens</td></tr>
+<tr><td>P2</td><td>Driver: geofence screens</td><td><span class="s ok">✓</span></td><td>mine/factory entry</td></tr>
+<tr><td>P3</td><td>Driver: demo login + APK</td><td><span class="s ok">✓</span></td><td>MOBILE-DEMO-APK</td></tr>
+<tr><td>P4</td><td>Driver: logout همه صفحات</td><td><span class="s part">△</span></td><td>home/missions · FSM میانی</td></tr>
+<tr><td>P5</td><td>Community: ثبت خانوار</td><td><span class="s ok">✓</span></td><td>register_screen</td></tr>
+<tr><td>P6</td><td>Community: KYC inbox coop</td><td><span class="s ok">✓</span></td><td>kyc_inbox_screen</td></tr>
+<tr><td>P7</td><td>Community: wallet + settlement status</td><td><span class="s ok">✓</span></td><td>wallet_screen</td></tr>
+<tr><td>P8</td><td>Community: members + objection</td><td><span class="s ok">✓</span></td><td>members · objection</td></tr>
+<tr><td>P9</td><td>دکمه 48px یکسان</td><td><span class="s ok">✓</span></td><td>MineralTheme</td></tr>
+<tr><td>P10</td><td>کافه‌بازار</td><td><span class="s no">✗</span></td><td>فاز بعد ~۶۷۱۱</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="Q">
+<h2>Q — Deploy و تحویل کارفرما (۱۱)</h2>
+<table><thead><tr><th>#</th><th>تحویل (~۶۶۳۰)</th><th>وضعیت</th><th>یادداشت</th></tr></thead><tbody>
+<tr><td>Q1</td><td>برند «سهمان»</td><td><span class="s wait">⏳</span></td><td>تأیید نام ✓ · UI نه</td></tr>
+<tr><td>Q2</td><td>دامنه sahman.ir + DNS</td><td><span class="s wait">⏳</span></td><td>DEPLOY-SAHMAN</td></tr>
+<tr><td>Q3</td><td>VPS/Liara</td><td><span class="s part">△</span></td><td>IP staging · prod ⏳</td></tr>
+<tr><td>Q4</td><td>SMS OTP واقعی</td><td><span class="s wait">⏳</span></td><td>SMS-PROD · mock staging OK</td></tr>
+<tr><td>Q5</td><td>معدن طلای تفتان + مسئول</td><td><span class="s part">△</span></td><td>seed ✓ · تماس ⏳</td></tr>
+<tr><td>Q6</td><td>spec باسکول</td><td><span class="s wait">⏳</span></td><td>دستی UAT OK</td></tr>
+<tr><td>Q7</td><td>لیست کاربران پایلوت</td><td><span class="s wait">⏳</span></td><td>demo users ✓</td></tr>
+<tr><td>Q8</td><td>کافه‌بازار</td><td><span class="s no">✗</span></td><td>فاز بعد</td></tr>
+<tr><td>Q9</td><td>مدل ۹۹/۱ + Community ثابت</td><td><span class="s ok">✓</span></td><td>Freeze قفل</td></tr>
+<tr><td>Q10</td><td>Equal + Snapshot</td><td><span class="s ok">✓</span></td><td>قفل</td></tr>
+<tr><td>Q11</td><td>عدد Community + IBAN + روستا + UAT date</td><td><span class="s ok">✓ دمو</span></td><td>CLIENT-DATA-PILOT-1 waived — پنل/placeholder</td></tr>
+</tbody></table>
+</div>
+
+<div class="panel" id="R">
+<h2>R — جمع‌بندی: واقعاً چه چیز از قلم افتاده بود؟</h2>
+<ol>
+<li><strong>تکامل مالی:</strong> ۸۵/۱۳/۲ و ۱۳٪ دوره‌ای → ۹۹/۱ + تن×ریال (در v4 قبلی نبود)</li>
+<li><strong>شفافیت اعضا + اعتراض</strong> (§۷ چت ~۳۲۷۰) — در v4 اولیه نبود</li>
+<li><strong>HSA / Human Supervised</strong> vs auto-pilot (~۶۸۵۰) — در کد ✓ ولی در گزارش شفاف نبود</li>
+<li><strong>Governance چندلایه + SLA</strong> (~۷۲۵۹) — scaffold △ نه فعال کامل</li>
+<li><strong>ساعتی:</strong> تناقض متن اول vs Freeze — باید صریح در گزارش</li>
+<li><strong>رسید بانک Community</strong> — سؤال ۱۰ بدون UI</li>
+<li><strong>FIN-NO-HARDCODE</strong> — حذف fallback عددی (MINE-SETTINGS-UI ✓)</li>
+<li><strong>پاسخ Q&amp;A تو (~۷۴۰۷)</strong> — با workspace و dual approval در کد هم‌خوان است</li>
+</ol>
+<div class="panel" style="background:#ECFDF5;border-color:#A7F3D0">
+<strong>نتیجه نهایی:</strong> با Freeze ~۶۳۹۶، <strong>~۹۱/۱۲۸ ردیف ✓</strong> — هسته MVP هم‌خوان است. Blocker: <strong>۱۱ مورد داده کارفرما + deploy + UI تنظیمات معدن</strong>. موارد ✗ عمداً خارج فاز ۱ یا منتظر تصمیم هستند — نه «فراموش شده در کد».
+</div>
+</div>
+
+<div class="panel" id="S">
+<h2>S — UX فوق‌ساده (۳ تسک P1 — جدید)</h2>
+<table><thead><tr><th>#</th><th>تسک</th><th>وضعیت</th><th>یادداشت</th></tr></thead><tbody>
+<tr><td>S1</td><td>UX-SIMPLE-SPEC-1 — سند + توکن</td><td><span class="s no">✗</span></td><td>پیش‌نیاز WEB/MOBILE</td></tr>
+<tr><td>S2</td><td>UX-WEB-SIMPLE-1 — پنل وب</td><td><span class="s no">✗</span></td><td>8 صفحه UAT</td></tr>
+<tr><td>S3</td><td>UX-MOBILE-SIMPLE-1 — Flutter</td><td><span class="s part">△</span></td><td>btn 48 ✓ · ریدیزain کامل ⏳</td></tr>
+</tbody></table>
+<p class="muted">هدف: کاربر بدون آشنایی تکنولوژی · <a href="mvp-task-prompts-pro-fa.html#ux-simple-spec-1">پرامپت‌ها</a></p>
+</div>
+
+<footer class="muted" style="text-align:center;padding:20px">
+  logestic · ممیزی کامل · <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a>
+</footer>
+</div>
+</body>
+</html>

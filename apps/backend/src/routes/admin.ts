@@ -12,14 +12,17 @@ import { adminCooperativesRouter } from "./adminCooperatives";
 import { adminFinanceRouter } from "./adminFinance";
 import { adminKpiRouter } from "./adminKpi";
 import { adminApprovalsRouter } from "./adminApprovals";
+import { adminMinesRouter } from "./adminMines";
 import { ruleEngine, SEED_RULE_KEYS } from "../services/ruleEngine";
 import type { FinanceRuleScope } from "../repositories/financeRulesRepository";
 import { reconciliationService } from "../services/reconciliationService";
 import { restoreEntity, softDeleteEntity } from "../services/softDeleteService";
 import * as provisioningService from "../services/userProvisioningService";
+import { optionalNationalIdSchema, optionalPersianNameSchema } from "../lib/identityPolicy";
 import { requireMineContext } from "../middleware/requireMineContext";
 import { resolveEffectiveMineId } from "../lib/mineScope";
 import { isDispatchQueueEnabled } from "../config/env";
+import { resolveDispatchMode } from "../lib/dispatchMode";
 import { getDispatchBoard } from "../services/dispatchBoardService";
 import * as needsRepo from "../repositories/operationNeedsRepository";
 
@@ -28,6 +31,7 @@ router.use(adminCooperativesRouter);
 router.use(adminFinanceRouter);
 router.use(adminKpiRouter);
 router.use(adminApprovalsRouter);
+router.use(adminMinesRouter);
 const requireAuth = authMiddleware(resolveAuthContext);
 const requireDispatchOps = [
   requireAuth,
@@ -125,6 +129,7 @@ async function runDispatchNeed(req: Request, res: Response, next: NextFunction, 
       );
     }
 
+    const dispatchMode = await resolveDispatchMode(result.need.mine_id);
     return res.json(
       success(
         {
@@ -134,7 +139,8 @@ async function runDispatchNeed(req: Request, res: Response, next: NextFunction, 
           },
           assignments: result.assignments,
           events: result.events,
-          dispatch_mode: "manual",
+          dispatch_mode: dispatchMode.effective,
+          dispatch_mode_source: dispatchMode.source,
           mission_ids: result.assignments.map((a) => a.mission_id),
         },
         requestId,
@@ -259,10 +265,10 @@ router.post("/admin/users", requireAuth, requirePermission("users:manage"), asyn
   const body = z
     .object({
       mobile_number: z.string().regex(provisioningService.MOBILE_REGEX),
-      national_id: z.string().min(5).max(20),
+      national_id: optionalNationalIdSchema,
       role: z.string(),
       cooperative_id: z.number().int().positive().nullable().optional(),
-      full_name: z.string().max(200).optional(),
+      full_name: optionalPersianNameSchema,
       is_active: z.boolean().optional(),
     })
     .safeParse(req.body);
@@ -308,8 +314,8 @@ router.patch(
         role: z.string().optional(),
         cooperative_id: z.number().int().positive().nullable().optional(),
         is_active: z.boolean().optional(),
-        full_name: z.string().max(200).nullable().optional(),
-        national_id: z.string().min(5).max(20).optional(),
+        full_name: optionalPersianNameSchema.nullable().optional(),
+        national_id: optionalNationalIdSchema.nullable().optional(),
       })
       .safeParse(req.body);
     if (!userId.success || !body.success) {

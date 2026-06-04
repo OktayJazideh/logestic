@@ -33,6 +33,7 @@ export const PANEL_NAV: NavItem[] = [
   { to: "/panel/admin/user-requests", label: "درخواست‌های کاربر", permission: "users:manage" },
   { to: "/panel/user-requests", label: "ثبت کاربر جدید", permission: "users:request" },
   { to: "/panel/admin/rules", label: "قوانین سیستم", permission: "users:manage" },
+  { to: "/panel/admin/mine-settings", label: "تنظیمات معدن", permission: "users:manage" },
   { to: "/panel/admin/jobs", label: "کارهای پس‌زمینه", permissions: ["settlement:execute", "ops:*"] },
   { to: "/panel/admin/reconciliation", label: "تطبیق شبانه", permission: "users:manage" },
   { to: "/panel/admin/audit", label: "سوابق تغییرات", permission: "audit:read" },

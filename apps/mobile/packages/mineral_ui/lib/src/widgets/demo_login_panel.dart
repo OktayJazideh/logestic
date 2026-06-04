@@ -50,7 +50,7 @@ class DemoLoginPanel extends StatelessWidget {
           if (primary != null) ...[
             const SizedBox(height: 12),
             SizedBox(
-              height: 44,
+              height: MineralTheme.buttonHeight,
               child: ElevatedButton.icon(
                 onPressed: busy ? null : () => onDemoLogin(primary),
                 icon: const Icon(Icons.dashboard_outlined, size: 18),
@@ -82,6 +82,7 @@ class DemoLoginPanel extends StatelessWidget {
                 onPressed: busy ? null : () => onDemoLogin(p),
                 style: OutlinedButton.styleFrom(
                   alignment: Alignment.centerRight,
+                  minimumSize: const Size(0, MineralTheme.buttonHeight),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 ),
                 child: Column(

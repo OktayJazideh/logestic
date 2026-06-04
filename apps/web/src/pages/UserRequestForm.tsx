@@ -11,13 +11,15 @@ import { FormRow } from "../components/ui/FormRow";
 import { FilterField } from "../components/ui/FilterBar";
 import { Input } from "../components/ui/Input";
 import { Badge } from "../components/ui/Badge";
+import { PROVISIONING_HINT_FA } from "../lib/identityFieldRules";
+import { optionalPersianName, provisioningMobile, runValidators } from "../lib/validation";
 
 type RequestRow = {
   id: number;
   status: string;
   target_role: string;
   mobile_number: string;
-  national_id: string;
+  national_id?: string;
   full_name?: string;
   rejection_reason?: string;
   created_at: string;
@@ -82,16 +84,23 @@ export default function UserRequestForm() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const mobileErr = runValidators(mobile, [provisioningMobile()]);
+    const nameErr = runValidators(fullName, [optionalPersianName("نام")]);
+    if (mobileErr || nameErr) {
+      setError(mobileErr ?? nameErr ?? null);
+      return;
+    }
     setBusy(true);
     setError(null);
     setOk(null);
     const body: Record<string, unknown> = {
       target_role: targetRole,
       mobile_number: mobile.trim(),
-      national_id: nationalId.trim(),
       full_name: fullName.trim() || undefined,
       note: note.trim() || undefined,
     };
+    const nat = nationalId.trim();
+    if (nat) body.national_id = nat;
     if (isOp) body.unit_type = unitType;
 
     const res = await apiPostData<{ request: RequestRow }>("/user-provisioning/requests", body);
@@ -111,7 +120,7 @@ export default function UserRequestForm() {
   return (
     <PageFrame
       title="ثبت درخواست کاربر جدید"
-      intro="پس از تأیید ADMIN، کاربر با همان موبایل می‌تواند وارد شود."
+      intro={`پس از تأیید ADMIN، کاربر با همان موبایل می‌تواند وارد شود. ${PROVISIONING_HINT_FA}`}
     >
       {error && <Alert variant="danger">{error}</Alert>}
       {ok && <Alert variant="success">{ok}</Alert>}
@@ -156,12 +165,12 @@ export default function UserRequestForm() {
           </FormField>
         </FilterField>
         <FilterField minWidth={140}>
-          <FormField label="کد ملی" required>
-            <Input value={nationalId} onChange={(e) => setNationalId(e.target.value)} />
+          <FormField label="کد ملی (اختیاری)">
+            <Input value={nationalId} onChange={(e) => setNationalId(e.target.value)} placeholder="در صورت ورود یکتا" />
           </FormField>
         </FilterField>
         <FilterField minWidth={140}>
-          <FormField label="نام (اختیاری)">
+          <FormField label="نام (اختیاری، فارسی)">
             <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
           </FormField>
         </FilterField>
@@ -196,7 +205,7 @@ export default function UserRequestForm() {
                 </span>
                 <Badge>{r.target_role}</Badge>
                 <span>{r.mobile_number}</span>
-                <span>{r.national_id}</span>
+                {r.national_id && <span>{r.national_id}</span>}
                 {r.full_name && <span>{r.full_name}</span>}
               </div>
               {r.status === "REJECTED" && r.rejection_reason && (

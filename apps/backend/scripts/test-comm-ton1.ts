@@ -19,7 +19,15 @@ const PERIOD_KEY = "2026-05";
 const RATE = 500_000;
 const TONS_KG = 20_000;
 
+async function clearMinePlatformOverride() {
+  await prisma.mines.update({
+    where: { id: BigInt(MINE_ID) },
+    data: { platform_fee_value: null, allow_legacy_community_percent: false },
+  });
+}
+
 async function ensureRules() {
+  await clearMinePlatformOverride();
   const admin = await prisma.users.findFirst({ where: { mobile_number: "09000000000" } });
   const uid = admin ? Number(admin.id) : 1;
   const epoch = new Date("2026-01-01T00:00:00.000Z");
@@ -90,7 +98,7 @@ async function ensureThreeApprovedHouseholds(run: number): Promise<number[]> {
 }
 
 async function scenario3(run: number) {
-  await ensureThreeApprovedHouseholds(run);
+  const householdIds = await ensureThreeApprovedHouseholds(run);
   await prisma.community_pools.deleteMany({
     where: { mine_id: BigInt(MINE_ID), period_key: `${PERIOD_KEY}-s3-${run}` },
   });
@@ -102,8 +110,8 @@ async function scenario3(run: number) {
       mine_id: BigInt(MINE_ID),
       period_key: `${PERIOD_KEY}-s3-${run}`,
       total_amount: toDecimal(perMission * 2),
-      status: "OPEN",
-      households_snapshot: [],
+      status: "SNAPSHOT_LOCKED",
+      households_snapshot: householdIds.slice(0, 3),
     },
   });
 
@@ -116,10 +124,37 @@ async function scenario3(run: number) {
   console.log(`run ${run} scenario 3 OK — 2×${perMission} pool, per household=${dist.per_household_amount}`);
 }
 
+/** MINE-SETTINGS-UI-1: platform fee from mines.platform_fee_value overrides rules. */
+async function scenarioMinePlatformFeeOverride(run: number) {
+  const prev = await prisma.mines.findUnique({
+    where: { id: BigInt(MINE_ID) },
+    select: { platform_fee_value: true },
+  });
+  try {
+    await prisma.mines.update({
+      where: { id: BigInt(MINE_ID) },
+      data: { platform_fee_value: 0.01 },
+    });
+    const ctx = { mineId: MINE_ID, at: new Date() };
+    const { platformAmount } = await splitOperational(1_000_000, ctx);
+    if (Math.abs(platformAmount - 10_000) > 0.01) {
+      throw new Error(`run ${run} s4: expected platform 10000 at 1% mine override, got ${platformAmount}`);
+    }
+    // eslint-disable-next-line no-console
+    console.log(`run ${run} scenario 4 OK — mine platform_fee_value 1% → platform=${platformAmount}`);
+  } finally {
+    await prisma.mines.update({
+      where: { id: BigInt(MINE_ID) },
+      data: { platform_fee_value: prev?.platform_fee_value ?? null },
+    });
+  }
+}
+
 async function runOnce(run: number) {
   await ensureRules();
   await scenario1(run);
   await scenario2(run);
+  await scenarioMinePlatformFeeOverride(run);
   await scenario3(run);
 }
 
@@ -128,7 +163,7 @@ async function main() {
     await runOnce(i);
   }
   // eslint-disable-next-line no-console
-  console.log("COMM-TON-1: 3/3 runs passed (3 scenarios each)");
+  console.log("COMM-TON-1: 3/3 runs passed (4 scenarios each, incl. mine fee override)");
 }
 
 main()

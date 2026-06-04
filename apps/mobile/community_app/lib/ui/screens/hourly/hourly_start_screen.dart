@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../../core/community_api_client.dart';
 import '../../../core/hourly_gps.dart';
@@ -14,13 +15,13 @@ class HourlyStartScreen extends StatefulWidget {
   const HourlyStartScreen({
     super.key,
     required this.api,
+    required this.sessionStore,
     required this.token,
-    required this.onUnauthorized,
   });
 
   final CommunityApiClient api;
+  final SessionStore sessionStore;
   final String token;
-  final VoidCallback onUnauthorized;
 
   @override
   State<HourlyStartScreen> createState() => _HourlyStartScreenState();
@@ -34,6 +35,12 @@ class _HourlyStartScreenState extends State<HourlyStartScreen> {
   OperatorHourlyAssignment? _selected;
   Timer? _timerTicker;
   DateTime? _activeSince;
+
+  Future<void> _logout() async {
+    await widget.sessionStore.clearSession();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+  }
 
   @override
   void initState() {
@@ -114,7 +121,7 @@ class _HourlyStartScreenState extends State<HourlyStartScreen> {
       });
     } on ApiException catch (e) {
       if (e.isUnauthorized) {
-        widget.onUnauthorized();
+        await _logout();
         return;
       }
       setState(() {
@@ -180,7 +187,7 @@ class _HourlyStartScreenState extends State<HourlyStartScreen> {
           setState(() => _error = e.message);
         }
       } else if (e.isUnauthorized) {
-        widget.onUnauthorized();
+        await _logout();
       } else {
         setState(() => _error = e.message);
       }
@@ -196,7 +203,10 @@ class _HourlyStartScreenState extends State<HourlyStartScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: const Text('شروع عملیات ساعتی')),
+        appBar: AppBar(
+          title: const Text('شروع عملیات ساعتی'),
+          actions: [LogoutAppBarButton(onLogout: _logout)],
+        ),
         body: _loading
             ? const Center(child: CircularProgressIndicator())
             : Padding(

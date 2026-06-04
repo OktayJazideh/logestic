@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mineral_api/mineral_api.dart';
 import 'package:mineral_ui/mineral_theme.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/community_api_client.dart';
 import '../../core/community_roles.dart';
@@ -76,6 +77,15 @@ class _WorkspaceSelectScreenState extends State<WorkspaceSelectScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(isMineOperatorRole(widget.role) ? 'انتخاب معدن عملیاتی' : 'انتخاب عضویت تعاونی'),
+          actions: [
+            LogoutAppBarButton(
+              onLogout: () async {
+                await widget.sessionStore.clearSession();
+                if (!context.mounted) return;
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+              },
+            ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),

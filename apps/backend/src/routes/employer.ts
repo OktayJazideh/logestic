@@ -12,7 +12,7 @@ import { idempotencyMiddleware } from "../middleware/idempotency";
 import { requireMineContext, requireOperationalWorkspace } from "../middleware/requireMineContext";
 import * as dispatchRepo from "../repositories/dispatchRepository";
 import * as needsRepo from "../repositories/operationNeedsRepository";
-import { isDispatchAuto } from "../config/env";
+import { isDispatchAutoForMine } from "../lib/dispatchMode";
 
 const router = Router();
 const requireAuth = authMiddleware(resolveAuthContext);
@@ -197,7 +197,8 @@ router.post(
       });
 
       let dispatch: unknown = null;
-      if (isDispatchAuto()) {
+      const autoDispatch = await isDispatchAutoForMine(need.mine_id);
+      if (autoDispatch) {
         const dispatchResult = await appContext.dispatch.dispatchNeed(need.id, auth.user.id);
         dispatch = dispatchResult.ok
           ? {
@@ -214,7 +215,7 @@ router.post(
 
       return res.status(201).json(
         success(
-          { need: await serializeNeed(need), dispatch, dispatch_mode: isDispatchAuto() ? "auto" : "manual" },
+          { need: await serializeNeed(need), dispatch, dispatch_mode: autoDispatch ? "auto" : "manual" },
           requestId,
         ),
       );

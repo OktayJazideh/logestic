@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../../core/community_api_client.dart';
 import '../../../core/hourly_gps.dart';
@@ -14,20 +15,20 @@ class HourlyEndScreen extends StatefulWidget {
   const HourlyEndScreen({
     super.key,
     required this.api,
+    required this.sessionStore,
     required this.token,
     required this.logId,
     required this.startedAt,
     required this.equipmentLabel,
-    required this.onUnauthorized,
     this.onEnded,
   });
 
   final CommunityApiClient api;
+  final SessionStore sessionStore;
   final String token;
   final int logId;
   final DateTime startedAt;
   final String equipmentLabel;
-  final VoidCallback onUnauthorized;
   final VoidCallback? onEnded;
 
   @override
@@ -39,6 +40,12 @@ class _HourlyEndScreenState extends State<HourlyEndScreen> {
   bool _ending = false;
   String? _error;
   double? _summaryHours;
+
+  Future<void> _logout() async {
+    await widget.sessionStore.clearSession();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+  }
 
   @override
   void initState() {
@@ -128,7 +135,7 @@ class _HourlyEndScreenState extends State<HourlyEndScreen> {
           setState(() => _error = e.message);
         }
       } else if (e.isUnauthorized) {
-        widget.onUnauthorized();
+        await _logout();
       } else {
         setState(() => _error = e.message);
       }
@@ -144,7 +151,10 @@ class _HourlyEndScreenState extends State<HourlyEndScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: const Text('عملیات ساعتی — فعال')),
+        appBar: AppBar(
+          title: const Text('عملیات ساعتی — فعال'),
+          actions: [LogoutAppBarButton(onLogout: _logout)],
+        ),
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(

@@ -1,6 +1,9 @@
 /**
- * Seeds baseline master data + demo users into Postgres.
+ * Seeds baseline master data + optional UAT entities into Postgres.
  * Run: npm run db:seed (from apps/backend)
+ *
+ * SEED_MINIMAL=1 (default): mines/villages/cooperatives/rates/contracts + one ADMIN mobile only (no PII).
+ * SEED_UAT_ENTITIES=1: also demo users, households, fleet (legacy UAT — includes synthetic PII).
  */
 import "dotenv/config";
 import { prisma } from "../src/db/prisma";
@@ -20,6 +23,10 @@ import {
   TAFTAN_MINE_CODE,
   TAFTAN_PLATFORM_FEE_VALUE,
 } from "./seedConstants";
+
+const SEED_UAT_ENTITIES =
+  process.env.SEED_UAT_ENTITIES === "1" || process.env.SEED_UAT_ENTITIES === "true";
+const ADMIN_MOBILE = process.env.SEED_ADMIN_MOBILE?.trim() || "09000000000";
 
 /** Align with active ORE rate card v2 (2026-03-01) for rate_card_id validation at activation. */
 const CONTRACT_VALID_FROM = new Date("2026-03-01T00:00:00.000Z");
@@ -119,7 +126,6 @@ async function ensureActiveHaulServiceContract(params: {
   return activated;
 }
 
-/** نمونه کارکرد پایان‌یافته برای صندوق مشاور ساعتی (UAT). */
 async function seedDemoHourlyEndedLog(params: {
   mineId: number;
   fleetOwnerUserId: number;
@@ -188,6 +194,125 @@ async function seedApprovedFleetEntities(params: {
   });
 }
 
+async function seedUatPilotUsers(mineTaftanId: number, mineBId: number) {
+  const { nationalIdFromSeed } = await import("../src/lib/nationalId");
+  const demoUsers: Array<{
+    mobile: string;
+    role:
+      | "ADMIN"
+      | "COOP_ADMIN"
+      | "COOP_OPERATOR"
+      | "OPERATION_ADMIN"
+      | "DRIVER"
+      | "FLEET_OWNER"
+      | "HOUSEHOLD"
+      | "CONSULTANT"
+      | "OPERATOR"
+      | "EMPLOYER";
+    cooperative_id?: number;
+  }> = [
+    { mobile: "09000000001", role: "COOP_ADMIN", cooperative_id: 1 },
+    { mobile: "09000000002", role: "OPERATION_ADMIN" },
+    { mobile: "09000000103", role: "OPERATION_ADMIN" },
+    { mobile: "09000000003", role: "DRIVER" },
+    { mobile: "09000000004", role: "FLEET_OWNER" },
+    { mobile: "09000000005", role: "HOUSEHOLD" },
+    { mobile: "09000000006", role: "CONSULTANT" },
+    { mobile: "09000000008", role: "OPERATOR" },
+    { mobile: "09000000007", role: "EMPLOYER" },
+    { mobile: "09000000101", role: "COOP_ADMIN", cooperative_id: 1 },
+    { mobile: "09000000102", role: "COOP_ADMIN", cooperative_id: 2 },
+    { mobile: "09000000111", role: "COOP_OPERATOR", cooperative_id: 1 },
+    { mobile: "09000000112", role: "COOP_OPERATOR", cooperative_id: 2 },
+  ];
+
+  const userByMobile = new Map<string, Awaited<ReturnType<typeof usersRepo.upsertUserByMobile>>>();
+  const seedNational = (mobile: string) => nationalIdFromSeed(mobile.slice(-9));
+
+  for (const u of demoUsers) {
+    const row = await usersRepo.upsertUserByMobile(u.mobile, u.role, {
+      is_active: true,
+      cooperative_id: u.cooperative_id,
+      national_id: seedNational(u.mobile),
+    });
+    userByMobile.set(u.mobile, row);
+  }
+
+  await usersRepo.migrateLegacyCoopRoles();
+
+  async function seedMembership(
+    mobile: string,
+    mine_id: number,
+    role: (typeof demoUsers)[number]["role"],
+    cooperative_id?: number,
+  ) {
+    const user = userByMobile.get(mobile);
+    if (!user) return;
+    await workspaceRepo.upsertMembership({
+      user_id: user.id,
+      mine_id,
+      cooperative_id,
+      role_in_workspace: role,
+      status: "ACTIVE",
+    });
+  }
+
+  await seedMembership("09000000003", mineTaftanId, "DRIVER", 1);
+  await seedMembership("09000000004", mineTaftanId, "FLEET_OWNER", 1);
+  await seedMembership("09000000005", mineTaftanId, "HOUSEHOLD", 1);
+  await seedMembership("09000000006", mineTaftanId, "CONSULTANT");
+  await seedMembership("09000000008", mineTaftanId, "OPERATOR");
+  await seedMembership("09000000007", mineTaftanId, "EMPLOYER");
+  await seedMembership("09000000001", mineTaftanId, "COOP_ADMIN", 1);
+  await seedMembership("09000000101", mineTaftanId, "COOP_ADMIN", 1);
+  await seedMembership("09000000111", mineTaftanId, "COOP_OPERATOR", 1);
+  await seedMembership("09000000102", mineBId, "COOP_ADMIN", 2);
+  await seedMembership("09000000112", mineBId, "COOP_OPERATOR", 2);
+
+  const hhA = await usersRepo.upsertUserByMobile("09000001001", "HOUSEHOLD", {
+    is_active: true,
+    national_id: seedNational("09000001001"),
+  });
+  const hhB = await usersRepo.upsertUserByMobile("09000001002", "HOUSEHOLD", {
+    is_active: true,
+    national_id: seedNational("09000001002"),
+  });
+
+  const householdTaftan = await householdsRepo.upsertHousehold({
+    user_id: hhA.id,
+    village_id: 1,
+    cooperative_id: 1,
+    head_name: "سرپرست تعاونی تفتان",
+    national_id: "1111111111",
+    bank_iban: "IR0000000000000000000000",
+    status: "APPROVED",
+  });
+  await householdsRepo.upsertHousehold({
+    user_id: hhB.id,
+    village_id: 3,
+    cooperative_id: 2,
+    head_name: "سرپرست تعاونی بتا",
+    national_id: "2222222222",
+    status: "APPROVED",
+  });
+
+  const driverUser = userByMobile.get("09000000003")!;
+  const fleetOwnerUser = userByMobile.get("09000000004")!;
+  await seedApprovedFleetEntities({
+    cooperativeId: 1,
+    driverUserId: driverUser.id,
+    fleetOwnerUserId: fleetOwnerUser.id,
+  });
+
+  await seedDemoHourlyEndedLog({
+    mineId: mineTaftanId,
+    fleetOwnerUserId: fleetOwnerUser.id,
+    householdId: householdTaftan.id,
+  });
+
+  return { demoUserCount: demoUsers.length + 2 };
+}
+
 async function main() {
   const mineTaftan = await minesRepo.upsertMine({
     id: 1,
@@ -227,121 +352,12 @@ async function main() {
     status: "ACTIVE",
   });
 
-  const demoUsers: Array<{
-    mobile: string;
-    role:
-      | "ADMIN"
-      | "COOP_ADMIN"
-      | "COOP_OPERATOR"
-      | "OPERATION_ADMIN"
-      | "DRIVER"
-      | "FLEET_OWNER"
-      | "HOUSEHOLD"
-      | "CONSULTANT"
-      | "OPERATOR"
-      | "EMPLOYER";
-    cooperative_id?: number;
-  }> = [
-    { mobile: "09013019626", role: "ADMIN" },
-    { mobile: "09000000000", role: "ADMIN" },
-    { mobile: "09000000001", role: "COOP_ADMIN", cooperative_id: 1 },
-    { mobile: "09000000002", role: "OPERATION_ADMIN" },
-    { mobile: "09000000103", role: "OPERATION_ADMIN" },
-    { mobile: "09000000003", role: "DRIVER" },
-    { mobile: "09000000004", role: "FLEET_OWNER" },
-    { mobile: "09000000005", role: "HOUSEHOLD" },
-    { mobile: "09000000006", role: "CONSULTANT" },
-    { mobile: "09000000008", role: "OPERATOR" },
-    { mobile: "09000000007", role: "EMPLOYER" },
-    { mobile: "09000000101", role: "COOP_ADMIN", cooperative_id: 1 },
-    { mobile: "09000000102", role: "COOP_ADMIN", cooperative_id: 2 },
-    { mobile: "09000000111", role: "COOP_OPERATOR", cooperative_id: 1 },
-    { mobile: "09000000112", role: "COOP_OPERATOR", cooperative_id: 2 },
-  ];
-
-  const userByMobile = new Map<string, Awaited<ReturnType<typeof usersRepo.upsertUserByMobile>>>();
-  const { nationalIdFromSeed } = await import("../src/lib/nationalId");
-  const seedNational = (mobile: string) => nationalIdFromSeed(mobile.slice(-9));
-
-  for (const u of demoUsers) {
-    const row = await usersRepo.upsertUserByMobile(u.mobile, u.role, {
-      is_active: true,
-      cooperative_id: u.cooperative_id,
-      national_id: seedNational(u.mobile),
-    });
-    userByMobile.set(u.mobile, row);
-  }
-
-  await usersRepo.migrateLegacyCoopRoles();
-
-  async function seedMembership(mobile: string, mine_id: number, role: typeof demoUsers[number]["role"], cooperative_id?: number) {
-    const user = userByMobile.get(mobile);
-    if (!user) return;
-    await workspaceRepo.upsertMembership({
-      user_id: user.id,
-      mine_id,
-      cooperative_id,
-      role_in_workspace: role,
-      status: "ACTIVE",
-    });
-  }
-
-  await seedMembership("09000000003", mineTaftan.id, "DRIVER", 1);
-  await seedMembership("09000000004", mineTaftan.id, "FLEET_OWNER", 1);
-  await seedMembership("09000000005", mineTaftan.id, "HOUSEHOLD", 1);
-  await seedMembership("09000000006", mineTaftan.id, "CONSULTANT");
-  await seedMembership("09000000008", mineTaftan.id, "OPERATOR");
-  await seedMembership("09000000007", mineTaftan.id, "EMPLOYER");
-  await seedMembership("09000000001", mineTaftan.id, "COOP_ADMIN", 1);
-  await seedMembership("09000000101", mineTaftan.id, "COOP_ADMIN", 1);
-  await seedMembership("09000000111", mineTaftan.id, "COOP_OPERATOR", 1);
-  await seedMembership("09000000102", mineB.id, "COOP_ADMIN", 2);
-  await seedMembership("09000000112", mineB.id, "COOP_OPERATOR", 2);
-  await seedMembership("09000001001", mineTaftan.id, "HOUSEHOLD", 1);
-  await seedMembership("09000001002", mineB.id, "HOUSEHOLD", 2);
-
-  const admin = await usersRepo.upsertUserByMobile("09000000000", "ADMIN", {
+  const admin = await usersRepo.upsertUserByMobile(ADMIN_MOBILE, "ADMIN", {
     is_active: true,
-    national_id: seedNational("09000000000"),
-  });
-
-  const hhA = await usersRepo.upsertUserByMobile("09000001001", "HOUSEHOLD", {
-    is_active: true,
-    national_id: seedNational("09000001001"),
-  });
-  const hhB = await usersRepo.upsertUserByMobile("09000001002", "HOUSEHOLD", {
-    is_active: true,
-    national_id: seedNational("09000001002"),
-  });
-
-  const householdTaftan = await householdsRepo.upsertHousehold({
-    user_id: hhA.id,
-    village_id: 1,
-    cooperative_id: 1,
-    head_name: "سرپرست تعاونی تفتان",
-    national_id: "1111111111",
-    bank_iban: "IR0000000000000000000000",
-    status: "APPROVED",
-  });
-  await householdsRepo.upsertHousehold({
-    user_id: hhB.id,
-    village_id: 3,
-    cooperative_id: 2,
-    head_name: "سرپرست تعاونی بتا",
-    national_id: "2222222222",
-    status: "APPROVED",
   });
 
   const taftanRates = await seedVersionedRates(mineTaftan.id, admin.id);
   await seedVersionedRates(mineB.id, admin.id);
-
-  const driverUser = userByMobile.get("09000000003")!;
-  const fleetOwnerUser = userByMobile.get("09000000004")!;
-  await seedApprovedFleetEntities({
-    cooperativeId: 1,
-    driverUserId: driverUser.id,
-    fleetOwnerUserId: fleetOwnerUser.id,
-  });
 
   const contract = await ensureActiveHaulServiceContract({
     mineId: mineTaftan.id,
@@ -350,25 +366,24 @@ async function main() {
     rateCardId: taftanRates.activeOreRateCardId,
   });
 
-  await seedDemoHourlyEndedLog({
-    mineId: mineTaftan.id,
-    fleetOwnerUserId: fleetOwnerUser.id,
-    householdId: householdTaftan.id,
-  });
+  let uatSummary: Record<string, unknown> = { enabled: false };
+  if (SEED_UAT_ENTITIES) {
+    uatSummary = { enabled: true, ...(await seedUatPilotUsers(mineTaftan.id, mineB.id)) };
+  }
 
   // eslint-disable-next-line no-console
   console.log("Seed OK:", {
+    mode: SEED_UAT_ENTITIES ? "uat_entities" : "minimal",
+    admin_mobile: ADMIN_MOBILE,
     mines: [mineTaftan.mine_code, mineB.mine_code],
-    users: demoUsers.length + 2,
-    coop_isolation_households: 2,
     rate_cards: "versioned ORE+HOURLY per mine (v1 archived, v2 active)",
     service_contract: {
       id: contract.id,
       operation_type: contract.operation_type_code,
       fixed_community_rial_per_unit: contract.fixed_community_amount_rial_per_unit,
     },
-    pilot_fleet: "driver/fleet/vehicle APPROVED",
-    hourly_demo_ended: "1 row for consultant inbox",
+    uat: uatSummary,
+    hint: "Add pilot users via Admin panel; set SEED_UAT_ENTITIES=1 for legacy demo accounts.",
   });
 }
 

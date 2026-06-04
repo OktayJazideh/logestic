@@ -1,6 +1,7 @@
 import type { HouseholdStatus } from "@prisma/client";
 import { env } from "../config/env";
 import { normalizeNationalId, validateIranNationalIdChecksum } from "./nationalId";
+import { isPersianName, normalizePersianText } from "./persianText";
 
 export type BulkImportCsvRow = {
   national_id: string;
@@ -207,12 +208,13 @@ export function validateParsedRow(
     opts.seenNationalIds.add(national_id);
   }
 
-  if (!row.full_name || row.full_name.length < 2) {
+  const fullNameNorm = row.full_name ? normalizePersianText(row.full_name) : "";
+  if (!fullNameNorm || !isPersianName(fullNameNorm)) {
     errors.push({
       line: row.line,
       national_id: national_id || undefined,
       code: "invalid_full_name",
-      message: "full_name must be at least 2 characters",
+      message: "full_name must be Persian (at least 2 characters)",
     });
   }
 

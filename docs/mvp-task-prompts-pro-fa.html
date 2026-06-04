@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8" />
-<title>پرامپت‌های حرفه‌ای MVP — 75 کارت (logestic)</title>
+<title>پرامپت‌های حرفه‌ای MVP — 92 کارت (logestic)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   :root{--bg:#FAFAF7;--panel:#fff;--text:#1F2937;--muted:#6B7280;--border:#E5E7EB;--primary:#1B5E20}
@@ -14,6 +14,7 @@
   .task-done{opacity:.92;border-color:#A7F3D0}
   .task h2{margin:0 0 8px;font-size:17px;color:#0F3D17}
   .badge{display:inline-block;background:#7C3AED;color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;margin-left:6px}
+  .badge.done{background:#16A34A}
   .p0{background:#7F1D1D;color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
   .p1{background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
   .p2{background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
@@ -33,155 +34,319 @@
 <body>
 <div class="wrap">
 <header>
-  <h1>پرامپت‌های حرفه‌ای MVP — 75 کارت</h1>
-  <p><strong>7 باقی‌مانده</strong> (بالا) · <strong>68 انجام‌شده</strong> (پایین + بنر ✅). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
-  <p>مرجع: <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4 (باقی‌مانده)</a> · <a href="mvp-flow-chat-master-report-fa-v3.html">v3 (آرشیو)</a> · <a href="mvp-flow-chat-master-report-fa-v4.html#client-message">متن کارفرما</a></p>
+  <h1>پرامپت‌های حرفه‌ای MVP — logestic</h1>
+  <p><strong>۱۲ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۰ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
+  <p>مرجع: <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a> · <a href="gozaresh-tahvil-karfarma-mvp-fa.html">تحویل کارفرما</a> · <a href="demo-users-and-deploy-fa.md">دمو + Deploy</a></p>
 </header>
 
 <div class="guide">
-  <strong>راهنما:</strong> P0 فعلی: DEPLOY-SAHMAN + CLIENT-DATA. باسکول فاز ۱ = <strong>ورود دستی COOP_OPERATOR</strong> (Agent سخت‌افزار P2/scaffold). FIN-SEED-99-1 و HOLD-SETTLEMENT-1 ✓. کاربران دمو: <a href="demo-users-and-deploy-fa.md">demo-users-and-deploy-fa.md</a>.
+  <strong>اصل محصول (۱۴۰۵/۰۳/۱۲):</strong> هیچ عدد/تنظیم business در کد ثابت نماند — همه از DB + پنل (قرارداد، Rate Card، تنظیمات معدن). seed فقط دمو UAT است.<br />
+  <strong>P0 الان:</strong> حذف fallback عددی (FIN-NO-HARDCODE) · production (staging ✓). داده پایلوت در seed نیست — از پنل ADMIN.<br />
+  <strong>P1 UX (قبل UAT میدانی):</strong> ریدیزاین «فوق‌ساده» — قابل استفاده برای کسی که تکنولوژی نمی‌شناسد (وب + موبایل).<br />
+  <strong>تازه ✓:</strong> MINE-SETTINGS-UI-1 · CLIENT-DATA-PILOT (waived دمو) · USER-UNIQUE · SEED-MINIMAL · VALIDATION-FA · DEPLOY-VPS-STAGING.
 </div>
 
 <nav class="toc">
   <strong>باقی‌مانده — اولویت اجرا (بالا → پایین)</strong>
-  <a href="#deploy-sahman-1">DEPLOY-SAHMAN-1</a>
-  <a href="#client-data-pilot-1">CLIENT-DATA-PILOT-1</a>
-  <a href="#brand-sahman-1">BRAND-SAHMAN-1 (P1)</a>
-  <a href="#dispatch-auto-pilot-1">DISPATCH-AUTO-PILOT-1 (P1)</a>
-  <a href="#wb-local-agent-1">WB-LOCAL-AGENT-1</a>
-  <a href="#driver-avail-1">DRIVER-AVAIL-1</a>
-  <a href="#tenant-rls-1">TENANT-RLS-1</a>
+  <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">P0 = blocker UAT · P1 = مهم پس از staging · P2/P3 = فاز بعد</em>
+  <a href="#fin-no-hardcode-1"><span class="p0">P0</span> FIN-NO-HARDCODE-1 — بدون fallback عددی در کد</a>
+  <a href="#ux-simple-spec-1"><span class="p1">P1</span> UX-SIMPLE-SPEC-1 — اصول UI فوق‌ساده (سند + توکن)</a>
+  <a href="#ux-web-simple-1"><span class="p1">P1</span> UX-WEB-SIMPLE-1 — ریدیزاین پنل وب</a>
+  <a href="#ux-mobile-simple-1"><span class="p1">P1</span> UX-MOBILE-SIMPLE-1 — ریدیزاین اپ‌های Flutter</a>
+  <a href="#tenant-onboard-1"><span class="p1">P1</span> TENANT-ONBOARD-1 — onboarding معدن بدون seed</a>
+  <a href="#deploy-sahman-1"><span class="p0">P0</span> DEPLOY-SAHMAN-1 — production + دامنه</a>
+  <a href="#brand-sahman-1"><span class="p1">P1</span> BRAND-SAHMAN-1</a>
+  <a href="#dispatch-auto-pilot-1"><span class="p1">P1</span> DISPATCH-AUTO-PILOT-1</a>
+  <a href="#comm-bank-receipt-ui-1"><span class="p1">P1</span> COMM-BANK-RECEIPT-UI-1 — رسید بانک Community (در صورت نیاز)</a>
+  <a href="#wb-local-agent-1"><span class="p2">P2</span> WB-LOCAL-AGENT-1</a>
+  <a href="#driver-avail-1"><span class="p3">P3</span> DRIVER-AVAIL-1</a>
+  <a href="#tenant-rls-1"><span class="p3">P3</span> TENANT-RLS-1</a>
   <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
-  <strong>انجام‌شده (68 کارت — پایین صفحه)</strong>
+  <strong>تازه انجام‌شده ✓</strong>
+  <a href="#mine-settings-ui-1">MINE-SETTINGS-UI-1 ✅</a>
+  <a href="#user-prov-1">USER-PROV-1 ✅</a>
+  <a href="#user-unique-1">USER-UNIQUE-1 ✅</a>
+  <a href="#user-prov-role-fields-1">USER-PROV-ROLE-FIELDS-1 ✅</a>
+  <a href="#client-data-pilot-1">CLIENT-DATA-PILOT-1 ✅</a>
+  <a href="#seed-minimal-1">SEED-MINIMAL-1 ✅</a>
+  <a href="#validation-fa-1">VALIDATION-FA-1 ✅</a>
+  <a href="#mobile-demo-apk-1">MOBILE-DEMO-APK-1 ✅</a>
+  <a href="#mobile-logout-1">MOBILE-LOGOUT-1 ✅</a>
+  <a href="#mobile-btn-align-1">MOBILE-BTN-ALIGN-1 ✅</a>
+  <a href="#deploy-vps-win-1">DEPLOY-VPS-WIN-1 ✅</a>
+  <a href="#deploy-vps-staging-1">DEPLOY-VPS-STAGING-1 ✅</a>
+  <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
+  <strong>آرشیو انجام‌شده (نمونه)</strong>
   <a href="#comm-ton-1">COMM-TON-1 ✅</a>
-  <a href="#tenant-1">TENANT-1 ✅</a>
-  <a href="#wb-ui-1">WB-UI-1 ✅</a>
-  <a href="#rbac-fix-1">RBAC-FIX-1 ✅</a>
-  <a href="#obj-db-1">OBJ-DB-1 ✅</a>
-  <a href="#nav-1">NAV-1 ✅</a>
-  <a href="#kyc-reg-1">KYC-REG-1 ✅</a>
-  <a href="#wf-auth-1">WF-AUTH-1 ✅</a>
-  <a href="#wf-dash-1">WF-DASH-1 ✅</a>
-  <a href="#wf-stepper-1">WF-STEPPER-1 ✅</a>
-  <a href="#wf-geofence-1">WF-GEOFENCE-1 ✅</a>
-  <a href="#wf-unload-1">WF-UNLOAD-1 ✅</a>
-  <a href="#kyc-nc-1">KYC-NC-1 ✅</a>
-  <a href="#fin-policy-1">FIN-POLICY-1 ✅</a>
-  <a href="#acc-fund-1">ACC-FUND-1 ✅</a>
-  <a href="#fin-dual-1">FIN-DUAL-1 ✅</a>
-  <a href="#comm-ui-legacy-1">COMM-UI-LEGACY-1 ✅</a>
-  <a href="#core-os-0">CORE-OS-0 ✅</a>
-  <a href="#core-os-1">CORE-OS-1 ✅</a>
   <a href="#svc-contract-1">SVC-CONTRACT-1 ✅</a>
-  <a href="#invoice-draft-1">INVOICE-DRAFT-1 ✅</a>
-  <a href="#mine-pay-flow-1">MINE-PAY-FLOW-1 ✅</a>
-  <a href="#platform-legal-1">PLATFORM-LEGAL-1 ✅</a>
-  <a href="#gov-workflow-1">GOV-WORKFLOW-1 ✅</a>
-  <a href="#ws-dual-role-1">WS-DUAL-ROLE-1 ✅</a>
-  <a href="#sla-escalation-1">SLA-ESCALATION-1 ✅</a>
-  <a href="#wf-role-inbox-1">WF-ROLE-INBOX-1 ✅</a>
-  <a href="#wb-manual-1">WB-MANUAL-1 ✅</a>
-  <a href="#wb-int-1">WB-INT-1 ✅</a>
-  <a href="#contract-version-ui-1">CONTRACT-VERSION-UI-1 ✅</a>
-  <a href="#hh-bulk-import-1">HH-BULK-IMPORT-1 ✅</a>
-  <a href="#hsa-matrix-1">HSA-MATRIX-1 ✅</a>
-  <a href="#core-os-2">CORE-OS-2 ✅</a>
-  <a href="#e2e-uat-haul-1">E2E-UAT-HAUL-1 ✅</a>
-  <a href="#obj-rep-1">OBJ-REP-1 ✅</a>
-  <a href="#natid-enf-1">NATID-ENF-1 ✅</a>
-  <a href="#iban-audit-1">IBAN-AUDIT-1 ✅</a>
-  <a href="#emp-perm-1">EMP-PERM-1 ✅</a>
-  <a href="#dispatch-ui-1">DISP-UI-1 ✅</a>
-  <a href="#hh-api-1">HH-API-1 ✅</a>
-  <a href="#fo-panel-1">FO-PANEL-1 ✅</a>
-  <a href="#tenant-scope-1">TENANT-SCOPE-1 ✅</a>
-  <a href="#dispatch-lock-1">DISPATCH-LOCK-1 ✅</a>
-  <a href="#wf-wb-read-1">WF-WB-READ-1 ✅</a>
-  <a href="#wf-ops-dash-1">WF-OPS-DASH-1 ✅</a>
-  <a href="#wf-dispatch-board-1">WF-DISPATCH-BOARD-1 ✅</a>
-  <a href="#wf-coop-kyc-wf-1">WF-COOP-KYC-WF-1 ✅</a>
-  <a href="#wf-fin-load-1">WF-FIN-LOAD-1 ✅</a>
-  <a href="#comm-coop-mobile-1">COMM-COOP-MOBILE-1 ✅</a>
   <a href="#pilot-taftan-1">PILOT-TAFTAN-1 ✅</a>
-  <a href="#infra-regression-1">INFRA-REGRESSION-1 ✅</a>
-  <a href="#bank-auto-1">BANK-AUTO-1 ✅</a>
-  <a href="#set-cycle-1">SET-CYCLE-1 ✅</a>
-  <a href="#receipt-pdf-1">RECEIPT-PDF-1 ✅</a>
-  <a href="#currency-ui-1">CURRENCY-UI-1 ✅</a>
-  <a href="#redispatch-1">REDISPATCH-1 ✅</a>
-  <a href="#sms-prod-1">SMS-PROD-1 ✅</a>
-  <a href="#uat-signoff-1">UAT-SIGNOFF-1 ✅</a>
-  <a href="#wf-queue-1">WF-QUEUE-1 ✅</a>
-  <a href="#wf-intransit-1">WF-INTRANSIT-1 ✅</a>
-  <a href="#hh-kyc-committee-1">HH-KYC-COMMITTEE-1 ✅</a>
-  <a href="#hourly-rej-1">HOURLY-REJ-1 ✅</a>
-  <a href="#consult-ui-1">CONSULT-UI-1 ✅</a>
-  <a href="#need-hourly-1">NEED-HOURLY-1 ✅</a>
-  <a href="#hourly-app-1">HOURLY-APP-1 ✅</a>
   <a href="#fin-seed-99-1">FIN-SEED-99-1 ✅</a>
   <a href="#hold-settlement-1">HOLD-SETTLEMENT-1 ✅</a>
-  <a href="#natid-checksum-reg-1">NATID-CHECKSUM-REG-1 ✅</a>
+  <a href="#tasks-done">… همه ۸۰ کارت پایین صفحه</a>
 </nav>
 
-<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (7)</h2>
+<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۱۲)</h2>
+
+<article class="task" id="fin-no-hardcode-1">
+  <h2><span class="badge">FIN-NO-HARDCODE-1</span> <span class="p0">P0</span> حذف fallback عددی business از کد</h2>
+  <div class="ctx"><strong>زمینه:</strong> پس از MINE-SETTINGS-UI — grep و حذف DEFAULT_PLATFORM_FEE_VALUE، placeholder amounts در services، و هر ?? 0.01 در مسیر production.</div>
+  <h3>محدودیت‌ها / آنتی‌پترن</h3>
+  <ul><li>seedConstants.ts مجاز فقط در db:seed.</li><li>اگر مقدار DB null → 400 با پیام «تنظیمات معدن ناقص» نه silent default.</li><li>تست‌ها می‌توانند fixture explicit داشته باشند.</li></ul>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/backend/src/services/ruleEngine.ts</code></li><li><code>apps/backend/src/repositories/financeLedgerRepository.ts</code></li><li><code>apps/backend/scripts/seedConstants.ts</code></li><li>grep: platform_fee, community_rial, DEFAULT_</li></ul>
+  <h3>پرامپت کپی — paste در Cursor</h3>
+  <pre>پروژه: logestic — FIN-NO-HARDCODE-1 (P0)
+
+## گام ۱ — audit
+rg "DEFAULT_|0\.01|400000|platform_fee_value \?\?" apps/backend/src
+
+## گام ۲ — refactor
+- loadMineSettings(mineId) — required fields
+- throw MineConfigIncompleteError if missing in production paths
+- dev/demo: seed provides values
+
+## گام ۳ — docs
+docs/architecture/dynamic-config-fa.md — اصل «هیچ عدد business در کد»
+
+## DoD
+- rg no business fallbacks in src/services (except tests)
+- infra-regression:finance pass</pre>
+  <h3>Definition of Done</h3>
+  <ul><li>grep clean</li><li>explicit errors on missing config</li><li>doc dynamic-config</li></ul>
+  <h3>تست</h3>
+  <ul><li>npm run test:infra-regression:finance</li></ul>
+</article>
+
+<article class="task" id="ux-simple-spec-1">
+  <h2><span class="badge">UX-SIMPLE-SPEC-1</span> <span class="p1">P1</span> سند UX فوق‌ساده — «مثل برای بچه ۷ ساله»</h2>
+  <div class="ctx"><strong>زمینه:</strong> UAT میدانی با راننده، خانوار، اپراتور باسکول — بسیاری کاربر تکنولوژی نمی‌شناسند. قبل از UX-WEB و UX-MOBILE این سند قفل می‌شود.</div>
+  <h3>اصول (الزامی در همه صفحات)</h3>
+  <ul>
+    <li><strong>یک کار در هر صفحه</strong> — یک دکمه اصلی بزرگ (CTA) · بقیه ثانویه</li>
+    <li><strong>زبان محاوره‌ای</strong> — نه «Provisioning» · بلکه «درخواست کاربر جدید»</li>
+    <li><strong>آیکون + متن</strong> — هر action مهم هر دو را داشته باشد</li>
+    <li><strong>فونت بزرگ</strong> — body ≥16px وب · ۱۸sp موبایل · دکمه ≥48px touch</li>
+    <li><strong>رنگ معنی‌دار</strong> — سبز=ادامه · قرمز=خطر/رد · خاکستری=غیرفعال · بدون تکیه به رنگ تنها</li>
+    <li><strong>خطاها</strong> — یک جمله + «چکار کنم؟» · نه کد خطا برای کاربر</li>
+    <li><strong>پیشرفت</strong> — «مرحله ۲ از ۴» · stepper برای FSM راننده</li>
+    <li><strong>بدون منوی پیچیده</strong> — حداکثر ۵ آیتم در nav · بقیه در «بیشتر»</li>
+  </ul>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>docs/ux/simple-ui-spec-fa.md</code> (جدید)</li>
+    <li><code>apps/mobile/packages/mineral_ui/lib/src/theme/mineral_theme.dart</code></li>
+    <li><code>apps/web/src/lib/uiLabels.ts</code></li>
+    <li><code>apps/web/src/index.css</code> یا theme tokens</li>
+  </ul>
+  <h3>پرامپت کپی — paste در Cursor</h3>
+  <pre>پروژه: logestic — UX-SIMPLE-SPEC-1 (P1 — قبل UX-WEB / UX-MOBILE)
+
+## هدف
+سند docs/ux/simple-ui-spec-fa.md + به‌روزرسانی توکن‌های مشترک mineral_ui و وب.
+
+## مخاطب
+کاربر بدون آشنایی با تکنولوژی (راننده، سرپرست خانوار، اپراتور باسکول).
+
+## محتوای سند
+1. اصول بالا (یک صفحه یک کار، فونت، رنگ، خطا)
+2. واژگان فارسی ساده — جدول جایگزین اصطلاحات فنی
+3. الگوی صفحه: Header ساده · Body · یک CTA پایین ثابت (موبایل)
+4. Empty state / Loading / Error — متن نمونه copy-paste
+5. نقش‌به‌نقش: DRIVER · HOUSEHOLD · COOP_OPERATOR · COOP_ADMIN · EMPLOYER
+6. چک‌لیست «تست مادربزرگ» — ۱۰ سؤال بله/خیر
+
+## خروجی کد (حداقل)
+- mineral_ui: typography scale (title 22, body 18, caption 14)
+- mineral_ui: SemanticColors success/warn/error
+- uiLabels.ts: export SIMPLE_LABELS map (فارسی ساده)
+- web: CSS vars --font-size-body, --touch-min 48px
+
+## DoD
+- سند commit در docs/ux/
+- uiLabels و theme هم‌خوان سند
+- v4 report لینک به سند</pre>
+  <h3>Definition of Done</h3>
+  <ul><li>simple-ui-spec-fa.md</li><li>theme tokens web+mobile</li><li>SIMPLE_LABELS</li></ul>
+  <h3>تست</h3>
+  <ul><li>review با checklist §6 — هر ۱۰ مورد باید pass شود روی mockup</li></ul>
+</article>
+
+<article class="task" id="ux-web-simple-1">
+  <h2><span class="badge">UX-WEB-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین پنل وب — ساده برای همه نقش‌ها</h2>
+  <div class="ctx"><strong>پیش‌نیاز:</strong> UX-SIMPLE-SPEC-1 · <strong>هدف:</strong> پنل وب بدون آموزش قبلی قابل استفاده — تمرکز UAT: لاگین، باسکول، KYC، dispatch، settlement.</div>
+  <h3>محدودیت‌ها / آنتی‌پترن</h3>
+  <ul>
+    <li>منطق business/API عوض نشود — فقط UI/UX/copy/layout.</li>
+    <li>RTL فارسی · contrast WCAG AA.</li>
+    <li>جدول‌های admin → کارت‌محور برای موبایل وب (responsive).</li>
+    <li>بدون hamburger عمیق ۳ سطح — flat nav per role.</li>
+  </ul>
+  <h3>صفحات P1 (اولویت UAT)</h3>
+  <ol>
+    <li><code>LoginPage</code> — OTP بزرگ · دمو واضح · لینک APK</li>
+    <li><code>WorkspaceSelectPage</code> — دو کارت بزرگ «کار معدن» / «کار تعاونی»</li>
+    <li><code>WeighbridgePage</code> — empty/loaded بزرگ · net فقط نمایش · یک دکمه «ثبت»</li>
+    <li><code>ApprovalsInbox</code> / KYC — تأیید/رد با دلیل پیشنهادی</li>
+    <li><code>EmployerNeedForm</code> — wizard ۳ مرحله</li>
+    <li><code>DispatchBoard</code> — وضعیت رنگی + یک action</li>
+    <li>Settlement / period statement — «پیش‌نویس» vs «قفل‌شده» با badge بزرگ</li>
+    <li><code>UserRequestForm</code> · <code>AdminUserRequests</code></li>
+  </ol>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>apps/web/src/components/PageFrame.tsx</code></li>
+    <li><code>apps/web/src/lib/panelHomeSections.ts</code></li>
+    <li><code>apps/web/src/pages/*.tsx</code> (لیست بالا)</li>
+    <li><code>docs/ux/simple-ui-spec-fa.md</code></li>
+  </ul>
+  <h3>پرامپت کپی — paste در Cursor</h3>
+  <pre>پروژه: logestic — UX-WEB-SIMPLE-1 (P1)
+
+## مرجع
+docs/ux/simple-ui-spec-fa.md · uiLabels SIMPLE_LABELS
+
+## هدف
+ریدیزain پنل وب طبق اصول UX-SIMPLE-SPEC — یک CTA · فونت بزرگ · copy ساده.
+
+## گام ۱ — shell
+- PageFrame: nav ساده (≤5 item) · breadcrumb فارسی
+- Home per role: کارت‌های بزرگ با آیکون — نه لیست لینک
+
+## گام ۲ — صفحات UAT (ترتیب)
+LoginPage → WorkspaceSelect → WeighbridgePage → ApprovalsInbox → EmployerNeed → DispatchBoard → Settlement views → UserRequest/AdminUserRequests
+
+## گام ۳ — الگوهای مشترک
+- SimplePageLayout: title + subtitle یک خط + content + sticky footer CTA
+- SimpleConfirmDialog: «مطمئنید؟» + دلیل اختیاری
+- ErrorBanner: جمله ساده + دکمه «دوباره»
+
+## آنتی‌پترن
+- table-only بدون mobile card view
+- error codes در UI کاربر
+- بیش از ۲ دکمه primary در یک صفحه
+
+## DoD
+- 8 صفحه P1 refactor
+- e2e uat-haul still pass
+- screenshot before/after در docs/ux/web-screenshots/</pre>
+  <h3>Definition of Done</h3>
+  <ul><li>8 صفحه UAT ساده‌شده</li><li>e2e pass</li><li>responsive mobile web</li></ul>
+  <h3>تست</h3>
+  <ul><li>npm -w @app/web run test:e2e -- uat-haul</li><li>manual: checklist مادربزرگ روی staging</li></ul>
+</article>
+
+<article class="task" id="ux-mobile-simple-1">
+  <h2><span class="badge">UX-MOBILE-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین اپ Flutter — راننده + تعاونی</h2>
+  <div class="ctx"><strong>پیش‌نیاز:</strong> UX-SIMPLE-SPEC-1 · <strong>هدف:</strong> راننده و خانوار بدون آموزش — FSM مأموریت مثل «مرحله بعد» بازی‌وار ساده.</div>
+  <h3>محدودیت‌ها / آنتی‌پترن</h3>
+  <ul>
+    <li>mineral_ui shared — driver_app + community_app هر دو.</li>
+    <li>LogoutAppBarButton در <strong>همه</strong> صفحات authenticated (FSM میانی هم).</li>
+    <li>Geofence: نقشه اختیاری · متن «به محدوده نزدیک شوید» + فاصله.</li>
+    <li>بدون فرم چند ستونه · یک فیلد در هر ردیف.</li>
+  </ul>
+  <h3>صفحات P1</h3>
+  <p><strong>driver_app:</strong> login · workspace · home · missions · mission_detail · mine/factory entry · in_transit · unload · ticket_status · weighbridge_read</p>
+  <p><strong>community_app:</strong> login · workspace · home_shell · register · wallet · kyc_inbox · members · objection</p>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>apps/mobile/packages/mineral_ui/</code></li>
+    <li><code>apps/mobile/driver_app/lib/ui/screens/</code></li>
+    <li><code>apps/mobile/community_app/lib/ui/screens/</code></li>
+  </ul>
+  <h3>پرامپت کپی — paste در Cursor</h3>
+  <pre>پروژه: logestic — UX-MOBILE-SIMPLE-1 (P1)
+
+## مرجع
+docs/ux/simple-ui-spec-fa.md
+
+## mineral_ui — کامپوننت‌های جدید/تقویت
+- SimpleScaffold: title + body + bottom primary (SafeArea)
+- StepProgressBar: «مرحله ۳ از ۵»
+- BigActionButton: full-width 56px height
+- SimpleStatusCard: رنگ + آیکون + یک خط توضیح
+- PlainLanguageError: از API message → فارسی ساده map
+
+## driver_app
+- هر صفحه FSM: فقط یک دکمه «مرحله بعد» + «نیاز به کمک؟»
+- mission_detail: timeline عمودی ساده (✓ انجام شد · ○ الان · ○ بعد)
+- LogoutAppBarButton همه screens (grep screens بدون logout → fix)
+- geofence: فاصله به متر · بدون اصطلاح API
+
+## community_app
+- register: wizard روستا → نام → کدملی → شبا (یک فیلد per step)
+- wallet: «موجودی شما» عدد بزرگ · «آخرین واریز» · بدون jargon ledger
+- home_shell: ۳ کارت بزرگ (کیف پول · اعضا · درخواست)
+
+## DoD
+- mineral_ui widgets export
+- driver + community P1 screens refactor
+- flutter analyze clean
+- manual APK: راننده demo 09000000003 — FSM بدون سردرگمی</pre>
+  <h3>Definition of Done</h3>
+  <ul><li>SimpleScaffold + StepProgressBar</li><li>logout همه screens</li><li>driver FSM timeline</li><li>community register wizard</li></ul>
+  <h3>تست</h3>
+  <ul><li>flutter analyze (driver_app + community_app)</li><li>APK manual UAT checklist</li></ul>
+</article>
+
+<article class="task" id="tenant-onboard-1">
+  <h2><span class="badge">TENANT-ONBOARD-1</span> <span class="p1">P1</span> onboarding معدن جدید بدون ویرایش seed</h2>
+  <div class="ctx"><strong>زمینه:</strong> پس از تنظیمات داینامیک — ADMIN بتواند معدن + قرارداد + rate card اولیه را از پنل بسازد؛ seed فقط TAFTAN دمو.</div>
+  <h3>محدودیت‌ها / آنتی‌پترن</h3>
+  <ul><li>Wizard یا فرم چندمرحله‌ای — نه SQL دستی.</li><li>service_contract version 1 auto-create.</li><li>بدون duplicate mine slug.</li></ul>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/web/src/pages/AdminMineOnboard.tsx</code></li><li><code>apps/backend/src/services/mineOnboardService.ts</code></li><li><code>apps/backend/scripts/seedConstants.ts</code></li></ul>
+  <h3>پرامپت کپی — paste در Cursor</h3>
+  <pre>پروژه: logestic — TENANT-ONBOARD-1 (P1)
+
+## هدف
+ADMIN: ایجاد معدن جدید + workspace + contract v1 + geofence default
+
+## API POST /api/admin/mines/onboard
+Body: name, slug, platform_fee, community_rial_per_ton, geofence...
+
+## UI
+AdminMineOnboard wizard — پس از save → redirect WorkspaceSelect
+
+## DoD
+- معدن دوم بدون تغییر seedConstants.ts
+- test-tenant1 + pilot flow با mine جدید</pre>
+  <h3>Definition of Done</h3>
+  <ul><li>onboard API + UI</li><li>second mine without seed edit</li></ul>
+  <h3>تست</h3>
+  <ul><li>npm run test:tenant1</li><li>manual wizard</li></ul>
+</article>
 
 <article class="task" id="deploy-sahman-1">
   <h2><span class="badge">DEPLOY-SAHMAN-1</span> <span class="p0">P0</span> استقرار production sahman.ir</h2>
-  <div class="ctx"><strong>زمینه:</strong> اجرای deploy-runbook-fa.md روی Liara/VPS — DNS panel/api، SMS real، smoke UAT checklist §۳.</div>
+  <div class="ctx"><strong>زمینه:</strong> پس از DEPLOY-VPS-STAGING + CLIENT-DATA — DNS، SMS real، NODE_ENV=production. runbook آماده است.</div>
   <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>کارفرما تعهد داده — کد runbook آماده است.</li><li>Staging اول با SMS mock توصیه می‌شود.</li></ul>
+  <ul><li>Staging روی IP باید UAT pass شده باشد.</li><li>تنظیمات معدن از پنل — نه seed production.</li><li>SMS real فقط با تأیید کارفرما.</li></ul>
   <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>docs/deploy-runbook-fa.md</code></li><li><code>docs/uat-handover-checklist-fa.md</code></li><li><code>.github/workflows/ci.yml</code></li></ul>
+  <ul><li><code>docs/deploy-runbook-fa.md</code></li><li><code>docs/uat-handover-checklist-fa.md</code></li><li><code>scripts/deploy-vps-from-windows.ps1</code></li></ul>
   <h3>پرامپت کپی — paste در Cursor</h3>
   <pre>پروژه: logestic — DEPLOY-SAHMAN-1 (P0)
 
-## مرجع: docs/deploy-runbook-fa.md
+## پیش‌نیاز
+- DEPLOY-VPS-STAGING-1 ✓
+- CLIENT-DATA-PILOT-1 ✓ (waived دمو — افراد از پنل ADMIN)
+- MINE-SETTINGS با داده واقعی تفتان (اختیاری قبل production)
 
-## گام‌ها
-1. VPS/Liara — Postgres + backend + web static
-2. env production: NODE_ENV=production, SMS_PROVIDER=real, secrets
-3. DNS: sahman.ir, panel.sahman.ir, api.sahman.ir
-4. prisma migrate deploy + db:seed TAFTAN
+## گام‌ها (docs/deploy-runbook-fa.md)
+1. DNS: sahman.ir, panel.sahman.ir, api.sahman.ir
+2. NODE_ENV=production, SMS_PROVIDER=real
+3. prisma migrate deploy — بدون db:seed دمو در prod
+4. import pilot users از CLIENT-DATA
 5. Smoke: uat-handover-checklist §۳
 
 ## DoD
 - HTTPS live
-- OTP SMS real (یا staging mock documented)
-- pilot-taftan1 روی staging DB pass</pre>
+- OTP SMS real (یا documented mock)
+- pilot-taftan1 روی production DB</pre>
   <h3>Definition of Done</h3>
   <ul><li>production deploy</li><li>DNS</li><li>smoke checklist</li></ul>
   <h3>تست</h3>
   <ul><li>uat-handover-checklist §۳</li><li>curl health api</li></ul>
-</article>
-
-<article class="task" id="client-data-pilot-1">
-  <h2><span class="badge">CLIENT-DATA-PILOT-1</span> <span class="p0">P0</span> داده‌های پایلوت از کارفرما (gate UAT)</h2>
-  <div class="ctx"><strong>زمینه:</strong> UAT مالی معنی کامل بدون: fixed_community_amount، IBAN رسمی تعاونی، لیست روستا، spec باسکول، contacts.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>عملیات کارفرما — در گزارش v4 § client-message لیست ۱۱ مورد.</li><li>seed placeholder 400k ریال/تن تا تأیید.</li></ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>apps/backend/scripts/seedConstants.ts</code></li><li><code>apps/backend/prisma/schema.prisma — service_contracts</code></li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — CLIENT-DATA-PILOT-1 (gate — mostly client)
-
-## تحویل از کارفرما (checklist)
-1. fixed_community_amount_rial_per_unit نهایی تفتان
-2. نام رسمی تعاونی + IBAN حساب رسمی
-3. مسئول عملیات + تاریخ هدف UAT
-4. لیست روستاهای مصوب (Excel)
-5. spec باسکول (model, serial/TCP)
-6. لیست کاربران پایلوت (موبایل + نقش)
-7. تأیید dispatch manual vs auto
-8. تأیید برند سهمان
-
-## پس از دریافت
-- seedConstants + service_contracts update
-- re-seed staging
-- sign-off UAT</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>client deliverables received</li><li>seed updated with real contract amount</li></ul>
-  <h3>تست</h3>
-  <ul><li>npm -w @app/backend run db:seed</li><li>test:pilot-taftan1</li></ul>
 </article>
 
 <article class="task" id="brand-sahman-1">
@@ -235,6 +400,32 @@
   <ul><li>npm -w @app/backend run test:disp1 if auto</li></ul>
 </article>
 
+<article class="task" id="comm-bank-receipt-ui-1">
+  <h2><span class="badge">COMM-BANK-RECEIPT-UI-1</span> <span class="p1">P1</span> UI رسید بانک Community (در صورت نیاز کارفرما)</h2>
+  <div class="ctx"><strong>زمینه:</strong> سؤال کارفرما §۷ — آیا COOP_ADMIN باید رسید واریز Community را آپلود/ثبت کند؟ اگر بله، فرم ساده attach + status.</div>
+  <h3>محدودیت‌ها / آنتی‌پترن</h3>
+  <ul><li>Gate: فقط اگر کارفرما تأیید کرد — otherwise skip.</li><li>بدون اتصال بانکی real در MVP — manual receipt record.</li><li>لینک به community_pool period — نه wallet خانوار.</li></ul>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/web/src/pages/CoopFinance.tsx</code> یا AdminFinance</li><li><code>apps/backend/src/routes/communityReceipts.ts</code></li></ul>
+  <h3>پرامپت کپی — paste در Cursor</h3>
+  <pre>پروژه: logestic — COMM-BANK-RECEIPT-UI-1 (P1 — optional)
+
+## فقط پس از تأیید کارفرما
+
+## UI COOP_ADMIN
+- آپلود PDF/عکس رسید واریز به IBAN رسمی
+- مبلغ + تاریخ + reference
+- status: PENDING | CONFIRMED (ADMIN)
+
+## DoD
+- receipt stored + linked to pool period
+- audit trail</pre>
+  <h3>Definition of Done</h3>
+  <ul><li>client yes/no recorded</li><li>UI if yes</li></ul>
+  <h3>تست</h3>
+  <ul><li>manual COOP_ADMIN flow</li></ul>
+</article>
+
 <article class="task" id="wb-local-agent-1">
   <h2><span class="badge">WB-LOCAL-AGENT-1</span> <span class="p2">P2</span> Local Agent باسکول (فاز بعد — scaffold آماده)</h2>
   <div class="ctx"><strong>زمینه:</strong> تصمیم قفل UAT: فاز ۱ مسیر رسمی = COOP_OPERATOR وزن را در WeighbridgePage دستی وارد می‌کند. Agent سخت‌افزار optional — apps/weighbridge-agent/ scaffold + ingest API آماده برای وقتی معدن spec بدهد.</div>
@@ -243,7 +434,7 @@
   <h3>فایل‌های کلیدی</h3>
   <ul><li><code>apps/weighbridge-agent/</code></li><li><code>apps/backend/src/services/weighbridgeIngestService.ts</code></li><li><code>apps/backend/src/routes/weighbridge.ts</code></li></ul>
   <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — WB-LOCAL-AGENT-1 (P0)
+  <pre>پروژه: logestic — WB-LOCAL-AGENT-1 (P2)
 
 ## مرجع: گزارش v4 #remaining — WB-LOCAL-AGENT-1
 
@@ -358,7 +549,125 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <ul><li>npm -w @app/backend run test:tenant-rls1</li><li>manual DBA review</li></ul>
 </article>
 
-<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (68)</h2>
+<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۰)</h2>
+
+<article class="task task-done" id="user-prov-1">
+  <h2><span class="badge">USER-PROV-1</span> <span class="p0">P0</span> User Provisioning — درخواست کاربر + تأیید ADMIN</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۲ · تقویت ۱۴۰۵/۰۳/۱۳ (0046، فیلدهای اختیاری).</p>
+  <div class="ctx"><strong>زمینه:</strong> فرم درخواست نقش، صف ADMIN، approve/reject با دلیل، رفع باگ mobile_pending روی همان درخواست PENDING.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/backend/src/services/userProvisioningService.ts</code></li><li><code>apps/web/src/pages/AdminUserRequests.tsx</code></li><li><code>apps/web/src/pages/UserRequestForm.tsx</code></li></ul>
+  <h3>تست</h3>
+  <ul><li>manual: submit → approve → login</li><li>404 برای نقش بدون دسترسی</li></ul>
+</article>
+
+<article class="task task-done" id="user-unique-1">
+  <h2><span class="badge">USER-UNIQUE-1</span> <span class="p0">P0</span> یکتایی موبایل / کد ملی / شبا + pending provisioning</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — migration <code>0046_identity_unique</code>.</p>
+  <div class="ctx"><strong>زمینه:</strong> partial unique روی <code>bank_iban</code> (household/fleet) و درخواست PENDING (mobile/national_id) · <code>assertIbanAvailable</code> · map Prisma P2002.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/backend/prisma/migrations/0046_identity_unique/</code></li><li><code>apps/backend/src/lib/ibanEnforcement.ts</code></li><li><code>apps/backend/src/lib/prismaErrors.ts</code></li></ul>
+  <h3>تست</h3>
+  <ul><li><code>npm -w @app/backend run test:iban-unique1</code> (با SEED_UAT_ENTITIES=1)</li></ul>
+</article>
+
+<article class="task task-done" id="user-prov-role-fields-1">
+  <h2><span class="badge">USER-PROV-ROLE-FIELDS-1</span> <span class="p0">P0</span> فیلدهای نقش‌محور provisioning (بدون شبا)</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong>.</p>
+  <div class="ctx"><strong>زمینه:</strong> <code>national_id</code> اختیاری در درخواست کاربر و ADMIN create · شبا فقط KYC · <code>identityPolicy.ts</code>.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/backend/src/services/userProvisioningService.ts</code></li><li><code>apps/web/src/pages/UserRequestForm.tsx</code></li><li><code>apps/web/src/pages/AdminUsers.tsx</code></li></ul>
+  <h3>تست</h3>
+  <ul><li><code>test:user-provisioning1</code> — ایجاد بدون کد ملی</li></ul>
+</article>
+
+<article class="task task-done" id="seed-minimal-1">
+  <h2><span class="badge">SEED-MINIMAL-1</span> <span class="p0">P0</span> Seed مینیمال بدون PII پایلوت</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong>.</p>
+  <div class="ctx"><strong>زمینه:</strong> پیش‌فرض: معدن/تعاونی/نرخ/قرارداد + یک ADMIN (<code>SEED_ADMIN_MOBILE</code> پیش‌فرض 09000000000). پایلوت از پنل ADMIN. <code>SEED_UAT_ENTITIES=1</code> برای حساب‌های دمو قدیمی.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/backend/scripts/seed.ts</code></li></ul>
+  <h3>Ops VPS</h3>
+  <ul><li><code>npx prisma migrate deploy</code> (0046)</li><li><code>npm run db:seed</code> — اگر DB قبلاً پر است، کاربران 09000000* را دستی پاک کنید یا DB خالی</li></ul>
+</article>
+
+<article class="task task-done" id="validation-fa-1">
+  <h2><span class="badge">VALIDATION-FA-1</span> <span class="p0">P0</span> اعتبارسنجی نام فارسی</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong>.</p>
+  <div class="ctx"><strong>زمینه:</strong> <code>persianText.ts</code> backend · <code>validation.ts</code> web · head_name/full_name در KYC و bulk import.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/backend/src/lib/persianText.ts</code></li><li><code>apps/web/src/lib/validation.ts</code></li></ul>
+</article>
+
+<article class="task task-done" id="client-data-pilot-1">
+  <h2><span class="badge">CLIENT-DATA-PILOT-1</span> <span class="p0">P0</span> داده پایلوت — gate بسته شد (دمو staging)</h2>
+  <p class="done-banner">✅ <strong>انجام شده (waived برای دمو)</strong> — ۱۴۰۵/۰۳/۱۳.</p>
+  <div class="ctx"><strong>تصمیم:</strong> دیگر منتظر بستهٔ Excel/seed از کارفرما برای staging دمو نیستیم. <strong>لیست کاربران پایلوت</strong> از پنل ADMIN (بدون PII در seed). اعداد قرارداد/Community در seed = placeholder قابل ویرایش بعداً از پنل قرارداد و تنظیمات معدن. IBAN/روستای واقعی و spec باسکول → هنگام UAT میدانی یا production از UI/کارفرما، نه blocker استقرار IP.</div>
+  <h3>جایگزین gate قدیمی</h3>
+  <ul>
+    <li>SEED-MINIMAL-1 — ساختار تفتان در DB</li>
+    <li>ADMIN users + provisioning — افراد پایلوت</li>
+    <li>FIN-NO-HARDCODE-1 — حذف fallback عددی business از ruleEngine (باقی P0)</li>
+  </ul>
+  <h3>فایل‌ها</h3>
+  <ul><li><code>apps/backend/scripts/seed.ts</code> · <code>seedConstants.ts</code></li><li><code>docs/demo-users-and-deploy-fa.md</code> §۳</li></ul>
+  <h3>تست</h3>
+  <ul><li><code>db:seed</code> مینیمال + <code>test:pilot-taftan1</code> با placeholder</li></ul>
+  <p class="muted"><strong>فاز بعد (production/UAT میدانی):</strong> در صورت نیاز، کارفرما همان checklist (Community نهایی، IBAN رسمی، روستاها) را از پنل یا import وارد می‌کند — بدون تسک جدا در backlog P0.</p>
+</article>
+
+<article class="task task-done" id="mobile-demo-apk-1">
+  <h2><span class="badge">MOBILE-DEMO-APK-1</span> <span class="p0">P0</span> ورود دمو Flutter + build APK + لینک وب</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۲. commit 3d3fcbc.</p>
+  <div class="ctx"><strong>زمینه:</strong> devLogin، DemoLoginPanel، build-apk.ps1، ENABLE_DEMO_LOGIN، دانلود از LoginPage.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/mobile/packages/mineral_api/lib/src/demo_login.dart</code></li><li><code>scripts/build-apk.ps1</code></li><li><code>apps/web/src/pages/LoginPage.tsx</code></li></ul>
+  <h3>تست</h3>
+  <ul><li>APK install → ورود دمو → داشبورد</li></ul>
+</article>
+
+<article class="task task-done" id="mobile-logout-1">
+  <h2><span class="badge">MOBILE-LOGOUT-1</span> <span class="p1">P1</span> دکمه خروج در اپ‌های Flutter</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۲.</p>
+  <div class="ctx"><strong>زمینه:</strong> LogoutAppBarButton در mineral_ui — driver، community، hourly screens.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/mobile/packages/mineral_ui/lib/src/widgets/logout_app_bar_button.dart</code></li></ul>
+</article>
+
+<article class="task task-done" id="mobile-btn-align-1">
+  <h2><span class="badge">MOBILE-BTN-ALIGN-1</span> <span class="p2">P2</span> ارتفاع یکسان دکمه‌ها (48px)</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۲.</p>
+  <div class="ctx"><strong>زمینه:</strong> MineralTheme.buttonHeight = 48.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>apps/mobile/packages/mineral_ui/lib/src/theme/mineral_theme.dart</code></li></ul>
+</article>
+
+<article class="task task-done" id="deploy-vps-win-1">
+  <h2><span class="badge">DEPLOY-VPS-WIN-1</span> <span class="p0">P0</span> Deploy از Windows به VPS (بدون git روی سرور)</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۲. commits 3d3fcbc, 6667f73.</p>
+  <div class="ctx"><strong>زمینه:</strong> deploy-vps-from-windows.ps1، build APK قبل از web، fix PowerShell \b parse.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul><li><code>scripts/deploy-vps-from-windows.ps1</code></li><li><code>docs/deploy-vps-no-github-fa.md</code></li></ul>
+  <h3>تست</h3>
+  <ul><li>.\scripts\deploy-vps-from-windows.ps1</li></ul>
+</article>
+
+<article class="task task-done" id="deploy-vps-staging-1">
+  <h2><span class="badge">DEPLOY-VPS-STAGING-1</span> <span class="p0">P0</span> تأیید staging روی VPS (بدون git روی سرور)</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۳ · staging روی IP بالا آورده شد (تأیید تیم).</p>
+  <div class="ctx"><strong>تفاوت با WIN-1:</strong> WIN = اسکریپت و روش deploy از PC · STAGING = سرویس واقعاً روی <code>http://185.36.145.164</code> در دسترس است.</div>
+  <h3>DoD (چک‌لیست)</h3>
+  <ul>
+    <li>وب + API روی IP</li>
+    <li><code>NODE_ENV=development</code> برای دمو (در صورت نیاز __dev/login)</li>
+    <li><code>prisma migrate deploy</code> (0046) · <code>db:seed</code> مینیمال — پایلوت از پنل ADMIN</li>
+    <li>دمو وب + لینک APK (اختیاری: تست دستی راننده/خانوار)</li>
+  </ul>
+  <h3>فایل‌ها</h3>
+  <ul><li><code>scripts/deploy-vps-from-windows.ps1</code></li><li><a href="uat-handover-checklist-fa.md">uat-handover-checklist § staging</a></li></ul>
+  <h3>باقی مرتبط</h3>
+  <ul><li>DEPLOY-SAHMAN-1 = production + دامنه + SMS واقعی (هنوز ⏳)</li></ul>
+</article>
 
 <article class="task task-done" id="comm-ton-1">
   <h2><span class="badge">COMM-TON-1</span> <span class="p0">P0</span> Community Share تن‌محور (جایگزین ۱۳٪ از کرایه)</h2>
@@ -3112,6 +3421,23 @@ POST /api/households/register — normalizeNationalId + validateIranNationalIdCh
   <ul><li>register route checksum validation</li></ul>
   <h3>تست</h3>
   <ul><li>manual POST register with bad checksum</li><li>npm run test:kyc-reg1 if exists</li></ul>
+</article>
+
+<article class="task task-done" id="mine-settings-ui-1">
+  <h2><span class="badge done">✓</span> <span class="badge">MINE-SETTINGS-UI-1</span> <span class="p0">P0</span> صفحه ADMIN «تنظیمات معدن» (همه‌چیز داینامیک)</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۵ · <code>GET/PATCH /api/admin/mines/:id/settings</code> · <code>mine_settings_audit</code> · <code>AdminMineSettings.tsx</code> + nav.</p>
+  <div class="ctx"><strong>زمینه:</strong> platform fee، geofence، dispatch per-mine (fallback env)، community per-ton از قرارداد فعال (amend+activate) — از DB/پنل؛ نه constant در runtime.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>apps/backend/src/routes/adminMines.ts</code></li>
+    <li><code>apps/backend/src/services/mineSettingsService.ts</code></li>
+    <li><code>apps/backend/src/lib/dispatchMode.ts</code></li>
+    <li><code>apps/web/src/pages/AdminMineSettings.tsx</code></li>
+    <li><code>apps/backend/prisma/migrations/0047_mine_settings_ui_1/</code></li>
+  </ul>
+  <h3>تست</h3>
+  <ul><li><code>npm -w @app/backend run test:comm-ton1</code> (scenario 4 — fee 1% از DB)</li><li>manual: workspace + <code>/panel/admin/mine-settings</code></li></ul>
+  <p class="muted"><strong>باقی:</strong> FIN-NO-HARDCODE-1 — حذف fallback <code>RULE_DEFAULTS</code> وقتی DB null است.</p>
 </article>
 
 </div>

@@ -54,7 +54,7 @@ export async function findUserById(id: number): Promise<UserRow | null> {
 
 export async function createUser(input: {
   mobile_number: string;
-  national_id: string;
+  national_id?: string | null;
   role: UserRole;
   full_name?: string;
   cooperative_id?: number | null;
@@ -64,7 +64,7 @@ export async function createUser(input: {
   const row = await prisma.users.create({
     data: {
       mobile_number: input.mobile_number,
-      national_id: input.national_id,
+      national_id: input.national_id ?? null,
       full_name: input.full_name ?? null,
       role: input.role,
       password_hash: "",
@@ -124,7 +124,7 @@ export async function updateUser(
     cooperative_id?: number | null;
     is_active?: boolean;
     full_name?: string | null;
-    national_id?: string;
+    national_id?: string | null;
     is_weighbridge_operator?: boolean;
   },
 ): Promise<UserRow | null> {
@@ -162,7 +162,7 @@ export async function restoreUser(
   userId: number,
   data: {
     mobile_number: string;
-    national_id: string;
+    national_id?: string | null;
     role: UserRole;
     full_name?: string | null;
     cooperative_id?: number | null;
@@ -176,7 +176,7 @@ export async function restoreUser(
         data: {
           deleted_at: null,
           mobile_number: data.mobile_number,
-          national_id: data.national_id,
+          national_id: data.national_id ?? null,
           role: data.role,
           full_name: data.full_name ?? null,
           cooperative_id: data.cooperative_id != null ? toBig(data.cooperative_id) : null,
