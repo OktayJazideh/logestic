@@ -44,7 +44,7 @@ async function ensureEligibleMission(mineId: number, year: number, month: number
   const midMonth = new Date(Date.UTC(year, month - 1, 15, 12, 0, 0));
   await prisma.missions.update({
     where: { id: any.id },
-    data: { verified_at: midMonth, payment_state: "OPEN" },
+    data: { verified_at: midMonth, payment_state: "PENDING" },
   });
 
   missions = await prisma.missions.findMany({

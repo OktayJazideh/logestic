@@ -1,14 +1,9 @@
-import { prisma } from "../db/prisma";
-import { toBig } from "../repositories/id";
-import { resolveCommunityFixedRialPerUnit } from "./financePolicyResolver";
+import { loadMineFinanceConfig } from "./mineSettingsService";
 import { ruleEngine, type RuleContext } from "./ruleEngine";
 
 export type PlatformFeeMode = "PERCENTAGE_OF_OPERATIONAL_PAYMENT";
 export type CommunityContributionMode = "FIXED_RIAL_PER_UNIT" | "PERCENTAGE_OF_OPERATIONAL";
 export type CommunityContributionBase = "VERIFIED_NET_TONNAGE" | "OPERATIONAL_PAYMENT";
-
-/** Employer default for new mines (nullable DB → rules fallback for regression seeds). */
-export const DEFAULT_PLATFORM_FEE_VALUE = 0.01;
 
 export type FinancePolicy = {
   platform_fee_mode: PlatformFeeMode;
@@ -38,7 +33,7 @@ function parseNumericValue(value: unknown): number | null {
 }
 
 /**
- * Core Stable, Policy Flexible — per-mine finance policy from mine overrides + finance_rules.
+ * Core Stable, Policy Flexible — per-mine finance policy from mine + active service contract.
  * Community is never deducted from operational_payment in splitOperational.
  */
 export async function resolveFinancePolicy(
@@ -46,31 +41,16 @@ export async function resolveFinancePolicy(
   ctx?: FinancePolicyContext,
 ): Promise<FinancePolicy> {
   const ruleCtx: RuleContext = { mineId, cooperativeId: ctx?.cooperativeId, at: ctx?.at };
-
-  const mine = await prisma.mines.findUnique({
-    where: { id: toBig(mineId) },
-    select: { platform_fee_value: true, allow_legacy_community_percent: true },
+  const cfg = await loadMineFinanceConfig(mineId, {
+    cooperative_id: ctx?.cooperativeId,
+    operation_type_code: ctx?.operationTypeCode,
   });
-
-  let platform_fee_value: number;
-  if (mine?.platform_fee_value != null) {
-    platform_fee_value = Number(mine.platform_fee_value);
-  } else {
-    platform_fee_value = await ruleEngine.getNumber("split.platform", ruleCtx);
-  }
 
   let community_contribution_mode: CommunityContributionMode = "FIXED_RIAL_PER_UNIT";
   let community_contribution_base: CommunityContributionBase = "VERIFIED_NET_TONNAGE";
-  const communityResolved = await resolveCommunityFixedRialPerUnit(mineId, {
-    ...ruleCtx,
-    operationTypeCode: ctx?.operationTypeCode,
-  });
-  let community_contribution_value = communityResolved.fixed_rial_per_unit;
-  if (communityResolved.unit !== "TON") {
-    community_contribution_base = "VERIFIED_NET_TONNAGE";
-  }
+  let community_contribution_value = cfg.community_rial_per_ton;
 
-  if (mine?.allow_legacy_community_percent) {
+  if (cfg.allow_legacy_community_percent) {
     const legacyRaw = await ruleEngine.get("community.percent_of_operational", ruleCtx);
     const legacyPct = parseNumericValue(legacyRaw);
     if (legacyPct != null && legacyPct > 0) {
@@ -83,7 +63,7 @@ export async function resolveFinancePolicy(
   return {
     platform_fee_mode: "PERCENTAGE_OF_OPERATIONAL_PAYMENT",
     platform_fee_base: "OPERATIONAL_PAYMENT",
-    platform_fee_value,
+    platform_fee_value: cfg.platform_fee_value,
     community_contribution_mode,
     community_contribution_base,
     community_contribution_value,

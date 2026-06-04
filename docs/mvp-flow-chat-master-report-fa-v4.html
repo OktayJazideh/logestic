@@ -62,7 +62,7 @@
   <p>فقط <strong>کارهای باقی‌مانده</strong> + Definition of Done UAT + پرامپت‌های Cursor + متن آماده برای کارفرما. نسخهٔ ۳ آرشیو جامع است.</p>
   <div>
     <span class="pill">تاریخ: ۱۴۰۵/۰۳/۱۳ — ممیزی چت کارفرما ↔ کد</span>
-    <span class="pill">staging ✓ · P0: FIN-NO-HARDCODE + production</span>
+    <span class="pill">staging ✓ · P0: production sahman + UX</span>
     <span class="pill"><a href="demo-users-and-deploy-fa.md" style="color:#D1FAE5">کاربران + Deploy + APK</a></span>
   </div>
 </header>
@@ -96,7 +96,7 @@
   <div class="good" style="margin-top:8px">
     <strong>Freeze فاز ۱ (قفل):</strong> فقط حمل · Community = تن × مبلغ ثابت قراردادی · Operational = 99/1 · Pool مساوی snapshot · HSA Draft→Lock انسانی · پرداخت معدن فقط به حساب رسمی تعاونی · اعتراض ناشناس ممنوع · پلتفرم = زیرساخت (مثل اسنپ) نه مجری معدن.
   </div>
-  <p><strong>P0 باقی:</strong> FIN-NO-HARDCODE · production sahman · UX ساده — staging IP <span class="status s-ok">✓</span> · تنظیمات معدن <span class="status s-ok">✓</span> · داده پایلوت دمو <span class="status s-ok">✓</span></p>
+  <p><strong>P0 باقی:</strong> production sahman · UX ساده — staging IP <span class="status s-ok">✓</span> · تنظیمات معدن <span class="status s-ok">✓</span> · بدون fallback عددی <span class="status s-ok">✓</span> FIN-NO-HARDCODE-1 · داده پایلوت دمو <span class="status s-ok">✓</span></p>
   <div class="info">
     <strong>تصمیم قفل باسکول:</strong> خرید/نصب Agent سخت‌افزار برای UAT اول لازم نیست. COOP_OPERATOR وزن را در پنل وب وارد می‌کند. scaffold در <code>apps/weighbridge-agent/</code> برای بعد.
   </div>
@@ -295,8 +295,8 @@
     </li>
 
     <li class="task" id="fin-no-hardcode-1">
-      <div class="title">FIN-NO-HARDCODE-1 — حذف fallback عددی از کد <span class="priority p0">P0</span></div>
-      <p><strong>وضعیت:</strong> ⏳ — پس از MINE-SETTINGS-UI</p>
+      <div class="title"><span class="badge done">✓</span> FIN-NO-HARDCODE-1 — حذف fallback عددی از کد <span class="priority p0">P0</span></div>
+      <p><strong>وضعیت:</strong> انجام شد — <code>loadMineFinanceConfig</code> · 400 «تنظیمات معدن ناقص» · <a href="architecture/dynamic-config-fa.md">dynamic-config-fa.md</a></p>
     </li>
 
     <li class="task" id="ux-simple-spec-1">
@@ -364,6 +364,7 @@ npm -w @app/web run test:e2e -- uat-haul
 npm -w @app/backend run test:comm-app1</pre>
   <p class="good">پس از FIN-SEED-99-1: pilot-taftan باید 99/1 assert کند ✓</p>
   <p class="good">پس از HOLD-SETTLEMENT-1: test:hold-settlement1 در infra-regression:finance ✓</p>
+  <p class="good">پس از FIN-NO-HARDCODE-1: comm-ton1 · fin-policy1 · hold-settlement1 — بدون RULE_DEFAULTS در runtime ✓</p>
 </section>
 
 <section class="panel" id="audit-karfarma">
@@ -492,13 +493,13 @@ npm -w @app/backend run test:comm-app1</pre>
       <tr><td>۲</td><td>mark-paid دستی vs پرداخت اتومات پس از LOCK</td><td>§۷.۴ — △ شفاف شد</td></tr>
       <tr><td>۳</td><td>تسویه هفتگی مالک (سؤال ۹)</td><td>§۷.۴ — کد vs Freeze</td></tr>
       <tr><td>۴</td><td>رسید بانک Community</td><td>تسک COMM-BANK-RECEIPT-UI-1</td></tr>
-      <tr><td>۵</td><td>تنظیمات داینامیک معدن (اصل «بدون عدد در کد»)</td><td><span class="status s-ok">✓</span> MINE-SETTINGS-UI-1 · FIN-NO-HARDCODE-1 باقی</td></tr>
+      <tr><td>۵</td><td>تنظیمات داینامیک معدن (اصل «بدون عدد در کد»)</td><td><span class="status s-ok">✓</span> MINE-SETTINGS-UI-1 · FIN-NO-HARDCODE-1</td></tr>
       <tr><td>۶</td><td>تناقض ساعتی در MVP</td><td>§۷.۶</td></tr>
       <tr><td>۷</td><td>شفافیت اعضا + اعتراض</td><td>§۷.۵ — در v4 نبود</td></tr>
       <tr><td>۸</td><td>onboarding معدن بدون seed</td><td>TENANT-ONBOARD-1</td></tr>
     </tbody>
   </table>
-  <p class="good">نتیجه: <strong>هسته MVP با Freeze مالی کارفرما (~۶۳۹۶) هم‌خوان است.</strong> دمو staging: seed مینیمال + پنل ADMIN (CLIENT-DATA-PILOT waived). باقی: production sahman · FIN-NO-HARDCODE.</p>
+  <p class="good">نتیجه: <strong>هسته MVP با Freeze مالی کارفرما (~۶۳۹۶) هم‌خوان است.</strong> دمو staging: seed مینیمال + پنل ADMIN (CLIENT-DATA-PILOT waived). باقی: production sahman · UX ساده.</p>
 </section>
 
 <section class="panel client-box" id="client-message">
@@ -542,7 +543,7 @@ npm -w @app/backend run test:comm-app1</pre>
 <section class="panel" id="done-archive">
   <h2>۹. انجام‌شده (آرشیو)</h2>
   <p>~۴۶+ کارت ✓ — جزئیات کامل: <a href="mvp-flow-chat-master-report-fa-v3.html#done">گزارش v3 § done</a> و <a href="mvp-task-prompts-pro-fa.html#tasks-done">پرامپت‌ها § انجام‌شده</a>.</p>
-  <p class="muted">نمونه: MINE-SETTINGS-UI-1, USER-PROV-1, MOBILE-LOGOUT-1, COMM-TON-1, PILOT-TAFTAN-1, WB-INT-1, …</p>
+  <p class="muted">نمونه: FIN-NO-HARDCODE-1, MINE-SETTINGS-UI-1, USER-PROV-1, MOBILE-LOGOUT-1, COMM-TON-1, PILOT-TAFTAN-1, WB-INT-1, …</p>
 </section>
 
 <footer class="muted" style="text-align:center;padding:24px 0">

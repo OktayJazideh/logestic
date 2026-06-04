@@ -311,13 +311,13 @@ async function runOnce(run: number, mineId: number, contractFixedRial: number) {
     Math.abs(contractCommunity - expectedCommunity) < tolerance,
     `run ${run}: computeCommunityContribution must use service_contract`,
   );
-  const rulesOnlyCommunity = await computeCommunityContribution(loadedKg - 10000, {
+  const defaultCoopCommunity = await computeCommunityContribution(loadedKg - 10000, {
     mineId,
     at: new Date(),
   });
   assert(
-    contractCommunity !== rulesOnlyCommunity || contractFixedRial === 500_000,
-    `run ${run}: with cooperativeId contract path must differ from rules-only fallback`,
+    Math.abs(defaultCoopCommunity - contractCommunity) < tolerance,
+    `run ${run}: default cooperative contract path must match explicit cooperativeId`,
   );
 
   // Step 8: monthly-close → period_statement

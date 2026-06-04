@@ -21,6 +21,13 @@ async function ensureRulesFallback() {
   await ruleEngine.setActive("community.rial_per_verified_ton", 500_000, scope, VALID_FROM, uid);
 }
 
+async function ensureMinePlatformFees() {
+  await prisma.mines.updateMany({
+    where: { id: { in: [BigInt(1), BigInt(2)] } },
+    data: { platform_fee_value: 0.01 },
+  });
+}
+
 async function dualSignAndActivate(contractId: number, userId: number) {
   await serviceContractsRepo.updateDraftServiceContract(contractId, {
     signed_at_mine: new Date(),
@@ -79,14 +86,15 @@ async function scenarioDifferentContractsPerMine(userId: number) {
     throw new Error("community amounts must differ across service contracts");
   }
 
-  const expectedRules = 20 * 500_000;
   const noCoop = await computeCommunityContribution(TONS_KG, { mineId: 1, at: new Date("2026-05-01") });
-  if (noCoop !== expectedRules) {
-    throw new Error(`without cooperativeId should fall back to rules (${expectedRules}), got ${noCoop}`);
+  if (noCoop !== expected1) {
+    throw new Error(
+      `without cooperativeId should use default coop contract (${expected1}), got ${noCoop}`,
+    );
   }
 
   // eslint-disable-next-line no-console
-  console.log(`scenario 1 OK — mine1=${commMine1}, mine2=${commMine2}, rules fallback=${noCoop}`);
+  console.log(`scenario 1 OK — mine1=${commMine1}, mine2=${commMine2}, default coop=${noCoop}`);
 }
 
 async function scenarioAmendment(userId: number) {
@@ -220,6 +228,7 @@ async function main() {
   const userId = Number(admin.id);
 
   await ensureRulesFallback();
+  await ensureMinePlatformFees();
   await scenarioDifferentContractsPerMine(userId);
   await scenarioAmendment(userId);
   await scenarioFareFromContractRateCard(userId);

@@ -4,7 +4,7 @@ import { toBig, toNum } from "../repositories/id";
 import * as communityPoolsRepo from "../repositories/communityPoolsRepository";
 import * as householdsRepo from "../repositories/householdsRepository";
 import * as walletsRepo from "../repositories/walletsRepository";
-import { ruleEngine } from "../services/ruleEngine";
+import { loadMineFinanceConfig } from "../services/mineSettingsService";
 
 export type HouseholdShareItem = {
   source: "POOL_DISTRIBUTION" | "MISSION_CONTRIBUTION";
@@ -70,10 +70,11 @@ export async function getHouseholdShares(params: {
   total_rial: number;
 }> {
   const mineId = await resolveMineIdForHousehold(params.cooperativeId, params.villageId);
-  const community_rial_per_ton = await ruleEngine.getCommunityRialPerTon({
-    mineId: mineId ?? undefined,
-    cooperativeId: params.cooperativeId,
-  });
+  let community_rial_per_ton = 0;
+  if (mineId != null) {
+    const cfg = await loadMineFinanceConfig(mineId, { cooperative_id: params.cooperativeId });
+    community_rial_per_ton = cfg.community_rial_per_ton;
+  }
 
   const wallet = await walletsRepo.findWalletForHousehold(params.householdId);
   if (!wallet) {

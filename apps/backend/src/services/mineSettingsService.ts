@@ -6,6 +6,7 @@ import { toBig, toNum } from "../repositories/id";
 import * as serviceContractsRepo from "../repositories/serviceContractsRepository";
 import * as cooperativesRepo from "../repositories/cooperativesRepository";
 import { appContext } from "../appContext";
+import { MineConfigIncompleteError } from "../lib/mineConfigErrors";
 
 export type MineGeofenceSettings = {
   lat: number;
@@ -36,6 +37,17 @@ export type MineSettingsPatch = {
   community_rial_per_ton?: number;
   cooperative_id?: number;
   operation_type_code?: string;
+};
+
+/** Per-mine finance fields required for operational split and community tonnage. */
+export type MineFinanceConfig = {
+  mine_id: number;
+  platform_fee_value: number;
+  community_rial_per_ton: number;
+  service_contract_id: number;
+  cooperative_id: number;
+  operation_type_code: string;
+  allow_legacy_community_percent: boolean;
 };
 
 const DEFAULT_COOP_ID = 1;
@@ -73,6 +85,55 @@ async function resolveActiveContract(
     cooperative_id: cooperativeId,
     operation_type_code: operationTypeCode,
   });
+}
+
+/**
+ * Loads required per-mine finance config from DB (no code fallbacks).
+ * @throws MineConfigIncompleteError when platform fee or active haul contract is missing
+ */
+export async function loadMineFinanceConfig(
+  mineId: number,
+  opts?: { cooperative_id?: number; operation_type_code?: string },
+): Promise<MineFinanceConfig> {
+  const m = await loadMineRow(mineId);
+  if (!m) {
+    throw Object.assign(new Error("mine_not_found"), { code: "mine_not_found" });
+  }
+
+  const cooperativeId = opts?.cooperative_id ?? DEFAULT_COOP_ID;
+  const operationTypeCode = opts?.operation_type_code ?? DEFAULT_OPERATION;
+  const missing: string[] = [];
+
+  const platform_fee_value =
+    m.platform_fee_value != null ? Number(m.platform_fee_value) : null;
+  if (platform_fee_value == null || platform_fee_value <= 0 || platform_fee_value > 1) {
+    missing.push("platform_fee_value");
+  }
+
+  const contract = await resolveActiveContract(mineId, cooperativeId, operationTypeCode);
+  if (!contract) {
+    missing.push("service_contract");
+    missing.push("community_rial_per_ton");
+  } else {
+    const community_rial_per_ton = Number(contract.fixed_community_amount_rial_per_unit);
+    if (!Number.isFinite(community_rial_per_ton) || community_rial_per_ton <= 0) {
+      missing.push("community_rial_per_ton");
+    }
+  }
+
+  if (missing.length > 0) {
+    throw new MineConfigIncompleteError(mineId, missing);
+  }
+
+  return {
+    mine_id: mineId,
+    platform_fee_value: platform_fee_value!,
+    community_rial_per_ton: Number(contract!.fixed_community_amount_rial_per_unit),
+    service_contract_id: contract!.id,
+    cooperative_id: cooperativeId,
+    operation_type_code: operationTypeCode,
+    allow_legacy_community_percent: m.allow_legacy_community_percent,
+  };
 }
 
 export async function getMineSettings(

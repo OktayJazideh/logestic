@@ -5,7 +5,8 @@
 import "dotenv/config";
 import { prisma } from "../src/db/prisma";
 import { initAppContext } from "../src/lib/appInit";
-import { ruleEngine, RULE_DEFAULTS, SEED_RULE_KEYS } from "../src/services/ruleEngine";
+import { ruleEngine } from "../src/services/ruleEngine";
+import { SEED_FINANCE_RULES, SEED_RULE_KEYS } from "../src/lib/seedFinanceRules";
 
 const BASE = process.env.TEST_BASE_URL ?? "http://localhost:4000";
 
@@ -37,7 +38,7 @@ async function resetRules(adminUserId: number) {
   await prisma.finance_rules.deleteMany({});
   const epoch = new Date("2026-01-01T00:00:00.000Z");
   for (const key of SEED_RULE_KEYS) {
-    await ruleEngine.setActive(key, RULE_DEFAULTS[key], { type: "GLOBAL" }, epoch, adminUserId);
+    await ruleEngine.setActive(key, SEED_FINANCE_RULES[key], { type: "GLOBAL" }, epoch, adminUserId);
   }
 }
 

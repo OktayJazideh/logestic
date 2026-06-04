@@ -362,7 +362,7 @@ model mines {
   mine_code                       String   @unique
   name                            String
   location_coordinates            String?
-  // Nullable → finance_rules; new mines use DEFAULT_PLATFORM_FEE_VALUE (0.01) in app
+  // Required for finance split — set via seed or Admin mine settings; null → 400 mine_config_incomplete
   platform_fee_value              Decimal? @db.Decimal(8, 6)
   allow_legacy_community_percent  Boolean  @default(false)
   // null → DISPATCH_MODE env; manual | auto

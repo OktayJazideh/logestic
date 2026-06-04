@@ -11,7 +11,6 @@ import {
 import * as communityPoolsRepo from "../src/repositories/communityPoolsRepository";
 import * as householdsRepo from "../src/repositories/householdsRepository";
 import * as usersRepo from "../src/repositories/usersRepository";
-import { ruleEngine } from "../src/services/ruleEngine";
 import { toDecimal } from "../src/repositories/decimal";
 
 const MINE_ID = 1;
@@ -19,22 +18,25 @@ const PERIOD_KEY = "2026-05";
 const RATE = 500_000;
 const TONS_KG = 20_000;
 
-async function clearMinePlatformOverride() {
+async function ensureMineFinanceFixture(platformFee = 0.02) {
   await prisma.mines.update({
     where: { id: BigInt(MINE_ID) },
-    data: { platform_fee_value: null, allow_legacy_community_percent: false },
+    data: { platform_fee_value: platformFee, allow_legacy_community_percent: false },
   });
-}
-
-async function ensureRules() {
-  await clearMinePlatformOverride();
-  const admin = await prisma.users.findFirst({ where: { mobile_number: "09000000000" } });
-  const uid = admin ? Number(admin.id) : 1;
-  const epoch = new Date("2026-01-01T00:00:00.000Z");
-  const scope = { type: "GLOBAL" as const };
-  await ruleEngine.setActive("split.platform", 0.02, scope, epoch, uid);
-  await ruleEngine.setActive("split.owner", 0.98, scope, epoch, uid);
-  await ruleEngine.setActive("community.rial_per_verified_ton", RATE, scope, epoch, uid);
+  const contract = await prisma.service_contracts.findFirst({
+    where: {
+      mine_id: BigInt(MINE_ID),
+      cooperative_id: BigInt(1),
+      operation_type_code: "HAUL_TONNAGE",
+      status: "ACTIVE",
+    },
+  });
+  if (contract) {
+    await prisma.service_contracts.update({
+      where: { id: contract.id },
+      data: { fixed_community_amount_rial_per_unit: RATE },
+    });
+  }
 }
 
 async function scenario1(run: number) {
@@ -151,7 +153,7 @@ async function scenarioMinePlatformFeeOverride(run: number) {
 }
 
 async function runOnce(run: number) {
-  await ensureRules();
+  await ensureMineFinanceFixture(0.02);
   await scenario1(run);
   await scenario2(run);
   await scenarioMinePlatformFeeOverride(run);

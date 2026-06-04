@@ -35,13 +35,14 @@
 <div class="wrap">
 <header>
   <h1>پرامپت‌های حرفه‌ای MVP — logestic</h1>
-  <p><strong>۱۲ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۰ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
+  <p><strong>۱۱ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۱ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
   <p>مرجع: <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a> · <a href="gozaresh-tahvil-karfarma-mvp-fa.html">تحویل کارفرما</a> · <a href="demo-users-and-deploy-fa.md">دمو + Deploy</a></p>
 </header>
 
 <div class="guide">
   <strong>اصل محصول (۱۴۰۵/۰۳/۱۲):</strong> هیچ عدد/تنظیم business در کد ثابت نماند — همه از DB + پنل (قرارداد، Rate Card، تنظیمات معدن). seed فقط دمو UAT است.<br />
-  <strong>P0 الان:</strong> حذف fallback عددی (FIN-NO-HARDCODE) · production (staging ✓). داده پایلوت در seed نیست — از پنل ADMIN.<br />
+  <strong>P0 الان:</strong> production sahman (staging ✓). داده پایلوت در seed نیست — از پنل ADMIN.<br />
+  <strong>تازه ✓:</strong> FIN-NO-HARDCODE-1 — <code>loadMineFinanceConfig</code> · 400 «تنظیمات معدن ناقص» · <a href="architecture/dynamic-config-fa.md">dynamic-config-fa.md</a><br />
   <strong>P1 UX (قبل UAT میدانی):</strong> ریدیزاین «فوق‌ساده» — قابل استفاده برای کسی که تکنولوژی نمی‌شناسد (وب + موبایل).<br />
   <strong>تازه ✓:</strong> MINE-SETTINGS-UI-1 · CLIENT-DATA-PILOT (waived دمو) · USER-UNIQUE · SEED-MINIMAL · VALIDATION-FA · DEPLOY-VPS-STAGING.
 </div>
@@ -49,7 +50,6 @@
 <nav class="toc">
   <strong>باقی‌مانده — اولویت اجرا (بالا → پایین)</strong>
   <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">P0 = blocker UAT · P1 = مهم پس از staging · P2/P3 = فاز بعد</em>
-  <a href="#fin-no-hardcode-1"><span class="p0">P0</span> FIN-NO-HARDCODE-1 — بدون fallback عددی در کد</a>
   <a href="#ux-simple-spec-1"><span class="p1">P1</span> UX-SIMPLE-SPEC-1 — اصول UI فوق‌ساده (سند + توکن)</a>
   <a href="#ux-web-simple-1"><span class="p1">P1</span> UX-WEB-SIMPLE-1 — ریدیزاین پنل وب</a>
   <a href="#ux-mobile-simple-1"><span class="p1">P1</span> UX-MOBILE-SIMPLE-1 — ریدیزاین اپ‌های Flutter</a>
@@ -63,6 +63,7 @@
   <a href="#tenant-rls-1"><span class="p3">P3</span> TENANT-RLS-1</a>
   <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
   <strong>تازه انجام‌شده ✓</strong>
+  <a href="#fin-no-hardcode-1">FIN-NO-HARDCODE-1 ✅</a>
   <a href="#mine-settings-ui-1">MINE-SETTINGS-UI-1 ✅</a>
   <a href="#user-prov-1">USER-PROV-1 ✅</a>
   <a href="#user-unique-1">USER-UNIQUE-1 ✅</a>
@@ -82,40 +83,10 @@
   <a href="#pilot-taftan-1">PILOT-TAFTAN-1 ✅</a>
   <a href="#fin-seed-99-1">FIN-SEED-99-1 ✅</a>
   <a href="#hold-settlement-1">HOLD-SETTLEMENT-1 ✅</a>
-  <a href="#tasks-done">… همه ۸۰ کارت پایین صفحه</a>
+  <a href="#tasks-done">… همه ۸۱ کارت پایین صفحه</a>
 </nav>
 
-<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۱۲)</h2>
-
-<article class="task" id="fin-no-hardcode-1">
-  <h2><span class="badge">FIN-NO-HARDCODE-1</span> <span class="p0">P0</span> حذف fallback عددی business از کد</h2>
-  <div class="ctx"><strong>زمینه:</strong> پس از MINE-SETTINGS-UI — grep و حذف DEFAULT_PLATFORM_FEE_VALUE، placeholder amounts در services، و هر ?? 0.01 در مسیر production.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>seedConstants.ts مجاز فقط در db:seed.</li><li>اگر مقدار DB null → 400 با پیام «تنظیمات معدن ناقص» نه silent default.</li><li>تست‌ها می‌توانند fixture explicit داشته باشند.</li></ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>apps/backend/src/services/ruleEngine.ts</code></li><li><code>apps/backend/src/repositories/financeLedgerRepository.ts</code></li><li><code>apps/backend/scripts/seedConstants.ts</code></li><li>grep: platform_fee, community_rial, DEFAULT_</li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — FIN-NO-HARDCODE-1 (P0)
-
-## گام ۱ — audit
-rg "DEFAULT_|0\.01|400000|platform_fee_value \?\?" apps/backend/src
-
-## گام ۲ — refactor
-- loadMineSettings(mineId) — required fields
-- throw MineConfigIncompleteError if missing in production paths
-- dev/demo: seed provides values
-
-## گام ۳ — docs
-docs/architecture/dynamic-config-fa.md — اصل «هیچ عدد business در کد»
-
-## DoD
-- rg no business fallbacks in src/services (except tests)
-- infra-regression:finance pass</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>grep clean</li><li>explicit errors on missing config</li><li>doc dynamic-config</li></ul>
-  <h3>تست</h3>
-  <ul><li>npm run test:infra-regression:finance</li></ul>
-</article>
+<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۱۱)</h2>
 
 <article class="task" id="ux-simple-spec-1">
   <h2><span class="badge">UX-SIMPLE-SPEC-1</span> <span class="p1">P1</span> سند UX فوق‌ساده — «مثل برای بچه ۷ ساله»</h2>
@@ -549,7 +520,7 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <ul><li>npm -w @app/backend run test:tenant-rls1</li><li>manual DBA review</li></ul>
 </article>
 
-<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۰)</h2>
+<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۱)</h2>
 
 <article class="task task-done" id="user-prov-1">
   <h2><span class="badge">USER-PROV-1</span> <span class="p0">P0</span> User Provisioning — درخواست کاربر + تأیید ADMIN</h2>
@@ -607,7 +578,7 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <ul>
     <li>SEED-MINIMAL-1 — ساختار تفتان در DB</li>
     <li>ADMIN users + provisioning — افراد پایلوت</li>
-    <li>FIN-NO-HARDCODE-1 — حذف fallback عددی business از ruleEngine (باقی P0)</li>
+    <li>FIN-NO-HARDCODE-1 — حذف fallback عددی (✓ ۱۴۰۵/۰۳/۱۵)</li>
   </ul>
   <h3>فایل‌ها</h3>
   <ul><li><code>apps/backend/scripts/seed.ts</code> · <code>seedConstants.ts</code></li><li><code>docs/demo-users-and-deploy-fa.md</code> §۳</li></ul>
@@ -3437,7 +3408,21 @@ POST /api/households/register — normalizeNationalId + validateIranNationalIdCh
   </ul>
   <h3>تست</h3>
   <ul><li><code>npm -w @app/backend run test:comm-ton1</code> (scenario 4 — fee 1% از DB)</li><li>manual: workspace + <code>/panel/admin/mine-settings</code></li></ul>
-  <p class="muted"><strong>باقی:</strong> FIN-NO-HARDCODE-1 — حذف fallback <code>RULE_DEFAULTS</code> وقتی DB null است.</p>
+</article>
+
+<article class="task task-done" id="fin-no-hardcode-1">
+  <h2><span class="badge done">✓</span> <span class="badge">FIN-NO-HARDCODE-1</span> <span class="p0">P0</span> حذف fallback عددی business از کد</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۵ · <code>loadMineFinanceConfig</code> · <code>MineConfigIncompleteError</code> (400) · <code>docs/architecture/dynamic-config-fa.md</code>.</p>
+  <div class="ctx"><strong>زمینه:</strong> حذف <code>DEFAULT_PLATFORM_FEE_VALUE</code> و <code>RULE_DEFAULTS</code> از runtime؛ seed فقط در <code>seedFinanceRules</code> / <code>db:seed</code>.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>apps/backend/src/services/mineSettingsService.ts</code> — <code>loadMineFinanceConfig</code></li>
+    <li><code>apps/backend/src/lib/mineConfigErrors.ts</code></li>
+    <li><code>apps/backend/src/services/financePolicyService.ts</code></li>
+    <li><code>apps/backend/src/lib/seedFinanceRules.ts</code></li>
+  </ul>
+  <h3>تست</h3>
+  <ul><li><code>npm run test:comm-ton1</code> · <code>test:fin-policy1</code> · <code>test:hold-settlement1</code></li></ul>
 </article>
 
 </div>

@@ -330,6 +330,10 @@ async function main() {
     name: "معدن بتا",
     location_coordinates: "28.0,56.0",
   });
+  await prisma.mines.update({
+    where: { id: BigInt(mineB.id) },
+    data: { platform_fee_value: TAFTAN_PLATFORM_FEE_VALUE },
+  });
 
   await minesRepo.upsertVillage({ id: 1, mine_id: mineTaftan.id, name: "روستای یک", district: "ناحیه ۱" });
   await minesRepo.upsertVillage({ id: 2, mine_id: mineTaftan.id, name: "روستای دو", district: "ناحیه ۱" });

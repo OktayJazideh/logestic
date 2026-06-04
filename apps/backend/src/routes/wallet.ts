@@ -7,7 +7,7 @@ import { ApiError } from "../http/errors";
 import { success } from "../http/apiResponse";
 import { resolveAuthContext } from "../lib/authContext";
 import { resolveEffectiveMineId } from "../lib/mineScope";
-import { ruleEngine } from "../services/ruleEngine";
+import { loadMineFinanceConfig } from "../services/mineSettingsService";
 
 const router = Router();
 
@@ -81,10 +81,13 @@ router.get("/wallet/household", requireAuth, requirePermission("wallet:read_own"
       .listMines()
       .flatMap((m) => appContext.mineData.listVillagesByMine(m.id))
       .find((v) => v.id === household.village_id);
-    const community_rial_per_ton = await ruleEngine.getCommunityRialPerTon({
-      mineId: village?.mine_id,
-      cooperativeId: household.cooperative_id,
-    });
+    let community_rial_per_ton = 0;
+    if (village?.mine_id != null) {
+      const cfg = await loadMineFinanceConfig(village.mine_id, {
+        cooperative_id: household.cooperative_id,
+      });
+      community_rial_per_ton = cfg.community_rial_per_ton;
+    }
 
     return res.json(
       success({ wallet, balance, transactions: txs, community_rial_per_ton, mine_id: mineId ?? null }, requestId),

@@ -1,7 +1,7 @@
 import type { ServiceContractUnit } from "@prisma/client";
 import * as serviceContractsRepo from "../repositories/serviceContractsRepository";
+import { loadMineFinanceConfig } from "./mineSettingsService";
 import type { RuleContext } from "./ruleEngine";
-import { ruleEngine } from "./ruleEngine";
 
 export const DEFAULT_HAUL_OPERATION_TYPE = "HAUL_TONNAGE";
 
@@ -16,38 +16,30 @@ export type ResolvedCommunityPolicy = {
 };
 
 /**
- * Community fixed amount: active service contract (mine + cooperative + operation) when scoped,
- * otherwise finance_rules fallback (COMM-TON-1 regression path).
+ * Community fixed amount from active service contract (mine + cooperative + operation).
+ * @throws MineConfigIncompleteError when contract or rates are missing
  */
 export async function resolveCommunityFixedRialPerUnit(
   mineId: number,
   ctx?: RuleContext & { operationTypeCode?: string },
 ): Promise<ResolvedCommunityPolicy> {
-  const operation_type_code = ctx?.operationTypeCode ?? DEFAULT_HAUL_OPERATION_TYPE;
+  const cfg = await loadMineFinanceConfig(mineId, {
+    cooperative_id: ctx?.cooperativeId,
+    operation_type_code: ctx?.operationTypeCode,
+  });
 
-  if (ctx?.cooperativeId != null) {
-    const contract = await serviceContractsRepo.findActiveServiceContract({
-      mine_id: mineId,
-      cooperative_id: ctx.cooperativeId,
-      operation_type_code,
-      at: ctx.at,
-    });
-    if (contract) {
-      return {
-        source: "service_contract",
-        fixed_rial_per_unit: contract.fixed_community_amount_rial_per_unit,
-        unit: contract.unit,
-        operation_type_code: contract.operation_type_code,
-        service_contract_id: contract.id,
-      };
-    }
-  }
+  const contract = await serviceContractsRepo.findActiveServiceContract({
+    mine_id: mineId,
+    cooperative_id: cfg.cooperative_id,
+    operation_type_code: cfg.operation_type_code,
+    at: ctx?.at,
+  });
 
-  const fromRules = await ruleEngine.getCommunityRialPerTon(ctx);
   return {
-    source: "finance_rule",
-    fixed_rial_per_unit: fromRules,
-    unit: "TON",
-    operation_type_code,
+    source: "service_contract",
+    fixed_rial_per_unit: cfg.community_rial_per_ton,
+    unit: contract?.unit ?? "TON",
+    operation_type_code: cfg.operation_type_code,
+    service_contract_id: cfg.service_contract_id,
   };
 }

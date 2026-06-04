@@ -1,6 +1,7 @@
 import * as financeRulesRepo from "../repositories/financeRulesRepository";
 import type { FinanceRuleRow, FinanceRuleScope } from "../repositories/financeRulesRepository";
 import { computePeriodKey } from "../lib/periodKey";
+import { SEED_FINANCE_RULES, SEED_RULE_KEYS } from "../lib/seedFinanceRules";
 
 export type RuleContext = {
   mineId?: number;
@@ -8,18 +9,14 @@ export type RuleContext = {
   at?: Date;
 };
 
-export const RULE_DEFAULTS: Record<string, number | string> = {
-  "split.owner": 0.98,
-  "split.platform": 0.02,
-  "community.rial_per_verified_ton": 500_000,
-  "weighbridge.threshold": 0.05,
-  "settlement.period_days": 30,
-  "settlement.owner_period_days": 7,
-  "reverse.window_hours": 72,
-  "pool.remainder.target": "rounding_bucket",
-};
+export class RuleNotConfiguredError extends Error {
+  readonly code = "rule_not_configured";
 
-export const SEED_RULE_KEYS = Object.keys(RULE_DEFAULTS) as (keyof typeof RULE_DEFAULTS)[];
+  constructor(public readonly key: string) {
+    super(`Finance rule not configured: ${key}`);
+    this.name = "RuleNotConfiguredError";
+  }
+}
 
 function parseNumericValue(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -52,7 +49,6 @@ export class RuleEngine {
       const row = await financeRulesRepo.findRuleValidAt(key, scope, at);
       if (row) return row.value;
     }
-    if (key in RULE_DEFAULTS) return RULE_DEFAULTS[key];
     return null;
   }
 
@@ -60,12 +56,10 @@ export class RuleEngine {
     const raw = await this.get(key, ctx);
     const n = parseNumericValue(raw);
     if (n != null) return n;
-    const def = RULE_DEFAULTS[key as keyof typeof RULE_DEFAULTS];
-    if (typeof def === "number") return def;
-    return 0;
+    throw new RuleNotConfiguredError(key);
   }
 
-  /** Operational split only (owner + platform). Owner defaults to 1 − platform when unset. */
+  /** Operational split only (owner + platform). Owner defaults to 1 − platform when unset in DB. */
   async getSplitRatios(ctx?: RuleContext): Promise<{ owner: number; platform: number }> {
     const platform = await this.getNumber("split.platform", ctx);
     const rawOwner = await this.get("split.owner", ctx);
@@ -80,13 +74,15 @@ export class RuleEngine {
 
   async getPeriodKey(at = new Date(), ctx?: RuleContext): Promise<string> {
     const days = await this.getNumber("settlement.period_days", ctx);
-    return computePeriodKey(at, days > 0 ? days : 30);
+    if (days <= 0) throw new RuleNotConfiguredError("settlement.period_days");
+    return computePeriodKey(at, days);
   }
 
-  /** SET-CYCLE-1: owner weekly settlement window (default 7 days). */
+  /** SET-CYCLE-1: owner weekly settlement window from finance_rules. */
   async getOwnerPeriodDays(ctx?: RuleContext): Promise<number> {
     const days = await this.getNumber("settlement.owner_period_days", ctx);
-    return days > 0 ? days : 7;
+    if (days <= 0) throw new RuleNotConfiguredError("settlement.owner_period_days");
+    return days;
   }
 
   async setActive(
@@ -109,7 +105,13 @@ export class RuleEngine {
 
     const epoch = new Date("2026-01-01T00:00:00.000Z");
     for (const key of SEED_RULE_KEYS) {
-      await this.setActive(key, RULE_DEFAULTS[key] as number | string, { type: "GLOBAL" }, epoch, created_by);
+      await this.setActive(
+        key,
+        SEED_FINANCE_RULES[key] as number | string,
+        { type: "GLOBAL" },
+        epoch,
+        created_by,
+      );
     }
   }
 }
