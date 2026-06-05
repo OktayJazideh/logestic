@@ -123,8 +123,33 @@ async function runOnce(run: number) {
     `run ${run}: employer must not create need in mine B village while on mine A`,
   );
 
+  const adminToken = await loginAs(process.env.SEED_ADMIN_MOBILE?.trim() || "09000000000");
+  const onboardSlug = `TENANT1-${Date.now().toString(36).toUpperCase()}-${run}`;
+  const onboard = await http("/api/admin/mines/onboard", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({
+      name: `معدن تست tenant ${run}`,
+      slug: onboardSlug,
+      platform_fee: 0.01,
+      community_rial_per_ton: 300_000,
+      geofence: { lat: 30.1, lng: 58.1, radius_m: 400 },
+    }),
+  });
+  assert(onboard.status === 201 && onboard.json.success, `run ${run}: admin onboard failed`);
+  const newMineId = onboard.json.data.onboard.mine_id as number;
+
+  const driverDenyNew = await selectWorkspace(driverToken, newMineId);
+  assert(
+    driverDenyNew.status === 403 && driverDenyNew.json?.error?.code === "workspace_access_denied",
+    `run ${run}: driver must not select onboarded mine without membership`,
+  );
+
+  const adminSelectNew = await selectWorkspace(adminToken, newMineId);
+  assert(adminSelectNew.status === 200 && adminSelectNew.json.success, `run ${run}: admin select onboarded mine failed`);
+
   // eslint-disable-next-line no-console
-  console.log(`TENANT-1 run ${run} OK`);
+  console.log(`TENANT-1 run ${run} OK (onboard mine #${newMineId})`);
 }
 
 async function main() {

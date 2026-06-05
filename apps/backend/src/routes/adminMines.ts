@@ -8,9 +8,11 @@ import { success } from "../http/apiResponse";
 import { resolveAuthContext } from "../lib/authContext";
 import { resolveEffectiveMineId } from "../lib/mineScope";
 import * as mineSettingsService from "../services/mineSettingsService";
+import * as mineOnboardService from "../services/mineOnboardService";
 
 const router = Router();
 const requireAuth = authMiddleware(resolveAuthContext);
+const requireAdminOnly = [requireAuth, requireRoles(["ADMIN"])] as const;
 const requireAdminMine = [
   requireAuth,
   requireMineContext(),
@@ -95,6 +97,84 @@ function mapSettingsError(e: unknown, requestId?: string): ApiError | null {
   }
   return null;
 }
+
+const mineSlugSchema = z
+  .string()
+  .min(2)
+  .max(32)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/, "slug must be alphanumeric (dashes allowed)");
+
+const onboardBodySchema = z.object({
+  name: z.string().min(2).max(120),
+  slug: mineSlugSchema,
+  platform_fee: z.number().positive().max(1),
+  community_rial_per_ton: z.number().positive(),
+  geofence: geofenceSchema,
+  cooperative_name: z.string().min(2).max(120).optional(),
+  cooperative_iban: z.string().min(15).max(34).optional(),
+  ore_rate_rial: z.number().positive().optional(),
+  village_name: z.string().min(2).max(80).optional(),
+});
+
+function mapOnboardError(e: unknown, requestId?: string): ApiError | null {
+  const code = (e as { code?: string }).code;
+  const msg = e instanceof Error ? e.message : "";
+  if (code === "mine_code_exists" || msg === "mine_code_exists") {
+    return new ApiError({
+      statusCode: 409,
+      code: "mine_code_exists",
+      message: "Mine code already exists",
+      requestId,
+    });
+  }
+  if (code === "invalid_platform_fee") {
+    return new ApiError({
+      statusCode: 400,
+      code: "invalid_platform_fee",
+      message: "platform_fee must be between 0 and 1 (exclusive of 0)",
+      requestId,
+    });
+  }
+  if (code === "invalid_geofence" || code === "invalid_community_rate") {
+    return new ApiError({ statusCode: 400, code: code ?? "invalid_request", message: msg || "Invalid request", requestId });
+  }
+  return mapSettingsError(e, requestId);
+}
+
+router.post("/admin/mines/onboard", ...requireAdminOnly, async (req, res, next) => {
+  const requestId = (req as { requestId?: string }).requestId;
+  try {
+    const auth = getAuth(req);
+    const body = onboardBodySchema.safeParse(req.body);
+    if (!body.success) {
+      return next(
+        new ApiError({
+          statusCode: 400,
+          code: "invalid_request",
+          message: body.error.issues[0]?.message ?? "Invalid body",
+          requestId,
+        }),
+      );
+    }
+
+    const result = await mineOnboardService.onboardMine(auth.user.id, body.data);
+    return res.status(201).json(success({ onboard: result }, requestId));
+  } catch (e) {
+    if (e && typeof e === "object" && "code" in e && (e as { code: string }).code === "P2002") {
+      return next(
+        new ApiError({
+          statusCode: 409,
+          code: "mine_code_exists",
+          message: "Mine code already exists",
+          requestId,
+        }),
+      );
+    }
+    const mapped = mapOnboardError(e, requestId);
+    if (mapped) return next(mapped);
+    next(e);
+  }
+});
 
 router.get("/admin/mines/:id/settings", ...requireAdminMine, async (req, res, next) => {
   const requestId = (req as { requestId?: string }).requestId;

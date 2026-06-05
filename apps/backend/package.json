@@ -94,6 +94,7 @@
     "test:ops-dash1": "tsx scripts/test-ops-dash1.ts",
     "test:dispatch-board1": "tsx scripts/test-dispatch-board1.ts",
     "test:wf-queue1": "tsx scripts/test-wf-queue1.ts",
+    "test:mine-onboard1": "tsx scripts/test-mine-onboard1.ts",
     "test:tenant1": "tsx scripts/test-tenant1.ts",
     "test:tenant-scope1": "tsx scripts/test-tenant-scope1.ts",
     "test:dual-role1": "tsx scripts/test-dual-role1.ts",

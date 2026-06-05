@@ -50,7 +50,6 @@
 <nav class="toc">
   <strong>باقی‌مانده — اولویت اجرا (بالا → پایین)</strong>
   <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">P0 = blocker UAT · P1 = مهم پس از staging · P2/P3 = فاز بعد</em>
-  <a href="#tenant-onboard-1"><span class="p1">P1</span> TENANT-ONBOARD-1 — onboarding معدن بدون seed</a>
   <a href="#deploy-sahman-1"><span class="p0">P0</span> DEPLOY-SAHMAN-1 — production + دامنه</a>
   <a href="#brand-sahman-1"><span class="p1">P1</span> BRAND-SAHMAN-1</a>
   <a href="#dispatch-auto-pilot-1"><span class="p1">P1</span> DISPATCH-AUTO-PILOT-1</a>
@@ -64,6 +63,7 @@
   <a href="#ux-web-simple-1">UX-WEB-SIMPLE-1 ✅</a>
   <a href="#ux-simple-spec-1">UX-SIMPLE-SPEC-1 ✅</a>
   <a href="#fin-no-hardcode-1">FIN-NO-HARDCODE-1 ✅</a>
+  <a href="#tenant-onboard-1">TENANT-ONBOARD-1 ✅</a>
   <a href="#mine-settings-ui-1">MINE-SETTINGS-UI-1 ✅</a>
   <a href="#user-prov-1">USER-PROV-1 ✅</a>
   <a href="#user-unique-1">USER-UNIQUE-1 ✅</a>
@@ -83,38 +83,10 @@
   <a href="#pilot-taftan-1">PILOT-TAFTAN-1 ✅</a>
   <a href="#fin-seed-99-1">FIN-SEED-99-1 ✅</a>
   <a href="#hold-settlement-1">HOLD-SETTLEMENT-1 ✅</a>
-  <a href="#tasks-done">… همه ۸۴ کارت پایین صفحه</a>
+  <a href="#tasks-done">… همه ۸۵ کارت پایین صفحه</a>
 </nav>
 
-<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۸)</h2>
-
-<article class="task" id="tenant-onboard-1">
-  <h2><span class="badge">TENANT-ONBOARD-1</span> <span class="p1">P1</span> onboarding معدن جدید بدون ویرایش seed</h2>
-  <div class="ctx"><strong>زمینه:</strong> پس از تنظیمات داینامیک — ADMIN بتواند معدن + قرارداد + rate card اولیه را از پنل بسازد؛ seed فقط TAFTAN دمو.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>Wizard یا فرم چندمرحله‌ای — نه SQL دستی.</li><li>service_contract version 1 auto-create.</li><li>بدون duplicate mine slug.</li></ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>apps/web/src/pages/AdminMineOnboard.tsx</code></li><li><code>apps/backend/src/services/mineOnboardService.ts</code></li><li><code>apps/backend/scripts/seedConstants.ts</code></li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — TENANT-ONBOARD-1 (P1)
-
-## هدف
-ADMIN: ایجاد معدن جدید + workspace + contract v1 + geofence default
-
-## API POST /api/admin/mines/onboard
-Body: name, slug, platform_fee, community_rial_per_ton, geofence...
-
-## UI
-AdminMineOnboard wizard — پس از save → redirect WorkspaceSelect
-
-## DoD
-- معدن دوم بدون تغییر seedConstants.ts
-- test-tenant1 + pilot flow با mine جدید</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>onboard API + UI</li><li>second mine without seed edit</li></ul>
-  <h3>تست</h3>
-  <ul><li>npm run test:tenant1</li><li>manual wizard</li></ul>
-</article>
+<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۷)</h2>
 
 <article class="task" id="deploy-sahman-1">
   <h2><span class="badge">DEPLOY-SAHMAN-1</span> <span class="p0">P0</span> استقرار production sahman.ir</h2>
@@ -348,7 +320,23 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <ul><li>npm -w @app/backend run test:tenant-rls1</li><li>manual DBA review</li></ul>
 </article>
 
-<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۴)</h2>
+<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۵)</h2>
+
+<article class="task task-done" id="tenant-onboard-1">
+  <h2><span class="badge done">✓</span> <span class="badge">TENANT-ONBOARD-1</span> <span class="p1">P1</span> onboarding معدن جدید بدون ویرایش seed</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۵ · <code>POST /api/admin/mines/onboard</code> · <code>mineOnboardService</code> · <code>AdminMineOnboard.tsx</code> wizard → <code>/workspace-select</code>.</p>
+  <div class="ctx"><strong>زمینه:</strong> ADMIN معدن + تعاونی ACTIVE + rate card ORE v1 + service_contract v1 (HAUL_TONNAGE) + ژئوفنس + روستای پیش‌فرض — بدون ویرایش <code>seedConstants.ts</code>.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>apps/backend/src/services/mineOnboardService.ts</code></li>
+    <li><code>apps/backend/src/routes/adminMines.ts</code></li>
+    <li><code>apps/web/src/pages/AdminMineOnboard.tsx</code></li>
+    <li><code>apps/web/src/config/panelNav.ts</code></li>
+    <li><code>apps/backend/scripts/test-mine-onboard1.ts</code></li>
+  </ul>
+  <h3>تست</h3>
+  <ul><li><code>npm -w @app/backend run test:mine-onboard1</code> (۳×)</li><li><code>npm -w @app/backend run test:tenant1</code> (onboard + isolation)</li><li>manual: <code>/panel/admin/mine-onboard</code></li></ul>
+</article>
 
 <article class="task task-done" id="ux-mobile-simple-1">
   <h2><span class="badge">UX-MOBILE-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین Flutter — راننده + تعاونی + وایرفریم</h2>

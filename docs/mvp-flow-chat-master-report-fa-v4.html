@@ -279,6 +279,13 @@
       <p><strong>تست:</strong> <code>npm -w @app/backend run test:comm-ton1</code> (scenario 4)</p>
     </li>
 
+    <li class="task" id="tenant-onboard-1">
+      <div class="title"><span class="badge done">✓</span> TENANT-ONBOARD-1 — onboarding معدن بدون seed <span class="priority p1">P1</span></div>
+      <p><strong>وضعیت:</strong> انجام شد — ۱۴۰۵/۰۳/۱۵ · <code>POST /api/admin/mines/onboard</code> · wizard <code>/panel/admin/mine-onboard</code> → <code>/workspace-select</code></p>
+      <p><strong>فایل‌ها:</strong> <code>mineOnboardService.ts</code> · <code>adminMines.ts</code> · <code>AdminMineOnboard.tsx</code></p>
+      <p><strong>تست:</strong> <code>npm -w @app/backend run test:mine-onboard1</code> · <code>test:tenant1</code></p>
+    </li>
+
     <li class="task" id="wb-local-agent-1">
       <div class="title">WB-LOCAL-AGENT-1 — Local Agent باسکول <span class="priority p1">P2</span></div>
       <p><strong>وضعیت:</strong> ⏸️ فاز بعد — scaffold در <code>apps/weighbridge-agent/</code> · ingest API ✓</p>
@@ -496,7 +503,7 @@ npm -w @app/backend run test:comm-app1</pre>
       <tr><td>۵</td><td>تنظیمات داینامیک معدن (اصل «بدون عدد در کد»)</td><td><span class="status s-ok">✓</span> MINE-SETTINGS-UI-1 · FIN-NO-HARDCODE-1</td></tr>
       <tr><td>۶</td><td>تناقض ساعتی در MVP</td><td>§۷.۶</td></tr>
       <tr><td>۷</td><td>شفافیت اعضا + اعتراض</td><td>§۷.۵ — در v4 نبود</td></tr>
-      <tr><td>۸</td><td>onboarding معدن بدون seed</td><td>TENANT-ONBOARD-1</td></tr>
+      <tr><td>۸</td><td>onboarding معدن بدون seed</td><td><span class="status s-ok">✓</span> TENANT-ONBOARD-1 — <code>POST /api/admin/mines/onboard</code> · wizard</td></tr>
     </tbody>
   </table>
   <p class="good">نتیجه: <strong>هسته MVP با Freeze مالی کارفرما (~۶۳۹۶) هم‌خوان است.</strong> دمو staging: seed مینیمال + پنل ADMIN (CLIENT-DATA-PILOT waived). باقی: production sahman · UX ساده.</p>
@@ -543,7 +550,7 @@ npm -w @app/backend run test:comm-app1</pre>
 <section class="panel" id="done-archive">
   <h2>۹. انجام‌شده (آرشیو)</h2>
   <p>~۴۶+ کارت ✓ — جزئیات کامل: <a href="mvp-flow-chat-master-report-fa-v3.html#done">گزارش v3 § done</a> و <a href="mvp-task-prompts-pro-fa.html#tasks-done">پرامپت‌ها § انجام‌شده</a>.</p>
-  <p class="muted">نمونه: UX-WEB-SIMPLE-1, UX-SIMPLE-SPEC-1, FIN-NO-HARDCODE-1, MINE-SETTINGS-UI-1, USER-PROV-1, MOBILE-LOGOUT-1, COMM-TON-1, PILOT-TAFTAN-1, WB-INT-1, …</p>
+  <p class="muted">نمونه: UX-WEB-SIMPLE-1, UX-SIMPLE-SPEC-1, FIN-NO-HARDCODE-1, MINE-SETTINGS-UI-1, TENANT-ONBOARD-1, USER-PROV-1, MOBILE-LOGOUT-1, COMM-TON-1, PILOT-TAFTAN-1, WB-INT-1, …</p>
 </section>
 
 <footer class="muted" style="text-align:center;padding:24px 0">

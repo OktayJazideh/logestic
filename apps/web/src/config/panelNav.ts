@@ -34,6 +34,7 @@ export const PANEL_NAV: NavItem[] = [
   { to: "/panel/wallet", label: "کیف پول", permission: "wallet:read_own" },
   { to: "/panel/fleet-owner", label: "مالک ناوگان", permission: "vehicles:read_own" },
   { to: "/panel/admin/rules", label: "قوانین سیستم", permission: "users:manage" },
+  { to: "/panel/admin/mine-onboard", label: "ثبت معدن جدید", permission: "users:manage" },
   { to: "/panel/admin/mine-settings", label: "تنظیمات معدن", permission: "users:manage" },
   { to: "/panel/admin/jobs", label: "کارهای پس‌زمینه", permissions: ["settlement:execute", "ops:*"] },
   { to: "/panel/admin/reconciliation", label: "تطبیق شبانه", permission: "users:manage" },

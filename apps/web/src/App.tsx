@@ -24,6 +24,7 @@ import UserRequestForm from "./pages/UserRequestForm";
 import RateCards from "./pages/RateCards";
 import RuleEnginePage from "./pages/RuleEngine";
 import AdminMineSettings from "./pages/AdminMineSettings";
+import AdminMineOnboard from "./pages/AdminMineOnboard";
 import JobsMonitor from "./pages/JobsMonitor";
 import ReconciliationPage from "./pages/ReconciliationPage";
 import AuditViewer from "./pages/AuditViewer";
@@ -136,6 +137,14 @@ export default function App() {
           element={
             <G permission="users:manage">
               <AdminMineSettings />
+            </G>
+          }
+        />
+        <Route
+          path="admin/mine-onboard"
+          element={
+            <G permission="users:manage">
+              <AdminMineOnboard />
             </G>
           }
         />

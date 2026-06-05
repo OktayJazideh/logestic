@@ -21,6 +21,10 @@ const CODE_FA: Record<string, string> = {
     "نسخه API روی سرور قدیمی است. در VPS: git pull && cd apps/backend && npm run build && systemctl restart logestic-api",
   invalid_response: "پاسخ نامعتبر از سرور — احتمالاً API به‌روز نشده است.",
   forbidden: "دسترسی به این عملیات ندارید.",
+  mine_code_exists: "کد معدن قبلاً ثبت شده است — کد دیگری انتخاب کنید.",
+  invalid_platform_fee: "کارمزد پلتفرم باید بین ۰ و ۱۰۰ درصد باشد.",
+  invalid_geofence: "مختصات ژئوفنس نامعتبر است.",
+  invalid_community_rate: "مبلغ مشارکت اجتماعی نامعتبر است.",
 };
 
 export function apiErrorMessageFa(code?: string, fallback?: string): string {
