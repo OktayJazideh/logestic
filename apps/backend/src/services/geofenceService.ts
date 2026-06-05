@@ -30,9 +30,20 @@ function parseFactoryRuleValue(raw: unknown): { lat: number; lng: number; radius
   };
 }
 
-async function defaultRadiusM(mineId: number): Promise<number> {
-  const fromRule = await ruleEngine.getNumber("geofence.radius_m", { mineId });
-  return fromRule > 0 ? fromRule : DEFAULT_RADIUS_M;
+function parseRuleNumber(raw: unknown): number | null {
+  if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) return raw;
+  if (typeof raw === "string" && raw.trim() !== "") {
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+  return null;
+}
+
+/** Prefer mine coordinates radius; optional finance_rules; else fixed default (no throw). */
+async function defaultRadiusM(mineId: number, mineRadiusM?: number): Promise<number> {
+  if (mineRadiusM != null && mineRadiusM > 0) return mineRadiusM;
+  const fromRule = parseRuleNumber(await ruleEngine.get("geofence.radius_m", { mineId }));
+  return fromRule ?? DEFAULT_RADIUS_M;
 }
 
 export async function resolveMineGeofence(mineId: number): Promise<GeofenceConfig | null> {
@@ -55,9 +66,11 @@ export async function resolveFactoryGeofence(mineId: number): Promise<GeofenceCo
   const mine = appContext.mineData.getMine(mineId);
   if (!mine) return null;
 
+  const parsed = parseLocationCoordinates(mine.location_coordinates);
   const ruleRaw = await ruleEngine.get("geofence.factory", { mineId });
   const fromRule = parseFactoryRuleValue(ruleRaw);
-  const radius_m = fromRule?.radius_m ?? (await defaultRadiusM(mineId));
+  const radius_m =
+    fromRule?.radius_m ?? (await defaultRadiusM(mineId, parsed?.radius_m));
 
   if (fromRule) {
     return {
@@ -69,7 +82,6 @@ export async function resolveFactoryGeofence(mineId: number): Promise<GeofenceCo
     };
   }
 
-  const parsed = parseLocationCoordinates(mine.location_coordinates);
   if (!parsed) return null;
   return {
     target: "factory",
