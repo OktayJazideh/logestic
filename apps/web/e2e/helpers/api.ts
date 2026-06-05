@@ -64,9 +64,22 @@ export async function loginAsPanel(
     }),
   ]);
   await page.goto("/panel");
-  await page.waitForURL(/\/panel/, { timeout: 15_000 });
+  await page.waitForURL(/\/(panel|workspace-select)/, { timeout: 15_000 });
   await authReady;
-  await expect(page.locator(".panel-nav__link").first()).toBeVisible({ timeout: 15_000 });
+
+  if (page.url().includes("workspace-select")) {
+    const workspace = page.locator(
+      '[data-testid^="workspace-operational-"], [data-testid^="workspace-community-"]',
+    );
+    await expect(workspace.first()).toBeVisible({ timeout: 15_000 });
+    await workspace.first().click();
+    await page.waitForURL(/\/panel/, { timeout: 15_000 });
+  }
+
+  await expect(page.getByText("در حال بررسی دسترسی")).toHaveCount(0, { timeout: 15_000 });
+  await expect(
+    page.locator("#panel-sidebar, [data-testid^='home-link-']").first(),
+  ).toBeVisible({ timeout: 15_000 });
 }
 
 /** Sidebar link — opens mobile / «بیشتر» menus when the item is collapsed. */
