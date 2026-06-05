@@ -1,4 +1,4 @@
-import type { APIRequestContext, Page } from "@playwright/test";
+import { expect, type APIRequestContext, type Page } from "@playwright/test";
 
 export const apiBase = process.env.API_BASE_URL ?? "http://localhost:4000";
 
@@ -57,8 +57,38 @@ export async function loginAsPanel(
   }
   await page.goto("/login");
   await page.evaluate((t) => localStorage.setItem("auth_token", t), token);
+  const authReady = Promise.all([
+    page.waitForResponse((r) => r.url().includes("/auth/me") && r.status() === 200, { timeout: 15_000 }),
+    page.waitForResponse((r) => r.url().includes("/auth/myPermissions") && r.status() === 200, {
+      timeout: 15_000,
+    }),
+  ]);
   await page.goto("/panel");
   await page.waitForURL(/\/panel/, { timeout: 15_000 });
+  await authReady;
+  await expect(page.locator(".panel-nav__link").first()).toBeVisible({ timeout: 15_000 });
+}
+
+/** Sidebar link — opens mobile / «بیشتر» menus when the item is collapsed. */
+export async function expectSidebarNavLink(page: Page, name: RegExp | string) {
+  const sidebar = page.locator("#panel-sidebar");
+  await expect(sidebar).toBeAttached({ timeout: 15_000 });
+
+  const menuBtn = page.getByTestId("panel-menu-toggle");
+  if (await menuBtn.isVisible()) {
+    await menuBtn.click();
+  }
+
+  const link = sidebar.getByRole("link", { name });
+  const linkVisible = (await link.count()) > 0 && (await link.first().isVisible());
+  if (!linkVisible) {
+    const more = page.getByTestId("panel-nav-more-toggle");
+    if (await more.isVisible()) {
+      await more.click();
+    }
+  }
+
+  await expect(sidebar.getByRole("link", { name })).toBeVisible({ timeout: 15_000 });
 }
 
 export async function selectWorkspace(

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { loginAsPanel } from "./helpers/api";
+import { expectSidebarNavLink, loginAsPanel } from "./helpers/api";
 
 const sidebar = (page: Page) => page.locator("aside");
 
@@ -15,15 +15,15 @@ test("CONSULTANT nav has exactly one work item and no settlement leak", async ({
   await expect(sidebar(page).getByRole("link", { name: /Settlement/i })).toHaveCount(0);
   await expect(sidebar(page).getByRole("link", { name: /کیف پول/i })).toHaveCount(0);
   await expect(sidebar(page).getByRole("link", { name: /HOLD/i })).toHaveCount(0);
-  await expect(sidebar(page).getByRole("link", { name: /کارکرد ساعتی/i })).toBeVisible();
+  await expectSidebarNavLink(page, /کارکرد ساعتی/i);
   const count = await sidebar(page).locator("a").count();
   expect(count).toBe(1);
 });
 
 test("ADMIN sees user management nav", async ({ page, request }) => {
   await loginAsPanel(page, request, "09000000000");
-  await expect(sidebar(page).getByRole("link", { name: /مدیریت کاربران/i })).toBeVisible();
-  await expect(sidebar(page).getByRole("link", { name: /درخواست‌های کاربر/i })).toBeVisible();
+  await expectSidebarNavLink(page, /مدیریت کاربران/i);
+  await expectSidebarNavLink(page, /درخواست‌های کاربر/i);
 });
 
 test("COOP_ADMIN sees user request form not admin users", async ({ page, request }) => {
@@ -32,7 +32,7 @@ test("COOP_ADMIN sees user request form not admin users", async ({ page, request
     cooperativeId: 1,
     membership_kind: "COMMUNITY",
   });
-  await expect(sidebar(page).getByRole("link", { name: /ثبت کاربر جدید/i })).toBeVisible();
+  await expectSidebarNavLink(page, /ثبت کاربر جدید/i);
   await expect(sidebar(page).getByRole("link", { name: /مدیریت کاربران/i })).toHaveCount(0);
 });
 
