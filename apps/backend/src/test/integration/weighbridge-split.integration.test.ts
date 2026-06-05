@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "../../db/prisma";
 import { loadMineFinanceConfig } from "../../services/mineSettingsService";
+import { ruleEngine } from "../../services/ruleEngine";
 import { isServerUp, loginAs } from "../helpers/http";
 import { seedMissionToVerified } from "../helpers/missionFlow";
 
@@ -22,7 +23,7 @@ describe("weighbridge approve → split", () => {
     const coopAdminToken = await loginAs("09000000001");
 
     const qty = 5.2;
-    const periodKey = new Date().toISOString().slice(0, 7);
+    const periodKey = await ruleEngine.getPeriodKey(new Date(), { mineId: 1 });
     const poolBefore = await prisma.community_pools.findUnique({
       where: { mine_id_period_key: { mine_id: BigInt(1), period_key: periodKey } },
     });
@@ -69,13 +70,17 @@ describe("weighbridge approve → split", () => {
     const platformBal = platformWallet ? await missionWalletBalance(platformWallet.id) : 0;
     const operationalSum = ownerBal + platformBal;
     const tolerance = 0.05;
-    const expectedCommunity = Math.round(qty * 500_000);
+    const financeCfg = await loadMineFinanceConfig(verified.mineId, { cooperative_id: 1 });
+    const expectedCommunity = Math.round(qty * financeCfg.community_rial_per_ton);
 
     expect(Math.abs(operationalSum - verified.totalFare)).toBeLessThanOrEqual(tolerance);
     expect(Math.abs(verified.ownerAmount + verified.platformAmount - verified.totalFare)).toBeLessThanOrEqual(
       tolerance,
     );
-    expect(Math.abs(poolDelta - expectedCommunity)).toBeLessThanOrEqual(tolerance);
     expect(Math.abs(verified.communityAmount - expectedCommunity)).toBeLessThanOrEqual(tolerance);
+    expect(Math.abs(poolDelta - verified.communityAmount)).toBeLessThanOrEqual(tolerance);
+    expect(Math.abs(Number(mission?.community_contribution_rial ?? 0) - expectedCommunity)).toBeLessThanOrEqual(
+      tolerance,
+    );
   });
 });
