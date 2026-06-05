@@ -11,10 +11,15 @@ test("Employer Need ثبت → Inbox", async ({ page, request }) => {
   await page.evaluate((token) => localStorage.setItem("auth_token", token), employerToken);
   await page.goto("/panel/employer");
 
+  await expect(page.getByTestId("employer-village").locator("option")).toHaveCount({ minimum: 2 }, { timeout: 15_000 });
   await page.getByTestId("employer-village").selectOption({ index: 1 });
+  await page.getByRole("button", { name: "ادامه" }).click();
+
+  await expect(page.getByTestId("employer-material")).toBeVisible();
   await page.getByTestId("employer-material").fill("ORE");
   const tons = `17.${Date.now() % 1000}`;
   await page.getByTestId("employer-tons").fill(tons);
+  await page.getByRole("button", { name: "مرور و تأیید" }).click();
   await page.getByTestId("employer-submit").click();
 
   const success = page.getByText(/نیاز (?:حمل )?#\d+ با موفقیت ثبت شد/);

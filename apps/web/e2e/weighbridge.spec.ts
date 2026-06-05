@@ -22,17 +22,17 @@ test("operator ثبت وزن → operator approve", async ({ page, request }) =>
   await page.getByTestId("wb-submit-weights").click();
 
   await expect(page.getByTestId("wb-action-msg")).toContainText("وزن ثبت شد", { timeout: 15_000 });
-  await expect(page.getByTestId("wb-ticket-status")).toHaveText("LOADED_REGISTERED");
+  await expect(page.getByTestId("wb-status-hero")).toContainText("وزن پر ثبت شد");
   await expect(page.getByTestId("wb-net-weight")).toHaveValue("5500");
 
   await advanceDriverToDelivered(request, missionId);
 
   await page.getByTestId(`wb-ticket-row-${ticketId}`).click();
-  await expect(page.getByTestId("wb-ticket-status")).toHaveText("LOADED_REGISTERED");
+  await expect(page.getByTestId("wb-status-hero")).toContainText("وزن پر ثبت شد");
   await page.getByTestId("wb-approve").click();
 
   await expect(page.getByTestId("wb-action-msg")).toContainText("تأیید شد", { timeout: 15_000 });
-  await expect(page.getByTestId("wb-ticket-status")).toHaveText("APPROVED");
+  await expect(page.getByTestId("wb-status-hero")).toContainText("تأییدشده");
 
   await expect(page.getByTestId(`wb-ticket-row-${ticketId}`)).toContainText(String(missionId));
 });

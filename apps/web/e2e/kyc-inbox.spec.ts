@@ -29,17 +29,17 @@ async function createPendingHousehold(
   const applicantToken = ((await verify.json()) as { data?: { access_token?: string } }).data?.access_token;
   expect(applicantToken).toBeTruthy();
 
+  const headName = villageId === 1 ? "خانوار آزمایش الف" : "خانوار آزمایش ب";
   const req = await request.post(`${apiBase}/api/coop/households/request`, {
     headers: { Authorization: `Bearer ${applicantToken}` },
     data: {
       cooperative_id: COOP_A,
       village_id: villageId,
-      head_name: `E2E KYC ${suffix}`,
+      head_name: headName,
       national_id: `e2e${suffix.replace(/\D/g, "").slice(-10)}`,
-      bank_iban: "IR820540102680020817909002",
     },
   });
-  expect(req.status()).toBe(201);
+  expect(req.status(), await req.text()).toBe(201);
 }
 
 test("KYC inbox: filter village → row count decreases", async ({ page, request }) => {
@@ -90,6 +90,6 @@ test("KYC inbox: filter village → row count decreases", async ({ page, request
   const filteredTotal = await parseTotal();
   expect(filteredTotal).toBeGreaterThan(0);
 
-  await expect(page.getByText(`E2E KYC ${suffix}-v1`)).toBeVisible();
-  await expect(page.getByText(`E2E KYC ${suffix}-v2`)).not.toBeVisible();
+  await expect(page.getByText("خانوار آزمایش الف")).toBeVisible();
+  await expect(page.getByText("خانوار آزمایش ب")).not.toBeVisible();
 });
