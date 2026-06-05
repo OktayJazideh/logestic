@@ -3,8 +3,8 @@
 # Usage (from repo root):
 #   Staging (IP + demo login):
 #     .\scripts\build-apk.ps1 -ApiBaseUrl "http://185.36.145.164:4000"
-#   Production (domain + OTP only):
-#     .\scripts\build-apk.ps1 -ApiBaseUrl "https://hamsahman.ir" -NoDemoLogin
+#   Production UAT (domain + demo login):
+#     .\scripts\build-apk.ps1 -ApiBaseUrl "https://hamsahman.ir"
 #
 param(
     [ValidateSet("driver_app", "community_app", "both")]

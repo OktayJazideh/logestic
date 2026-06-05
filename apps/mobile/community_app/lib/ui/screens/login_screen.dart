@@ -177,7 +177,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
+    return ExitAppOnBackScope(
+      child: Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: MineralTheme.bg,
@@ -295,6 +296,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

@@ -16,7 +16,7 @@ function smsFailureMessage(err: unknown): string {
   }
   return AUTH_SMS_SEND_FAILED_MESSAGE;
 }
-import { env } from "../config/env";
+import { env, isDevAuthEnabled } from "../config/env";
 
 const router = Router();
 
@@ -234,7 +234,7 @@ router.get("/myPermissions", requireAuth, (req, res) => {
 // Disabled in production.
 router.get("/__dev/audit", async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
-  if (env.NODE_ENV === "production") {
+  if (!isDevAuthEnabled()) {
     return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
   }
   try {
@@ -248,7 +248,7 @@ router.get("/__dev/audit", async (req, res, next) => {
 // DEV/UAT: passwordless login for seeded users — no OTP/SMS (demo buttons).
 router.post("/__dev/login", async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
-  if (env.NODE_ENV === "production") {
+  if (!isDevAuthEnabled()) {
     return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
   }
   const body = z.object({ mobile_number: MobileSchema }).safeParse(req.body);
@@ -300,7 +300,7 @@ router.post("/__dev/login", async (req, res, next) => {
 // Disabled in production — never expose OTP in API response body in prod.
 router.get("/__dev/otp", async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
-  if (env.NODE_ENV === "production") {
+  if (!isDevAuthEnabled()) {
     return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
   }
   const mobile = z.string().trim().regex(/^\d{9,15}$/).safeParse(req.query.mobile_number).success

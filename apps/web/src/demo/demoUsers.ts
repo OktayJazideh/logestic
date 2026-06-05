@@ -134,9 +134,10 @@ function hostIsProduction(hostname: string): boolean {
   return h.endsWith(".sahman.ir") || h.endsWith(".hamsahman.ir");
 }
 
-/** Dev/UAT — local dev, explicit flag, or staging API on raw IP (VPS without domain). */
+/** Dev/UAT — explicit flag, local dev, staging IP, or production UAT with VITE_ENABLE_DEMO_LOGIN=true. */
 export function isDemoLoginEnabled(): boolean {
   if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "false") return false;
+  if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "true") return true;
   if (typeof window !== "undefined" && hostIsProduction(window.location.hostname)) return false;
   const api = import.meta.env.VITE_API_BASE ?? "";
   if (api.startsWith("/")) {
@@ -150,7 +151,6 @@ export function isDemoLoginEnabled(): boolean {
     }
   }
   if (import.meta.env.DEV) return true;
-  if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "true") return true;
   if (/https?:\/\/(\d{1,3}\.){3}\d{1,3}/.test(api)) return true;
   return false;
 }

@@ -20,17 +20,17 @@ npm run build
 Pop-Location
 
 $ApkApiBase = "https://$Domain"
-Write-Host "==> build mobile APKs (API=$ApkApiBase, no demo login)"
+Write-Host "==> build mobile APKs (API=$ApkApiBase, demo login for UAT)"
 if (Get-Command flutter -ErrorAction SilentlyContinue) {
-    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApkApiBase -NoDemoLogin -App both
+    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApkApiBase -App both
 } else {
-    Write-Warning "Flutter not on PATH — skip APK. Run: .\scripts\build-apk.ps1 -ApiBaseUrl $ApkApiBase -NoDemoLogin"
+    Write-Warning "Flutter not on PATH - skip APK. Run: .\scripts\build-apk.ps1 -ApiBaseUrl $ApkApiBase"
 }
 
-Write-Host "==> build web (no demo login, API same-origin /api)"
+Write-Host "==> build web (demo login + API same-origin /api)"
 Push-Location apps/web
 $env:VITE_API_BASE = "/api"
-$env:VITE_ENABLE_DEMO_LOGIN = "false"
+$env:VITE_ENABLE_DEMO_LOGIN = "true"
 npm run build
 $sha = git rev-parse --short HEAD
 Write-Host "    web build SHA: $sha"
@@ -47,28 +47,15 @@ Write-Host "==> upload nginx + env example (manual merge env on server)"
 scp deploy/config/nginx-hamsahman.ir.conf "root@${VpsHost}:${RemoteRoot}/deploy/config/"
 scp deploy/config/backend.env.production.example "root@${VpsHost}:${RemoteRoot}/deploy/config/"
 
-$remoteCmd = @"
-set -e
-if [ ! -f /etc/logestic/backend.env ]; then
-  echo 'WARNING: /etc/logestic/backend.env missing — copy deploy/config/backend.env.production.example and set SMS_API_KEY'
-fi
-if [ -f ${RemoteRoot}/deploy/config/nginx-hamsahman.ir.conf ]; then
-  cp ${RemoteRoot}/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true
-  ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true
-fi
-cd ${RemoteRoot}/apps/backend && npx prisma generate && npx prisma migrate deploy
-systemctl restart logestic-api
-sleep 2
-nginx -t && systemctl reload nginx
-curl -sf http://127.0.0.1:4000/api/health && echo ' API health OK'
-"@
-
+Write-Host "==> prisma migrate + restart on VPS"
+# Bash one-liner passed to ssh (string concat avoids PS parsing).
+$remoteCmd = 'set -e; if [ ! -f /etc/logestic/backend.env ]; then echo WARNING: /etc/logestic/backend.env missing; fi; if [ -f ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf ]; then cp ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true; ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true; fi; cd ' + $RemoteRoot + '/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && sleep 2 && nginx -t && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK'
 ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""
 Write-Host "Done. Open https://$Domain"
 Write-Host "  APK downloads: https://$Domain/downloads/logestic-driver.apk"
 Write-Host "                 https://$Domain/downloads/logestic-community.apk"
-Write-Host "  - Verify SMS: ssh root@$VpsHost 'cd $RemoteRoot && npm -w @app/backend run test:sms-prod1 -- --live'"
-Write-Host "  - Ensure /etc/logestic/backend.env has NODE_ENV=production + SMS_*"
-Write-Host "  - SSL: certbot --nginx -d $Domain -d www.$Domain (if not yet)"
+Write-Host "  - Verify SMS on VPS: npm -w backend run test:sms-prod1 -- --live"
+Write-Host "  - Ensure /etc/logestic/backend.env has NODE_ENV=production and SMS_*"
+Write-Host "  - SSL: certbot --nginx -d $Domain -d www.$Domain"

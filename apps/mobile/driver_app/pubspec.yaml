@@ -32,6 +32,14 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "../../../brand/logo-mark.png"
+  adaptive_icon_background: "#152921"
+  adaptive_icon_foreground: "../../../brand/logo-mark.png"
 
 flutter:
   uses-material-design: true

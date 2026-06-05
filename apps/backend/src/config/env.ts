@@ -69,6 +69,11 @@ const EnvSchema = z.object({
     .enum(["true", "false", "1", "0"])
     .optional()
     .transform((v) => v === "true" || v === "1"),
+  /** UAT on production domain: allow /api/auth/__dev/* for one-tap demo login. */
+  ENABLE_DEMO_LOGIN: z
+    .enum(["true", "false", "1", "0"])
+    .optional()
+    .transform((v) => v === "true" || v === "1"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -253,6 +258,12 @@ export function shouldTrustProxy(): boolean {
 /**
  * DEPLOY-SAHMAN-1: production must use real SMS — fail fast at startup.
  */
+/** __dev/login and __dev/otp — off in production unless ENABLE_DEMO_LOGIN for UAT. */
+export function isDevAuthEnabled(): boolean {
+  if (!isProduction()) return true;
+  return env.ENABLE_DEMO_LOGIN === true;
+}
+
 export function assertProductionReady(): void {
   if (process.env.NODE_ENV === "test" || !isProduction()) return;
   const provider = resolveSmsProvider();

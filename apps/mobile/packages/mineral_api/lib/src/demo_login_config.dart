@@ -2,13 +2,22 @@ import 'package:flutter/foundation.dart';
 
 import 'app_config.dart';
 
-/// Staging/UAT: show demo login on debug builds, explicit flag, or IP-based API URL.
+/// UAT: debug, explicit ENABLE_DEMO_LOGIN, staging IP, or hamsahman.ir during pilot testing.
 bool isDemoLoginEnabled({String? apiBaseUrl}) {
   const flag = String.fromEnvironment('ENABLE_DEMO_LOGIN', defaultValue: '');
   if (flag == 'false' || flag == '0') return false;
-  if (kDebugMode) return true;
   if (flag == 'true' || flag == '1') return true;
-  return _isStagingApiHost(apiBaseUrl ?? AppConfig.apiBaseUrl);
+  if (kDebugMode) return true;
+  final base = apiBaseUrl ?? AppConfig.apiBaseUrl;
+  if (_isStagingApiHost(base)) return true;
+  return _isHamsahmanHost(base);
+}
+
+bool _isHamsahmanHost(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null || uri.host.isEmpty) return false;
+  final h = uri.host.toLowerCase();
+  return h == 'hamsahman.ir' || h == 'www.hamsahman.ir';
 }
 
 bool _isStagingApiHost(String url) {
