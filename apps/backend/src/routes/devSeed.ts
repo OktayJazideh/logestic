@@ -9,11 +9,31 @@ import { resolveAuthContext } from "../lib/authContext";
 import { ACTIVE_MISSION_STATUSES } from "../lib/missionFsm";
 import { prisma } from "../db/prisma";
 import * as workspaceRepo from "../repositories/workspaceMembershipsRepository";
-import { toNum } from "../repositories/id";
+import { toBig, toNum } from "../repositories/id";
 import { UserRoles, type UserRole } from "../types/userRole";
 import { nationalIdFromSeed } from "../lib/nationalId";
 
 const router = Router();
+
+/** Distinct from db:seed UAT IBANs (IR00…) — avoids unique constraint in CI + local. */
+const DEV_SEED_HOUSEHOLD_IBAN = "IR8800000000000000000000";
+const DEV_SEED_FLEET_IBAN = "IR8800000000000000000001";
+
+async function closeActiveMissionsForDemo(params: {
+  driver_id: number;
+  vehicle_id: number;
+  mine_id: number;
+}) {
+  await prisma.missions.updateMany({
+    where: {
+      driver_id: toBig(params.driver_id),
+      vehicle_id: toBig(params.vehicle_id),
+      status: { in: ACTIVE_MISSION_STATUSES },
+      load: { mine_id: toBig(params.mine_id) },
+    },
+    data: { status: "VERIFIED", verified_at: new Date() },
+  });
+}
 
 const requireAuth = authMiddleware(resolveAuthContext);
 
@@ -93,9 +113,10 @@ router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), async (req
     const household = await appContext.entities.upsertHousehold({
       user_id: householdUser.id,
       village_id: villageId,
+      cooperative_id: 1,
       head_name: "نمونه سرپرست خانوار",
-      national_id: "1234567890",
-      bank_iban: "IR0000000000000000000000",
+      national_id: seedNational("09000000005"),
+      bank_iban: DEV_SEED_HOUSEHOLD_IBAN,
       status: "APPROVED",
     });
 
@@ -103,8 +124,8 @@ router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), async (req
       user_id: fleetOwnerUser.id,
       cooperative_id: 1,
       full_name: "نمونه مالک ناوگان",
-      national_id: "2345678901",
-      bank_iban: "IR0000000000000000000001",
+      national_id: seedNational("09000000004"),
+      bank_iban: DEV_SEED_FLEET_IBAN,
       status: "APPROVED",
     });
 
@@ -131,6 +152,12 @@ router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), async (req
       cooperative_id: 1,
       role_in_workspace: "DRIVER",
       status: "ACTIVE",
+    });
+
+    await closeActiveMissionsForDemo({
+      driver_id: driver.id,
+      vehicle_id: vehicle.id,
+      mine_id: mineId,
     });
 
     const { load, mission } = await appContext.mission.createDemoLoadAndMission({
