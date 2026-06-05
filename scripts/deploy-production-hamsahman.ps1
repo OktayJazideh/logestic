@@ -19,6 +19,14 @@ npx prisma generate
 npm run build
 Pop-Location
 
+$ApkApiBase = "https://$Domain"
+Write-Host "==> build mobile APKs (API=$ApkApiBase, no demo login)"
+if (Get-Command flutter -ErrorAction SilentlyContinue) {
+    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApkApiBase -NoDemoLogin -App both
+} else {
+    Write-Warning "Flutter not on PATH — skip APK. Run: .\scripts\build-apk.ps1 -ApiBaseUrl $ApkApiBase -NoDemoLogin"
+}
+
 Write-Host "==> build web (no demo login, API same-origin /api)"
 Push-Location apps/web
 $env:VITE_API_BASE = "/api"
@@ -59,6 +67,8 @@ ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""
 Write-Host "Done. Open https://$Domain"
+Write-Host "  APK downloads: https://$Domain/downloads/logestic-driver.apk"
+Write-Host "                 https://$Domain/downloads/logestic-community.apk"
 Write-Host "  - Verify SMS: ssh root@$VpsHost 'cd $RemoteRoot && npm -w @app/backend run test:sms-prod1 -- --live'"
 Write-Host "  - Ensure /etc/logestic/backend.env has NODE_ENV=production + SMS_*"
 Write-Host "  - SSL: certbot --nginx -d $Domain -d www.$Domain (if not yet)"

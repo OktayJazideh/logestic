@@ -1,8 +1,10 @@
 # Build release APKs for driver_app and community_app; copy to web public for login downloads.
 #
 # Usage (from repo root):
-#   .\scripts\build-apk.ps1 -ApiBaseUrl "http://185.36.145.164:4000"
-#   .\scripts\build-apk.ps1 -App community_app -ApiBaseUrl "http://185.36.145.164:4000"
+#   Staging (IP + demo login):
+#     .\scripts\build-apk.ps1 -ApiBaseUrl "http://185.36.145.164:4000"
+#   Production (domain + OTP only):
+#     .\scripts\build-apk.ps1 -ApiBaseUrl "https://hamsahman.ir" -NoDemoLogin
 #
 param(
     [ValidateSet("driver_app", "community_app", "both")]

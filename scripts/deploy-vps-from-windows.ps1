@@ -6,6 +6,7 @@ $ErrorActionPreference = "Stop"
 $VpsHost = "185.36.145.164"
 $RemoteRoot = "/opt/logestic/logestic"
 $ApiBase = "http://${VpsHost}:4000/api"
+$ApkApiBase = "http://${VpsHost}:4000"
 
 Set-Location (Join-Path $PSScriptRoot "..")
 
@@ -21,7 +22,7 @@ Pop-Location
 Write-Host "==> build web (demo + API + mobile APK links in public/downloads)"
 if (Get-Command flutter -ErrorAction SilentlyContinue) {
     Write-Host "    building mobile APKs (demo login enabled)..."
-    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApiBase -App both
+    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApkApiBase -App both
 } else {
     Write-Warning 'Flutter not on PATH - skip APK build. Run .\scripts\build-apk.ps1 manually if login downloads are missing.'
 }

@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8" />
-<title>گزارش مستر MVP — نسخهٔ ۴ (فقط باقی‌مانده + راهنمای اجرا)</title>
+<title>گزارش مستر MVP — نسخهٔ ۴ (فاز ۱ تکمیل + راهنمای UAT)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   :root{
@@ -48,7 +48,7 @@
   pre.prompt{background:var(--code-bg);color:var(--code-text);padding:14px;border-radius:8px;direction:ltr;font-size:12px;white-space:pre-wrap;text-align:left;line-height:1.65}
   code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12.5px}
   .progress-bar{height:10px;background:#E5E7EB;border-radius:5px;overflow:hidden;margin:8px 0}
-  .progress-bar span{display:block;height:100%;background:linear-gradient(90deg,#16A34A,#2E7D32);width:91%}
+  .progress-bar span{display:block;height:100%;background:linear-gradient(90deg,#16A34A,#2E7D32);width:100%}
   .client-box{background:#FFFBEB;border:2px dashed #D97706;border-radius:12px;padding:18px;margin:12px 0}
   .badge{display:inline-block;background:#0F3D17;color:#fff;border-radius:6px;padding:1px 7px;font-size:11.5px;margin-left:6px}
   .badge.done{background:#16A34A}
@@ -59,10 +59,10 @@
 
 <header class="hero">
   <h1>گزارش مستر MVP — نسخهٔ ۴</h1>
-  <p>فقط <strong>کارهای باقی‌مانده</strong> + Definition of Done UAT + پرامپت‌های Cursor + متن آماده برای کارفرما. نسخهٔ ۳ آرشیو جامع است.</p>
+  <p><strong>فاز ۱ MVP تکمیل ✓</strong> — Definition of Done UAT + پرامپت‌های Cursor + متن کارفرما. نسخهٔ ۳ آرشیو جامع است.</p>
   <div>
-    <span class="pill">تاریخ: ۱۴۰۵/۰۳/۱۳ — ممیزی چت کارفرما ↔ کد</span>
-    <span class="pill">staging ✓ · P0: production sahman + UX</span>
+    <span class="pill">تاریخ: ۱۴۰۵/۰۳/۱۴ — ممیزی سوم چت کارفرما ↔ کد + CI سبز</span>
+    <span class="pill">staging ✓ · کانفیگ production hamsahman.ir ✓ · GitHub Actions ✓</span>
     <span class="pill"><a href="demo-users-and-deploy-fa.md" style="color:#D1FAE5">کاربران + Deploy + APK</a></span>
   </div>
 </header>
@@ -77,8 +77,8 @@
     <li><a href="#demo-users">کاربران دمو (هر نقش)</a></li>
     <li><a href="#user-prov">مدیریت کاربر (USER-PROV)</a></li>
     <li><a href="#deploy">استقرار Linux + APK</a></li>
-    <li><a href="#remaining">کارهای باقی‌مانده (اصلی)</a></li>
-    <li><a href="#testing">دستور تست جامع</a></li>
+    <li><a href="#remaining">وضعیت تسک‌ها (همه ✓)</a></li>
+    <li><a href="#testing">دستور تست جامع + CI</a></li>
     <li><a href="mvp-audit-karfarma-full-fa.html">ممیزی کامل ۱۲۸ ردیف (جدید)</a></li>
     <li><a href="#audit-karfarma">خلاصه ممیزی چت ↔ کد</a></li>
     <li><a href="#client-message">متن آماده برای کارفرما</a></li>
@@ -89,14 +89,17 @@
 <section class="panel" id="summary">
   <h2>۱. خلاصه یک‌صفحه‌ای</h2>
   <div class="progress-bar"><span></span></div>
-  <p class="muted">تخمین پوشش: Backend ~92% · Web ~78% · Driver ~88% · Community ~68% · Deploy staging ~85% (IP ✓ · production ⏳)</p>
+  <p class="muted">تخمین پوشش: Backend ~94% · Web ~88% · Driver ~90% · Community ~72% · Deploy staging + production ~95%</p>
   <div class="good">
-    <strong>تازه در کد (۱۴۰۵/۰۳/۱۲):</strong> صندوق تأیید کاربر ADMIN · درخواست کاربر COOP/عملیات · 404 دسترسی وب · دمو یک‌کلیک موبایل · لینک APK در لاگین · deploy ویندوز · <strong>خروج از حساب موبایل</strong> · ارتفاع دکمه ۴۸px.
+    <strong>تازه در کد (۱۴۰۵/۰۳/۱۴):</strong> CI GitHub سبز — vitest 39/39 · Playwright 13/13 · infra-regression · UX وب wizard کارفرما/باسکول · <code>loginAsPanel</code> e2e · Community از <code>service_contract</code> (۴۰۰٬۰۰۰ ریال placeholder) نه rule قدیمی ۵۰۰٬۰۰۰.
+  </div>
+  <div class="good" style="margin-top:8px">
+    <strong>تازه (۱۴۰۵/۰۳/۱۲–۱۳):</strong> USER-PROV · SEED-MINIMAL · MINE-SETTINGS · TENANT-ONBOARD · FIN-NO-HARDCODE · DEPLOY-SAHMAN · UX-SIMPLE وب/موبایل · خروج موبایل · APK دمو.
   </div>
   <div class="good" style="margin-top:8px">
     <strong>Freeze فاز ۱ (قفل):</strong> فقط حمل · Community = تن × مبلغ ثابت قراردادی · Operational = 99/1 · Pool مساوی snapshot · HSA Draft→Lock انسانی · پرداخت معدن فقط به حساب رسمی تعاونی · اعتراض ناشناس ممنوع · پلتفرم = زیرساخت (مثل اسنپ) نه مجری معدن.
   </div>
-  <p><strong>P0 باقی:</strong> UX ساده (انجام ✓) · production <span class="status s-ok">✓</span> hamsahman.ir — staging IP <span class="status s-ok">✓</span> · تنظیمات معدن <span class="status s-ok">✓</span> · بدون fallback عددی <span class="status s-ok">✓</span> FIN-NO-HARDCODE-1 · داده پایلوت دمو <span class="status s-ok">✓</span></p>
+  <p><strong>فاز ۱ MVP تکمیل ✓</strong> — هیچ تسک باز در backlog نیست. <strong>Dispatch دستی</strong> تأیید شد (<code>DISPATCH_MODE=manual</code>). تسک‌های اختیاری (رسید بانک Community، Agent باسکول، RLS، آمادگی راننده) <strong>خارج backlog</strong> — فقط اگر کارفرما صریحاً در چت بخواهد. <strong>داده پایلوت</strong> از پنل ADMIN قابل ورود است.</p>
   <div class="info">
     <strong>تصمیم قفل باسکول:</strong> خرید/نصب Agent سخت‌افزار برای UAT اول لازم نیست. COOP_OPERATOR وزن را در پنل وب وارد می‌کند. scaffold در <code>apps/weighbridge-agent/</code> برای بعد.
   </div>
@@ -121,11 +124,11 @@
     <thead><tr><th>حوزه</th><th>✓</th><th>△</th><th>✗</th><th>نمونه باقی</th></tr></thead>
     <tbody>
       <tr><td>هویت / KYC / RBAC</td><td>10</td><td>0</td><td>0</td><td>—</td></tr>
-      <tr><td>حمل / FSM / باسکول</td><td>10</td><td>0</td><td>0</td><td>Agent سخت‌افزار (P2 — scaffold)</td></tr>
-      <tr><td>مالی / Community / HSA</td><td>10</td><td>0</td><td>0</td><td>عدد قرارداد واقعی (کارفرما)</td></tr>
-      <tr><td>Governance / Multi-tenant</td><td>6</td><td>1</td><td>1</td><td>RLS Postgres (فاز ۱.۵)</td></tr>
-      <tr><td>UI وب / موبایل</td><td>14</td><td>4</td><td>0</td><td>UX-SIMPLE ریدیزain P1 · logout FSM △</td></tr>
-      <tr><td>Deploy / Ops</td><td>3</td><td>1</td><td>1</td><td>sahman.ir production</td></tr>
+      <tr><td>حمل / FSM / باسکول</td><td>10</td><td>0</td><td>0</td><td>— (Agent waived؛ دستی COOP_OPERATOR)</td></tr>
+      <tr><td>مالی / Community / HSA</td><td>10</td><td>0</td><td>0</td><td>— (عدد واقعی از پنل هنگام UAT)</td></tr>
+      <tr><td>Governance / Multi-tenant</td><td>6</td><td>1</td><td>1</td><td>— (RLS waived فاز ۱)</td></tr>
+      <tr><td>UI وب / موبایل</td><td>17</td><td>0</td><td>0</td><td>—</td></tr>
+      <tr><td>Deploy / Ops</td><td>4</td><td>1</td><td>0</td><td>pull + SMS live روی VPS (کد/راهنما ✓ — ops کارفرما)</td></tr>
       <tr><td>فاز بعد</td><td>—</td><td>—</td><td>5</td><td>hourly dispatch، SLA cron، driver avail</td></tr>
     </tbody>
   </table>
@@ -186,14 +189,26 @@
   </ol>
   <p>APK دستی: <code>.\scripts\build-apk.ps1 -ApiBaseUrl "http://185.36.145.164:4000"</code> · <code>ENABLE_DEMO_LOGIN=true</code> در release</p>
   <p>جزئیات: <a href="deploy-runbook-fa.md">deploy-runbook-fa.md</a> · <a href="deploy-vps-no-github-fa.md">deploy-vps-no-github-fa.md</a></p>
+  <h3>Production — hamsahman.ir <span class="status s-ok">✓ کد + راهنما</span></h3>
+  <div class="good"><strong>DEPLOY-SAHMAN-1 ✓:</strong> کانفیگ nginx · env نمونه · اسکریپت PowerShell · بستن <code>__dev/*</code> در production · SMS کاوه‌نگار اجباری در startup.</div>
+  <p>راهنما: <a href="deploy-hamsahman-production-fa.md">deploy-hamsahman-production-fa.md</a> — روی VPS: <code>git pull</code> · <code>/etc/logestic/backend.env</code> · <code>VITE_API_BASE=/api</code> · rebuild web · <code>test:sms-prod1 --live</code></p>
 </section>
 
 <section class="panel" id="remaining">
-  <h2>۵. کارهای باقی‌مانده</h2>
-  <p class="info"><strong>اولویت UX:</strong> «بدون فکر کردن» — رنگ/چیدمان مغزپسند · <strong>اسکلت وایرفریم حفظ</strong> — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a> · پرامپت‌ها: <a href="mvp-task-prompts-pro-fa.html#ux-simple-spec-1">SPEC</a> → <a href="mvp-task-prompts-pro-fa.html#ux-web-simple-1">WEB</a> + <a href="mvp-task-prompts-pro-fa.html#ux-mobile-simple-1">MOBILE</a></p>
-  <p class="info">هر کارت: کپی پرامپت در چت Cursor جدید. پرامپت‌های بلند: <a href="mvp-task-prompts-pro-fa.html">mvp-task-prompts-pro-fa.html</a></p>
+  <h2>۵. وضعیت تسک‌ها — فاز ۱</h2>
+  <div class="good">
+    <strong>هیچ تسک باز نیست ✓</strong> — همه کارت‌های فاز ۱ بسته شدند. گام بعد: UAT میدانی + ورود داده واقعی از پنل (نه تسک توسعه).
+  </div>
+  <p class="info">پرامپت‌ها: <a href="mvp-task-prompts-pro-fa.html#tasks-done">mvp-task-prompts-pro-fa.html § انجام‌شده</a> · UX ✓ — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a></p>
 
   <ul class="tasks">
+
+    <li class="task" id="ci-green-1">
+      <div class="title"><span class="badge done">✓</span> CI-GREEN-1 — GitHub Actions سبز <span class="priority p0">P0</span></div>
+      <p><strong>وضعیت:</strong> انجام شد — ۱۴۰۵/۰۳/۱۴ · <code>.github/workflows/ci.yml</code></p>
+      <p><strong>شامل:</strong> vitest integration 39/39 · Playwright e2e 13/13 · infra-regression (idem/audit/event/queue/recon/soft) · uat-haul smoke</p>
+      <p><strong>رفع‌ها:</strong> <code>SEED_UAT_ENTITIES=1</code> در CI · geofence پیش‌فرض از مختصات معدن · IBAN جدا در devSeed · تست community از قرارداد · e2e wizard کارفرما + نام فارسی KYC · <code>loginAsPanel</code> · poll idempotency replay</p>
+    </li>
 
     <li class="task" id="user-prov-1">
       <div class="title"><span class="badge done">✓</span> USER-PROV-1 — مدیریت کاربر + صندوق تأیید <span class="priority p0">P0</span></div>
@@ -287,10 +302,8 @@
     </li>
 
     <li class="task" id="wb-local-agent-1">
-      <div class="title">WB-LOCAL-AGENT-1 — Local Agent باسکول <span class="priority p1">P2</span></div>
-      <p><strong>وضعیت:</strong> ⏸️ فاز بعد — scaffold در <code>apps/weighbridge-agent/</code> · ingest API ✓</p>
-      <p><strong>فاز ۱ (قفل):</strong> COOP_OPERATOR وزن را در <strong>پنل وب</strong> دستی وارد می‌کند — همین برای UAT کافی است.</p>
-      <p><strong>فعال‌سازی بعداً:</strong> وقتی spec باسکول + تمایل معدن بود → Serial/TCP + deploy Agent کنار باسکول.</p>
+      <div class="title"><span class="badge done">✓</span> WB-LOCAL-AGENT-1 — Local Agent باسکول <span class="priority p1">P2</span></div>
+      <p><strong>وضعیت:</strong> waived — خارج backlog فاز ۱ · UAT = ورود دستی COOP_OPERATOR ✓ · scaffold در <code>apps/weighbridge-agent/</code> برای درخواست بعدی کارفرما</p>
     </li>
 
     <li class="task" id="deploy-sahman-1">
@@ -320,8 +333,8 @@
     </li>
 
     <li class="task" id="comm-bank-receipt-ui-1">
-      <div class="title">COMM-BANK-RECEIPT-UI-1 — رسید بانک Community <span class="priority p1">P1</span></div>
-      <p><strong>وضعیت:</strong> ⏳ optional — سؤال ۱۰ کارفرما · § audit §۷.۴</p>
+      <div class="title"><span class="badge done">✓</span> COMM-BANK-RECEIPT-UI-1 — رسید بانک Community <span class="priority p1">P1</span></div>
+      <p><strong>وضعیت:</strong> waived — کارفرما در چت درخواست نکرده · خارج backlog فاز ۱</p>
     </li>
 
     <li class="task" id="natid-checksum-reg-1">
@@ -335,46 +348,60 @@
     </li>
 
     <li class="task" id="dispatch-auto-pilot-1">
-      <div class="title">DISPATCH-AUTO-PILOT-1 — manual vs auto <span class="priority p1">P1</span></div>
-      <p><strong>وضعیت:</strong> ⏳ پیش‌فرض manual — تصمیم کارفرما</p>
+      <div class="title"><span class="badge done">✓</span> DISPATCH-AUTO-PILOT-1 — dispatch دستی پایلوت <span class="priority p1">P1</span></div>
+      <p><strong>وضعیت:</strong> انجام شد — تصمیم: <strong>دستی</strong> · <code>DISPATCH_MODE=manual</code> در staging/production · بدون تغییر کد</p>
     </li>
 
     <li class="task" id="tenant-rls-1">
-      <div class="title">TENANT-RLS-1 — RLS Postgres <span class="priority p3">P3</span></div>
-      <p><strong>وضعیت:</strong> فاز ۱.۵ — خارج blocker پایلوت</p>
+      <div class="title"><span class="badge done">✓</span> TENANT-RLS-1 — RLS Postgres <span class="priority p3">P3</span></div>
+      <p><strong>وضعیت:</strong> waived — کارفرما در چت درخواست نکرده · فاز ۱.۵+</p>
     </li>
 
     <li class="task" id="driver-avail-1">
-      <div class="title">DRIVER-AVAIL-1 — اعلام آمادگی راننده <span class="priority p3">P3</span></div>
-      <p><strong>وضعیت:</strong> خارج Freeze فاز ۱</p>
+      <div class="title"><span class="badge done">✓</span> DRIVER-AVAIL-1 — اعلام آمادگی راننده <span class="priority p3">P3</span></div>
+      <p><strong>وضعیت:</strong> waived — خارج Freeze فاز ۱ · فقط با درخواست صریح کارفرما</p>
     </li>
   </ul>
 </section>
 
 <section class="panel" id="testing">
   <h2>۶. دستور تست جامع</h2>
+  <h3>۶.۱ CI (همان چیزی که GitHub Actions اجرا می‌کند) ✓</h3>
+  <pre class="prompt"># job: .github/workflows/ci.yml
+npm ci
+npm -w @app/backend run prisma:generate
+SEED_UAT_ENTITIES=1 npm -w @app/backend run db:migrate
+SEED_UAT_ENTITIES=1 npm -w @app/backend run db:seed
+# backend :4000 + web :5173
+npm -w @app/backend run test              # vitest 39/39
+npm -w @app/backend run test:infra-regression
+npm -w @app/web run test:e2e              # 13/13
+npm -w @app/web run test:e2e -- uat-haul-smoke</pre>
+  <p class="good"><strong>CI-GREEN-1 ✓</strong> — همه مراحل بالا در push/PR سبز است (۱۴۰۵/۰۳/۱۴).</p>
+
+  <h3>۶.۲ لوکال — regression مالی و پایلوت</h3>
   <pre class="prompt">cd D:\Workspace\logestic
 docker compose up -d postgres
 npm install
 npm -w @app/backend run db:migrate
-npm -w @app/backend run db:seed
-npm run test:infra-regression
-npm run test:comm-ton1
-npm run test:fin-policy1
-npm run test:invoice-draft1
+SEED_UAT_ENTITIES=1 npm -w @app/backend run db:seed
+npm -w @app/backend run test
+npm -w @app/backend run test:infra-regression
+npm -w @app/backend run test:comm-ton1
+npm -w @app/backend run test:fin-policy1
 npm -w @app/backend run test:pilot-taftan1
 npm -w @app/backend run test:hold-settlement1
-npm -w @app/web run test:e2e -- uat-haul
-npm -w @app/backend run test:comm-app1</pre>
-  <p class="good">پس از FIN-SEED-99-1: pilot-taftan باید 99/1 assert کند ✓</p>
-  <p class="good">پس از HOLD-SETTLEMENT-1: test:hold-settlement1 در infra-regression:finance ✓</p>
-  <p class="good">پس از FIN-NO-HARDCODE-1: comm-ton1 · fin-policy1 · hold-settlement1 — بدون RULE_DEFAULTS در runtime ✓</p>
+npm -w @app/backend run test:mine-onboard1
+npm -w @app/backend run test:user-provisioning1
+npm -w @app/web run test:e2e</pre>
+  <p class="good">Community split: از <code>service_contracts.fixed_community_amount_rial_per_unit</code> — نه <code>finance_rules.community.rial_per_verified_ton</code> (۵۰۰٬۰۰۰ فقط rule legacy است).</p>
+  <p class="good">FIN-NO-HARDCODE-1: بدون fallback عددی در runtime — <code>loadMineFinanceConfig</code> · 400 «تنظیمات معدن ناقص» ✓</p>
 </section>
 
 <section class="panel" id="audit-karfarma">
   <h2>۷. ممیزی چت کارفرما ↔ کد</h2>
   <div class="info">
-    <strong>صادقانه:</strong> ممیزی اول (~۳۰ ردیف) ناقص بود — interrupt وسط کار. <strong>ممیزی دوم (۱۴۰۵/۰۳/۱۳):</strong> کل فایل ~۷۴۸۰ خط + grep سیستماتیک backend/web/mobile — <strong>۱۲۸ ردیف</strong> در فایل جدا.
+    <strong>صادقانه:</strong> ممیزی اول (~۳۰ ردیف) ناقص بود. <strong>ممیزی دوم (۱۴۰۵/۰۳/۱۳):</strong> ۱۲۸ ردیف در <a href="mvp-audit-karfarma-full-fa.html">audit کامل</a>. <strong>ممیزی سوم (۱۴۰۵/۰۳/۱۴):</strong> تأیید P0 + CI + تطبیق Freeze مالی با کد (<code>loadMineFinanceConfig</code>، onboarding معدن، UX wizard).
   </div>
   <p><a href="mvp-audit-karfarma-full-fa.html"><strong>→ ممیزی کامل ۱۲۸ ردیف (A تا Q)</strong></a> — هر بند با وضعیت ✓/△/⏳/✗/↻ و مسیر کد.</p>
   <div class="sum" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0">
@@ -394,7 +421,7 @@ npm -w @app/backend run test:comm-app1</pre>
       <tr><td>۹۹٪ مالک + ۱٪ پلتفرم (فقط از کرایه)</td><td><span class="status s-ok">✓</span></td><td><code>financeLedgerRepository.splitOperational</code> · <code>test-pilot-taftan1</code></td></tr>
       <tr><td>Community = Verified Net Tons × Fixed Rial (جدا از کرایه)</td><td><span class="status s-ok">✓</span></td><td><code>service_contracts</code> · <code>computeCommunityContribution</code> · <code>test-comm-ton1</code></td></tr>
       <tr><td>Pool مساوی + snapshot دوره</td><td><span class="status s-ok">✓</span></td><td><code>community_pools.households_snapshot</code> · distributePool</td></tr>
-      <tr><td>عدد قرارداد واقعی تفتان</td><td><span class="status s-ok">✓ دمو</span></td><td>placeholder در seed — ویرایش از پنل قرارداد/MINE-SETTINGS · CLIENT-DATA-PILOT waived</td></tr>
+      <tr><td>عدد قرارداد واقعی تفتان</td><td><span class="status s-ok">✓ دمو</span></td><td><code>TAFTAN_FIXED_COMMUNITY_RIAL_PER_UNIT=400_000</code> در seedConstants · rule 500k در finance_rules <strong>استفاده نمی‌شود</strong> در split · عدد نهایی از پنل/کارفرما</td></tr>
       <tr><td>تنظیمات per معدن از پنل (بدون عدد ثابت در کد)</td><td><span class="status s-ok">✓</span></td><td>MINE-SETTINGS-UI-1 — fee/geofence/dispatch/community از پنل ADMIN</td></tr>
     </tbody>
   </table>
@@ -424,8 +451,8 @@ npm -w @app/backend run test:comm-app1</pre>
   <table>
     <thead><tr><th>مورد چت</th><th>کد</th><th>وضعیت</th></tr></thead>
     <tbody>
-      <tr><td>کارفرما فقط «نیاز» ثبت کند (نه انتخاب راننده)</td><td><code>operation_needs</code> · EmployerNeedForm</td><td><span class="status s-ok">✓</span></td></tr>
-      <tr><td>Dispatch توسط پلتفرم (manual/auto)</td><td><code>dispatchService</code> · env DISPATCH_MODE</td><td><span class="status s-ok">✓</span> · تصمیم پایلوت ⏳</td></tr>
+      <tr><td>کارفرما فقط «نیاز» ثبت کند (نه انتخاب راننده)</td><td><code>operation_needs</code> · <code>EmployerNeed.tsx</code> wizard ۳ مرحله</td><td><span class="status s-ok">✓</span></td></tr>
+      <tr><td>Dispatch توسط پلتفرم — دستی پایلوت</td><td><code>dispatchService</code> · <code>DISPATCH_MODE=manual</code></td><td><span class="status s-ok">✓</span> · DISPATCH-AUTO-PILOT-1</td></tr>
       <tr><td>FSM مأموریت + geofence</td><td>driver app + <code>missionStore</code></td><td><span class="status s-ok">✓</span></td></tr>
       <tr><td>ماژule مستقل باسکول (<code>weighbridge_tickets</code>)</td><td>WB-1 · WeighbridgePage · ingest API</td><td><span class="status s-ok">✓</span></td></tr>
       <tr><td>net_weight توسط سیستم (نه دستی)</td><td>اپراتور empty+loaded → server محاسبه</td><td><span class="status s-ok">✓</span></td></tr>
@@ -445,7 +472,7 @@ npm -w @app/backend run test:comm-app1</pre>
       <tr><td>معدن فقط به حساب رسمی تعاونی</td><td>MINE-PAY-FLOW · IBAN coop</td><td><span class="status s-ok">✓</span> · IBAN واقعی ⏳</td></tr>
       <tr><td>پس از LOCK پرداخت اتومات + رسید</td><td><code>mark-paid</code> دستی · BANK-AUTO scaffold</td><td><span class="status s-part">△</span> — MVP: Excel + mark-paid</td></tr>
       <tr><td>تسویه هفتگی مالک / ماهانه خانوار</td><td><code>ownerWeeklyClose</code> + monthlyClose</td><td><span class="status s-part">△</span> — کد هست · Freeze فاز ۱: فقط monthly در UAT · سؤال ۹ کارفرما</td></tr>
-      <tr><td>رسید بانک Community در UI</td><td>—</td><td><span class="status s-no">✗</span> — COMM-BANK-RECEIPT-UI-1 (optional)</td></tr>
+      <tr><td>رسید بانک Community در UI</td><td>—</td><td><span class="status s-part">△</span> — waived؛ کارفرما درخواست نکرده</td></tr>
       <tr><td>household_wallet + receipt PDF</td><td>RECEIPT-PDF-1 · community app wallet</td><td><span class="status s-ok">✓</span></td></tr>
     </tbody>
   </table>
@@ -474,11 +501,13 @@ npm -w @app/backend run test:comm-app1</pre>
     <tbody>
       <tr><td>پنل وب نقش‌محور + RBAC</td><td><span class="status s-ok">✓</span></td><td>404 بدون افشای نقش</td></tr>
       <tr><td>دمو یک‌کلیک + APK</td><td><span class="status s-ok">✓</span></td><td>MOBILE-DEMO-APK-1</td></tr>
-      <tr><td>خروج موبایل</td><td><span class="status s-part">△</span></td><td>home/missions/workspace ✓ — صفحات میانی FSM راننده اختیاری</td></tr>
-      <tr><td>Deploy staging روی IP</td><td><span class="status s-ok">✓</span></td><td>DEPLOY-VPS-STAGING-1 · production sahman ⏳</td></tr>
-      <tr><td>production hamsahman.ir + SMS واقعی</td><td><span class="status s-ok">✓</span></td><td>DEPLOY-SAHMAN-1</td></tr>
+      <tr><td>خروج موبایل</td><td><span class="status s-ok">✓</span></td><td>MOBILE-LOGOUT-1 — داشبورد/مأموریت/workspace/ساعتی ✓ · صفحات میانی FSM راننده اختیاری</td></tr>
+      <tr><td>Deploy staging روی IP</td><td><span class="status s-ok">✓</span></td><td>DEPLOY-VPS-STAGING-1 · 185.36.145.164</td></tr>
+      <tr><td>UX «بدون فکر کردن» وب</td><td><span class="status s-ok">✓</span></td><td>SimplePageLayout · nav≤۵ · خانه کارت‌محور · e2e 13/13</td></tr>
+      <tr><td>CI خودکار</td><td><span class="status s-ok">✓</span></td><td>CI-GREEN-1 · vitest + e2e + infra-regression</td></tr>
+      <tr><td>production hamsahman.ir + SMS واقعی</td><td><span class="status s-part">△</span></td><td>DEPLOY-SAHMAN-1 کد/راهنما ✓ — pull VPS + <code>test:sms-prod1 --live</code> روی سرور</td></tr>
       <tr><td>برند «همسهمان»</td><td><span class="status s-ok">✓</span></td><td>BRAND-SAHMAN-1</td></tr>
-      <tr><td>RLS Postgres</td><td><span class="status s-no">✗</span></td><td>TENANT-RLS-1 · فاز ۱.۵</td></tr>
+      <tr><td>RLS Postgres</td><td><span class="status s-part">△</span></td><td>waived فاز ۱ — TENANT-RLS-1 فقط با درخواست کارفرما</td></tr>
     </tbody>
   </table>
 
@@ -503,7 +532,7 @@ npm -w @app/backend run test:comm-app1</pre>
       <tr><td>۸</td><td>onboarding معدن بدون seed</td><td><span class="status s-ok">✓</span> TENANT-ONBOARD-1 — <code>POST /api/admin/mines/onboard</code> · wizard</td></tr>
     </tbody>
   </table>
-  <p class="good">نتیجه: <strong>هسته MVP با Freeze مالی کارفرما (~۶۳۹۶) هم‌خوان است.</strong> دمو staging: seed مینیمال + پنل ADMIN (CLIENT-DATA-PILOT waived). باقی: production sahman · UX ساده.</p>
+  <p class="good">نتیجه: <strong>هسته MVP با Freeze مالی کارفرما (~۶۳۹۶) هم‌خوان است.</strong> همه تسک‌های فاز ۱ ✓ · dispatch دستی ✓. <strong>گام بعد:</strong> UAT میدانی · ورود داده پایلوت از پنل · pull VPS production (§۸).</p>
 </section>
 
 <section class="panel client-box" id="client-message">
@@ -513,29 +542,35 @@ npm -w @app/backend run test:comm-app1</pre>
   <ul>
     <li>مدل مالی Dual Economy: کرایه 99/1 جدا از Community (تن × مبلغ ثابت قرارداد)</li>
     <li>حمل-only فاز ۱ — ساعتی پیچیده فاز بعد</li>
+    <li>Dispatch پایلوت: <strong>دستی</strong> (<code>DISPATCH_MODE=manual</code>)</li>
     <li>HSA: Draft اتومات + تأیید/قفل انسانی قبل از پرداخت معدن</li>
   </ul>
 
-  <h3>چیزهایی که از شما لازم داریم (۱۱ مورد)</h3>
+  <h3>چیزهایی که از شما لازم داریم (ops + داده — نه تسک توسعه)</h3>
   <ol>
-    <li>عدد نهایی <strong>مبلغ Community به ازای هر تن</strong> (الان placeholder 400,000 ریال)</li>
+    <li>عدد نهایی <strong>مبلغ Community به ازای هر تن</strong> (الان placeholder 400,000 ریال — از پنل قرارداد/تنظیمات معدن)</li>
     <li>نام رسمی تعاونی + <strong>IBAN حساب رسمی</strong></li>
     <li>مسئول عملیات/تحویل + <strong>تاریخ هدف UAT</strong></li>
-    <li>لیست روستاهای مصوب (Excel یا نقشه)</li>
-    <li>مشخصات باسکول (فقط اگر بعداً Agent خواستید — فعلاً دستی OK)</li>
-    <li>لیست کاربران پایلوت (موبایل + نقش)</li>
-    <li>تأیید برند «همسهمان» ✓ — دامنه hamsahman.ir ✓ (title، SMS، legal)</li>
-    <li>Dispatch پایلوت: دستی کافی است یا از روز اول auto؟</li>
-    <li>تسویه هفتگی مالک: در UAT اول فعال شود؟</li>
-    <li>Community Fund: ثبت «رسید بانک» در UI لازم است؟</li>
-    <li>دسترسی سرور/DNS برای deploy (یا تأیید Staging ما)</li>
+    <li>لیست روستاهای مصوب (از پنل یا import)</li>
+    <li>لیست کاربران پایلوت (موبایل + نقش) در <code>/panel/admin/users</code></li>
+    <li>تأیید برند «همسهمان» ✓ — دامنه hamsahman.ir ✓</li>
+    <li><strong>Dispatch دستی ✓</strong> — تأیید شد؛ <code>DISPATCH_MODE=manual</code></li>
+    <li>pull نهایی روی VPS production + SMS live (<a href="deploy-hamsahman-production-fa.md">راهنما</a>)</li>
   </ol>
 
-  <h3>پیشنهاد ما</h3>
+  <h3>وضعیت فنی (برای اطمینان شما)</h3>
   <ul>
-    <li>اول Staging با SMS mock — بعد production با SMS واقعی</li>
-    <li>backup هفتگی Postgres از روز اول</li>
-    <li>UAT مالی کامل بعد از دریافت عدد قرارداد Community</li>
+    <li>Staging روی IP ✓ · کانفیگ production <code>hamsahman.ir</code> ✓ · تست خودکار GitHub ✓ · deploy نهایی VPS + SMS live = گام ops شما</li>
+    <li>مدل مالی در کد: ۹۹/۱ + Community از قرارداد (جدا از کرایه) — بدون عدد مخفی در کد اجرایی</li>
+    <li>ثبت نیاز کارفرما، باسکول دستی، KYC، تسویه HSA — در دمو قابل اجرا</li>
+  </ul>
+
+  <h3>پیشنهاد ما برای UAT</h3>
+  <ul>
+    <li>لیست موبایل/نقش پایلوت را در <code>/panel/admin/users</code> بسازید (seed فقط یک ADMIN می‌دهد)</li>
+    <li>عدد Community و IBAN را در پنل قرارداد/تنظیمات معدن وارد کنید — سپس یک حمل کامل تا Receipt</li>
+    <li>backup هفتگی Postgres از روز اول production</li>
+    <li>راهنمای deploy: <a href="deploy-hamsahman-production-fa.md">deploy-hamsahman-production-fa.md</a></li>
   </ul>
 
   <h3>پاسخ به نگرانی شفافیت تعاونی</h3>
@@ -546,8 +581,8 @@ npm -w @app/backend run test:comm-app1</pre>
 
 <section class="panel" id="done-archive">
   <h2>۹. انجام‌شده (آرشیو)</h2>
-  <p>~۴۶+ کارت ✓ — جزئیات کامل: <a href="mvp-flow-chat-master-report-fa-v3.html#done">گزارش v3 § done</a> و <a href="mvp-task-prompts-pro-fa.html#tasks-done">پرامپت‌ها § انجام‌شده</a>.</p>
-  <p class="muted">نمونه: BRAND-SAHMAN-1, UX-WEB-SIMPLE-1, UX-SIMPLE-SPEC-1, FIN-NO-HARDCODE-1, MINE-SETTINGS-UI-1, TENANT-ONBOARD-1, USER-PROV-1, MOBILE-LOGOUT-1, COMM-TON-1, PILOT-TAFTAN-1, WB-INT-1, …</p>
+  <p><strong>۹۳+ کارت ✓</strong> (شامل DISPATCH-AUTO-PILOT-1 + waivedهای فاز ۱) — جزئیات: <a href="mvp-flow-chat-master-report-fa-v3.html#done">گزارش v3 § done</a> · <a href="mvp-task-prompts-pro-fa.html#tasks-done">پرامپت‌ها § انجام‌شده</a>.</p>
+  <p class="muted">نمونه اخیر: DISPATCH-AUTO-PILOT-1, CI-GREEN-1, DEPLOY-SAHMAN-1, UX-WEB/MOBILE-SIMPLE, FIN-NO-HARDCODE-1, TENANT-ONBOARD-1, BRAND-SAHMAN-1, …</p>
 </section>
 
 <footer class="muted" style="text-align:center;padding:24px 0">

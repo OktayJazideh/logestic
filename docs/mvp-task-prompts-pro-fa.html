@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8" />
-<title>پرامپت‌های حرفه‌ای MVP — 92 کارت (logestic)</title>
+<title>پرامپت‌های حرفه‌ای MVP — فاز ۱ تکمیل (logestic)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   :root{--bg:#FAFAF7;--panel:#fff;--text:#1F2937;--muted:#6B7280;--border:#E5E7EB;--primary:#1B5E20}
@@ -35,7 +35,7 @@
 <div class="wrap">
 <header>
   <h1>پرامپت‌های حرفه‌ای MVP — logestic</h1>
-  <p><strong>۵ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۷ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
+  <p><strong>فاز ۱ MVP تکمیل ✓</strong> — <strong>۰ تسک باز</strong> · <strong>۹۳+ انجام‌شده</strong> (پایین). dispatch دستی تأیید شد. تسک اختیاری فقط با درخواست صریح کارفرما در چت.</p>
   <p>مرجع: <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a> · <a href="gozaresh-tahvil-karfarma-mvp-fa.html">تحویل کارفرما</a> · <a href="demo-users-and-deploy-fa.md">دمو + Deploy</a></p>
 </header>
 
@@ -43,21 +43,24 @@
   <strong>اصل محصول (۱۴۰۵/۰۳/۱۲):</strong> هیچ عدد/تنظیم business در کد ثابت نماند — همه از DB + پنل (قرارداد، Rate Card، تنظیمات معدن). seed فقط دمو UAT است.<br />
   <strong>Production:</strong> <code>hamsahman.ir</code> — <a href="deploy-hamsahman-production-fa.md">deploy-hamsahman-production-fa.md</a> · DEPLOY-SAHMAN-1 ✓<br />
   <strong>تازه ✓:</strong> FIN-NO-HARDCODE-1 — <code>loadMineFinanceConfig</code> · 400 «تنظیمات معدن ناقص» · <a href="architecture/dynamic-config-fa.md">dynamic-config-fa.md</a><br />
-  <strong>P1 UX (قبل UAT میدانی):</strong> ریدیزاین «بدون فکر کردن» — کاربر عادی دکمه/بخش لازم را پیدا کند؛ رنگ و چیدمان مغزپسند · <strong>اسکلت وایرفریم حفظ شود</strong> — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a><br />
-  <strong>تازه ✓:</strong> BRAND-SAHMAN-1 — برند «همسهمان» · title وب/اپ · favicon حمل معدنی · OTP SMS · <a href="gozaresh-tahvil-karfarma-mvp-fa.html">gozaresh-tahvil</a> footer.<br />
-  <strong>تازه ✓:</strong> UX-MOBILE-SIMPLE-1 — Flutter P1 · <a href="ux/mobile-screenshots/README.md">mobile-screenshots</a> · UX-WEB-SIMPLE-1 · UX-SIMPLE-SPEC-1.
+  <strong>UX ✓:</strong> ریدیزاین «بدون فکر کردن» انجام شد — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a> · وب + موبایل · e2e سبز.<br />
+  <strong>تازه ✓:</strong> CI-GREEN-1 — GitHub Actions: vitest 39/39 · Playwright 13/13 · infra-regression · <code>SEED_UAT_ENTITIES=1</code> در CI.<br />
+  <strong>تازه ✓:</strong> DISPATCH-AUTO-PILOT-1 (دستی) · BRAND-SAHMAN-1 · DEPLOY-SAHMAN-1 · UX · CI-GREEN-1 · <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a>.
 </div>
 
 <nav class="toc">
-  <strong>باقی‌مانده — اولویت اجرا (بالا → پایین)</strong>
-  <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">P0 = blocker UAT · P1 = مهم پس از staging · P2/P3 = فاز بعد</em>
-  <a href="#dispatch-auto-pilot-1"><span class="p1">P1</span> DISPATCH-AUTO-PILOT-1</a>
-  <a href="#comm-bank-receipt-ui-1"><span class="p1">P1</span> COMM-BANK-RECEIPT-UI-1 — رسید بانک Community (در صورت نیاز)</a>
-  <a href="#wb-local-agent-1"><span class="p2">P2</span> WB-LOCAL-AGENT-1</a>
-  <a href="#driver-avail-1"><span class="p3">P3</span> DRIVER-AVAIL-1</a>
-  <a href="#tenant-rls-1"><span class="p3">P3</span> TENANT-RLS-1</a>
+  <strong>بازگشت backlog: خالی ✓</strong>
+  <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">تسک اختیاری (رسید بانک، Agent، RLS، آمادگی راننده) = waived — فقط اگر کارفرما در چت بخواهد</em>
   <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
-  <strong>تازه انجام‌شده ✓</strong>
+  <strong>تازه بسته‌شده ✓</strong>
+  <a href="#dispatch-auto-pilot-1">DISPATCH-AUTO-PILOT-1 ✅ دستی</a>
+  <a href="#comm-bank-receipt-ui-1">COMM-BANK-RECEIPT-UI-1 ✅ waived</a>
+  <a href="#wb-local-agent-1">WB-LOCAL-AGENT-1 ✅ waived</a>
+  <a href="#driver-avail-1">DRIVER-AVAIL-1 ✅ waived</a>
+  <a href="#tenant-rls-1">TENANT-RLS-1 ✅ waived</a>
+  <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
+  <strong>انجام‌شده ✓</strong>
+  <a href="#ci-green-1">CI-GREEN-1 ✅</a>
   <a href="#brand-sahman-1">BRAND-SAHMAN-1 ✅</a>
   <a href="#deploy-sahman-1">DEPLOY-SAHMAN-1 ✅</a>
   <a href="#ux-mobile-simple-1">UX-MOBILE-SIMPLE-1 ✅</a>
@@ -84,187 +87,59 @@
   <a href="#pilot-taftan-1">PILOT-TAFTAN-1 ✅</a>
   <a href="#fin-seed-99-1">FIN-SEED-99-1 ✅</a>
   <a href="#hold-settlement-1">HOLD-SETTLEMENT-1 ✅</a>
-  <a href="#tasks-done">… همه ۸۵ کارت پایین صفحه</a>
+  <a href="#tasks-done">… همه ۹۳+ کارت پایین صفحه</a>
 </nav>
 
-<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۵)</h2>
+<div class="done-banner" id="tasks-pending" style="margin:20px 0;padding:14px;font-size:15px">
+  <strong>✓ backlog خالی</strong> — همه تسک‌های فاز ۱ بسته شد. گام بعد: UAT میدانی + داده پایلوت از پنل (نه تسک Cursor).
+</div>
 
-<article class="task" id="dispatch-auto-pilot-1">
-  <h2><span class="badge">DISPATCH-AUTO-PILOT-1</span> <span class="p1">P1</span> تصمیم dispatch manual vs auto پایلوت</h2>
-  <div class="ctx"><strong>زمینه:</strong> DISPATCH_MODE=manual پیش‌فرض — برای پایلوت باید کارفرما تأیید کند auto لازم است یا دستی کافی.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>env.ts DISPATCH_MODE</li><li>بدون rewrite dispatch engine — فقط config + doc.</li></ul>
+<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۹۳+)</h2>
+
+<article class="task task-done" id="dispatch-auto-pilot-1">
+  <h2><span class="badge done">✓</span> <span class="badge">DISPATCH-AUTO-PILOT-1</span> <span class="p1">P1</span> dispatch دستی پایلوت</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — تصمیم: دستی · <code>DISPATCH_MODE=manual</code> · بدون تغییر کد</p>
+  <div class="ctx"><strong>زمینه:</strong> اپراتور در inbox نیاز حمل را دستی dispatch می‌کند — auto فقط اگر کارفرما بعداً بخواهد.</div>
   <h3>فایل‌های کلیدی</h3>
   <ul><li><code>apps/backend/src/config/env.ts</code></li><li><code>apps/backend/src/services/dispatchService.ts</code></li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — DISPATCH-AUTO-PILOT-1 (P1)
-
-## سؤال کارفرما
-روز اول UAT: اپراتور دستی dispatch کند یا auto؟
-
-## اگر auto
-- env DISPATCH_MODE=auto در staging/production pilot
-- test-disp1 regression
-
-## اگر manual (پیش‌فرض)
-- document in uat-handover-checklist
-- no code change</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>client decision recorded</li><li>env set if auto</li></ul>
-  <h3>تست</h3>
-  <ul><li>npm -w @app/backend run test:disp1 if auto</li></ul>
 </article>
 
-<article class="task" id="comm-bank-receipt-ui-1">
-  <h2><span class="badge">COMM-BANK-RECEIPT-UI-1</span> <span class="p1">P1</span> UI رسید بانک Community (در صورت نیاز کارفرما)</h2>
-  <div class="ctx"><strong>زمینه:</strong> سؤال کارفرما §۷ — آیا COOP_ADMIN باید رسید واریز Community را آپلود/ثبت کند؟ اگر بله، فرم ساده attach + status.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>Gate: فقط اگر کارفرما تأیید کرد — otherwise skip.</li><li>بدون اتصال بانکی real در MVP — manual receipt record.</li><li>لینک به community_pool period — نه wallet خانوار.</li></ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>apps/web/src/pages/CoopFinance.tsx</code> یا AdminFinance</li><li><code>apps/backend/src/routes/communityReceipts.ts</code></li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — COMM-BANK-RECEIPT-UI-1 (P1 — optional)
-
-## فقط پس از تأیید کارفرما
-
-## UI COOP_ADMIN
-- آپلود PDF/عکس رسید واریز به IBAN رسمی
-- مبلغ + تاریخ + reference
-- status: PENDING | CONFIRMED (ADMIN)
-
-## DoD
-- receipt stored + linked to pool period
-- audit trail</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>client yes/no recorded</li><li>UI if yes</li></ul>
-  <h3>تست</h3>
-  <ul><li>manual COOP_ADMIN flow</li></ul>
+<article class="task task-done" id="comm-bank-receipt-ui-1">
+  <h2><span class="badge done">✓</span> <span class="badge">COMM-BANK-RECEIPT-UI-1</span> <span class="p1">P1</span> UI رسید بانک Community</h2>
+  <p class="done-banner">✅ <strong>waived</strong> — کارفرما در چت درخواست نکرده · خارج backlog فاز ۱</p>
 </article>
 
-<article class="task" id="wb-local-agent-1">
-  <h2><span class="badge">WB-LOCAL-AGENT-1</span> <span class="p2">P2</span> Local Agent باسکول (فاز بعد — scaffold آماده)</h2>
-  <div class="ctx"><strong>زمینه:</strong> تصمیم قفل UAT: فاز ۱ مسیر رسمی = COOP_OPERATOR وزن را در WeighbridgePage دستی وارد می‌کند. Agent سخت‌افزار optional — apps/weighbridge-agent/ scaffold + ingest API آماده برای وقتی معدن spec بدهد.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>خارج blocker UAT فاز ۱.</li><li>بدون خرید PC/Serial تا تأیید کارفرما.</li><li>Scaffold: apps/weighbridge-agent/ + POST /api/weighbridge/ingest.</li></ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>apps/weighbridge-agent/</code></li><li><code>apps/backend/src/services/weighbridgeIngestService.ts</code></li><li><code>apps/backend/src/routes/weighbridge.ts</code></li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — WB-LOCAL-AGENT-1 (P2)
-
-## مرجع: گزارش v4 #remaining — WB-LOCAL-AGENT-1
-
-## هدف
-Node service کنار باسکول:
-- read serial/TCP (config per client spec)
-- POST ingest با Idempotency-Key
-- offline queue JSON + retry 30s
-
-## ساختار
-apps/weighbridge-agent/
-  README.md, package.json, .env.example
-  src/index.js — queue + postIngest
-  src/mock-test.js — integration بدون hardware
-
-## پس از دریافت spec باسکول از کارفرما
-- parser وزن واقعی (regex/CSV/binary)
-- Windows Service / systemd unit
-
-## DoD
-- README فارسی/انگلیسی deploy
-- mock-test اجرا شود
-- ingest واقعی با token staging یک ticket بسازد</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>apps/weighbridge-agent scaffold</li><li>README deploy</li><li>mock-test</li></ul>
-  <h3>تست</h3>
-  <ul><li>cd apps/weighbridge-agent && npm run test:mock</li></ul>
+<article class="task task-done" id="wb-local-agent-1">
+  <h2><span class="badge done">✓</span> <span class="badge">WB-LOCAL-AGENT-1</span> <span class="p2">P2</span> Local Agent باسکول</h2>
+  <p class="done-banner">✅ <strong>waived</strong> — UAT فاز ۱ = ورود دستی COOP_OPERATOR · scaffold در <code>apps/weighbridge-agent/</code> برای درخواست بعدی</p>
 </article>
 
-<article class="task" id="driver-avail-1">
-  <h2><span class="badge">DRIVER-AVAIL-1</span> <span class="p3">P3</span> اعلام آمادگی راننده (وایرفریم — اختیاری MVP)</h2>
-  <div class="ctx"><strong>زمینه:</strong> وایرفریم ۲ دکمه «اعلام آمادگی» — کارفرما در اسپک **اختیاری** و خارج فاز ۱. اگر برای پایلوت خواست: toggle آمادگی راننده برای dispatch ranking (نه جایگزین DISPATCH-LOCK).</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>خارج فاز ۱ مگر تأیید صریح کارفرما در chat.</li><li>ready=true/false — default true برای APPROVED drivers.</li><li>dispatchService: optional filter candidates where ready=true (feature flag).</li><li>بدون push notification در MVP.</li></ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>apps/backend/prisma/schema.prisma — drivers.is_available Boolean default true</code></li><li><code>apps/backend/src/routes/driver.ts</code></li><li><code>apps/backend/src/repositories/dispatchRepository.ts</code></li><li><code>apps/mobile/driver_app/lib/ui/screens/driver_home_screen.dart</code></li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — DRIVER-AVAIL-1 (P3 — optional)
-
-## ⚠️ فقط پس از تأیید کارفرما
-
-## Backend
-POST /api/driver/availability { ready: boolean }
-- auth DRIVER
-- update drivers.is_available + audit driver.availability_changed
-
-GET /api/driver/me — include is_available
-
-## dispatchRepository (behind env ENABLE_DRIVER_AVAILABILITY=true)
-listDispatchCandidatesForMine: filter drivers where is_available !== false
-
-## UI driver_home_screen
-Toggle «آماده کار» — sync با API — badge در home
-
-## آنتی‌پترن
-- block dispatch بدون UI toggle
-- availability جایگزین active mission lock
-
-## DoD (if approved)
-- migration + endpoint + toggle UI
-- test manual emulator</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>optional — confirm with client first</li><li>is_available column</li><li>toggle UI</li></ul>
-  <h3>تست</h3>
-  <ul><li>manual — skip if not approved</li></ul>
+<article class="task task-done" id="driver-avail-1">
+  <h2><span class="badge done">✓</span> <span class="badge">DRIVER-AVAIL-1</span> <span class="p3">P3</span> اعلام آمادگی راننده</h2>
+  <p class="done-banner">✅ <strong>waived</strong> — خارج Freeze فاز ۱ · فقط با درخواست صریح کارفرما</p>
 </article>
 
-<article class="task" id="tenant-rls-1">
-  <h2><span class="badge">TENANT-RLS-1</span> <span class="p3">P3</span> Postgres RLS سخت per mine_id (فاز ۱.۵ — اختیاری)</h2>
-  <div class="ctx"><strong>زمینه:</strong> گزارش v3 ماتریس #۳۹: TENANT-SCOPE-1 app-level است؛ RLS DB لایه دوم دفاع برای SaaS production. **خارج blocker پایلوت** — فقط با تأیید صریح کارفرما و پس از TENANT-SCOPE-1 ✓.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>پیش‌نیاز: TENANT-SCOPE-1 merged و test-tenant-scope1 PASS.</li><li>Prisma migration: ENABLE ROW LEVEL SECURITY + policies per table.</li><li>Session variable: SET app.mine_id در middleware prisma extension یا $executeRaw per request.</li><li>Role bypass: postgres superuser / migration role — seed script باید SET LOCAL یا BYPASS.</li><li>بدون شکستن test:tenant1 و dev seed.</li></ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>apps/backend/prisma/migrations/00xx_rls_mine_id/migration.sql</code></li><li><code>apps/backend/src/db/prisma.ts — SET app.mine_id on connect</code></li><li><code>apps/backend/src/middleware/requireMineContext.ts</code></li><li><code>docs/security/rls-mine-id.md (جدید)</code></li><li><code>apps/backend/scripts/test-tenant-rls1.ts</code></li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — TENANT-RLS-1 (P3 — optional DB hardening)
-
-## مرجع: گزارش v3 #coverage-gap، ماتریس #۳۹
-
-## ⚠️ فقط اگر کارفرما تأیید کرد — skip OK برای پایلوت اول
-
-## جداول اولویت (mine_id مستقیم یا via loads)
-missions (join loads.mine_id), loads, operation_needs, settlement_batches,
-community_pools, period_statements, service_contracts
-
-## Migration pattern
-```sql
-ALTER TABLE loads ENABLE ROW LEVEL SECURITY;
-CREATE POLICY loads_mine_isolation ON loads
-  USING (mine_id = NULLIF(current_setting('app.mine_id', true), '')::bigint);
-```
-
-## Wire prisma.ts
-After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
-
-## test-tenant-rls1.ts
-- دو connection: mine A setting → SELECT loads → فقط A
-- بدون setting → deny یا empty (policy dependent)
-
-## آنتی‌پترن
-- RLS بدون TENANT-SCOPE (double incomplete)
-- شکستن prisma migrate dev
-- policies روی users/sessions
-
-## DoD
-- docs/security/rls-mine-id.md
-- migration + test script
-- manual DBA sign-off</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>RLS migration</li><li>app.mine_id session var</li><li>test-tenant-rls1</li><li>security doc</li></ul>
-  <h3>تست</h3>
-  <ul><li>npm -w @app/backend run test:tenant-rls1</li><li>manual DBA review</li></ul>
+<article class="task task-done" id="tenant-rls-1">
+  <h2><span class="badge done">✓</span> <span class="badge">TENANT-RLS-1</span> <span class="p3">P3</span> Postgres RLS</h2>
+  <p class="done-banner">✅ <strong>waived</strong> — فاز ۱.۵+ · کارفرما در چت درخواست نکرده</p>
 </article>
 
-<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۷)</h2>
+<article class="task task-done" id="ci-green-1">
+  <h2><span class="badge done">✓</span> <span class="badge">CI-GREEN-1</span> <span class="p0">P0</span> GitHub Actions سبز</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۴ · vitest 39/39 · Playwright 13/13 · infra-regression · uat-haul e2e</p>
+  <div class="ctx"><strong>زمینه:</strong> پس از FIN-NO-HARDCODE، UX-SIMPLE و DEPLOY-SAHMAN، CI چند بار قرمز بود — رفع سیستماتیک تست‌ها بدون تغییر قرارداد مالی.</div>
+  <h3>رفع‌های کلیدی</h3>
+  <ul>
+    <li><code>.github/workflows/ci.yml</code> — <code>SEED_UAT_ENTITIES=1</code></li>
+    <li><code>geofenceService.ts</code> — شعاع پیش‌فرض بدون rule اجباری</li>
+    <li><code>devSeed.ts</code> — IBAN <code>IR88…</code> جدا از UAT seed</li>
+    <li><code>weighbridge-split.integration.test.ts</code> — Community از <code>loadMineFinanceConfig</code></li>
+    <li><code>apps/web/e2e/*</code> — wizard کارفرما · نام فارسی KYC · وضعیت باسکول FA · <code>loginAsPanel</code></li>
+    <li><code>test-idem1.ts</code> — poll replay idempotency (res.finish)</li>
+  </ul>
+  <h3>تست</h3>
+  <ul><li>push به GitHub — job <code>CI</code> سبز</li><li>لوکال: <code>npm -w @app/backend run test</code> + <code>npm -w @app/web run test:e2e</code></li></ul>
+</article>
 
 <article class="task task-done" id="brand-sahman-1">
   <h2><span class="badge done">✓</span> <span class="badge">BRAND-SAHMAN-1</span> <span class="p1">P1</span> برند «همسهمان» در UI و docs</h2>
