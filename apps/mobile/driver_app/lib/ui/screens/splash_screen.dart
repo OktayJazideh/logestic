@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/driver_api_client.dart';
 import '../../core/driver_auth_gate.dart';
 import '../../core/otp_validation.dart';
+import 'login_screen.dart';
 import '../router.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -27,7 +29,15 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (session == null) {
-      Navigator.pushReplacementNamed(context, '/login');
+      if (!mounted) return;
+      final api = DriverApiClient(baseUrl: AppRouter.baseUrl);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          settings: const RouteSettings(name: '/login'),
+          builder: (_) => LoginScreen(api: api, sessionStore: widget.sessionStore),
+        ),
+        (_) => false,
+      );
       return;
     }
 
@@ -37,7 +47,15 @@ class _SplashScreenState extends State<SplashScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('این اپ فقط برای نقش راننده است.')),
       );
-      Navigator.pushReplacementNamed(context, '/login');
+      if (!mounted) return;
+      final api = DriverApiClient(baseUrl: AppRouter.baseUrl);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          settings: const RouteSettings(name: '/login'),
+          builder: (_) => LoginScreen(api: api, sessionStore: widget.sessionStore),
+        ),
+        (_) => false,
+      );
       return;
     }
 
@@ -54,13 +72,29 @@ class _SplashScreenState extends State<SplashScreen> {
       if (e is ApiException && e.isUnauthorized) {
         await widget.sessionStore.clearSession();
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/login');
+        if (!mounted) return;
+        final api = DriverApiClient(baseUrl: AppRouter.baseUrl);
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            settings: const RouteSettings(name: '/login'),
+            builder: (_) => LoginScreen(api: api, sessionStore: widget.sessionStore),
+          ),
+          (_) => false,
+        );
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(persianApiError(e))),
       );
-      Navigator.pushReplacementNamed(context, '/login');
+      if (!mounted) return;
+      final api = DriverApiClient(baseUrl: AppRouter.baseUrl);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          settings: const RouteSettings(name: '/login'),
+          builder: (_) => LoginScreen(api: api, sessionStore: widget.sessionStore),
+        ),
+        (_) => false,
+      );
     } finally {
       api.close();
     }
@@ -68,12 +102,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: MineralTheme.bg,
-        body: Center(
-          child: CircularProgressIndicator(color: MineralTheme.primary),
+    return ExitAppOnBackScope(
+      child: const Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: MineralTheme.bg,
+          body: Center(
+            child: CircularProgressIndicator(color: MineralTheme.primary),
+          ),
         ),
       ),
     );

@@ -127,7 +127,16 @@ export async function apiPostPublic<T>(path: string, body: unknown): Promise<Api
     const j = (await r.json()) as unknown;
     return parseApiJson<T>(j, r.status);
   } catch (e) {
-    return { ok: false, message: String(e), status: 0 };
+    const msg = String(e);
+    if (msg.includes("Unexpected token") && msg.includes("<")) {
+      return {
+        ok: false,
+        message:
+          "سرور پاسخ HTML داد — ورود دمو فعال نیست یا مسیر API اشتباه است. روی VPS: ENABLE_DEMO_LOGIN=true در /etc/logestic/backend.env و restart API.",
+        status: 0,
+      };
+    }
+    return { ok: false, message: msg, status: 0 };
   }
 }
 

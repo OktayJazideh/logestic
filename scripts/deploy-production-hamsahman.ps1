@@ -49,7 +49,7 @@ scp deploy/config/backend.env.production.example "root@${VpsHost}:${RemoteRoot}/
 
 Write-Host "==> prisma migrate + restart on VPS"
 # Bash one-liner passed to ssh (string concat avoids PS parsing).
-$remoteCmd = 'set -e; if [ ! -f /etc/logestic/backend.env ]; then echo WARNING: /etc/logestic/backend.env missing; fi; if [ -f ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf ]; then cp ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true; ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true; fi; cd ' + $RemoteRoot + '/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && sleep 2 && nginx -t && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK'
+$remoteCmd = 'set -e; if [ ! -f /etc/logestic/backend.env ]; then echo WARNING: /etc/logestic/backend.env missing; fi; if ! grep -q "^ENABLE_DEMO_LOGIN=true" /etc/logestic/backend.env 2>/dev/null; then echo WARNING: add ENABLE_DEMO_LOGIN=true to /etc/logestic/backend.env for UAT demo login; fi; if [ -f ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf ]; then cp ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true; ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true; fi; cd ' + $RemoteRoot + '/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && sleep 2 && nginx -t && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK'
 ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""

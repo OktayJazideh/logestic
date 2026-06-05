@@ -12,8 +12,9 @@ import 'models/workspace_models.dart';
 
 /// Base HTTP client for Mineral Haul API (`{ success, data, error }` envelope).
 class MineralApiClient {
-  MineralApiClient({required this.baseUrl, http.Client? httpClient})
-      : _http = httpClient ?? http.Client();
+  MineralApiClient({required String baseUrl, http.Client? httpClient})
+      : baseUrl = baseUrl.replaceAll(RegExp(r'/+$'), ''),
+        _http = httpClient ?? http.Client();
 
   final String baseUrl;
   final http.Client _http;
@@ -49,6 +50,12 @@ class MineralApiClient {
     try {
       body = jsonDecode(raw) as Map<String, dynamic>;
     } catch (_) {
+      if (raw.startsWith('<')) {
+        throw const ApiException(
+          'سرور پاسخ HTML داد (مسیر API یا ورود دمو). '
+          'روی VPS: ENABLE_DEMO_LOGIN=true در backend.env و restart API.',
+        );
+      }
       throw const ApiException('پاسخ نامعتبر از سرور دریافت شد.');
     }
 

@@ -134,10 +134,14 @@ function hostIsProduction(hostname: string): boolean {
   return h.endsWith(".sahman.ir") || h.endsWith(".hamsahman.ir");
 }
 
-/** Dev/UAT — explicit flag, local dev, staging IP, or production UAT with VITE_ENABLE_DEMO_LOGIN=true. */
+/** Dev/UAT — explicit flag, local dev, staging IP, or hamsahman.ir pilot testing. */
 export function isDemoLoginEnabled(): boolean {
   if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "false") return false;
   if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "true") return true;
+  if (typeof window !== "undefined") {
+    const h = window.location.hostname.toLowerCase();
+    if (h === "hamsahman.ir" || h === "www.hamsahman.ir") return true;
+  }
   if (typeof window !== "undefined" && hostIsProduction(window.location.hostname)) return false;
   const api = import.meta.env.VITE_API_BASE ?? "";
   if (api.startsWith("/")) {

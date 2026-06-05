@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/community_api_client.dart';
 import '../../core/community_roles.dart';
 import '../../core/household_gate.dart';
+import 'login_screen.dart';
 import '../router.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -29,7 +31,15 @@ class _SplashScreenState extends State<SplashScreen> {
     final role = normalizeCommunityRole(session?.role ?? '');
     if (session == null || !isCommunityRole(session.role)) {
       if (session != null) await widget.sessionStore.clearSession();
-      Navigator.pushReplacementNamed(context, '/login');
+      if (!mounted) return;
+      final api = CommunityApiClient(baseUrl: AppRouter.baseUrl);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          settings: const RouteSettings(name: '/login'),
+          builder: (_) => LoginScreen(api: api, sessionStore: widget.sessionStore),
+        ),
+        (_) => false,
+      );
       return;
     }
     final api = CommunityApiClient(baseUrl: AppRouter.baseUrl);
@@ -79,10 +89,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+    return ExitAppOnBackScope(
+      child: const Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
       ),
     );
   }

@@ -44,7 +44,7 @@ class DemoLoginPanel extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'یک‌کلیک ورود بدون پیامک — مستقیم به داشبورد. نیاز: db:seed · NODE_ENV=development',
+            'یک‌کلیک ورود بدون پیامک — مستقیم به داشبورد. نیاز: ENABLE_DEMO_LOGIN=true روی سرور + کاربران seed/UAT',
             style: TextStyle(fontSize: 11, color: MineralTheme.muted, height: 1.4),
           ),
           if (primary != null) ...[
