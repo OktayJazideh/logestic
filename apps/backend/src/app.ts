@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { getCorsOriginConfig, shouldTrustProxy } from "./config/env";
 
 import { correlationIdMiddleware } from "./middleware/correlationId";
 import { requestLogger } from "./middleware/requestLogger";
@@ -36,7 +37,21 @@ import { prismaToApiError } from "./lib/prismaErrors";
 export function createApp() {
   const app = express();
 
-  app.use(cors());
+  if (shouldTrustProxy()) {
+    app.set("trust proxy", 1);
+  }
+
+  const corsOrigins = getCorsOriginConfig();
+  app.use(
+    cors(
+      corsOrigins === true
+        ? {}
+        : {
+            origin: corsOrigins,
+            credentials: true,
+          },
+    ),
+  );
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser());
   app.use(correlationIdMiddleware);

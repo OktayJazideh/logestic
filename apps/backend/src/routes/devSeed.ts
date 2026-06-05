@@ -17,6 +17,15 @@ const router = Router();
 
 const requireAuth = authMiddleware(resolveAuthContext);
 
+/** Disabled in production (DEPLOY-SAHMAN-1). */
+router.use((req, res, next) => {
+  if (env.NODE_ENV === "production") {
+    const requestId = (req as { requestId?: string }).requestId;
+    return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
+  }
+  next();
+});
+
 router.post("/__dev/seed/demo", requireAuth, requireRoles(["ADMIN"]), async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
   try {

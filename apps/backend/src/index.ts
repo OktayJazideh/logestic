@@ -1,10 +1,11 @@
 import { createApp } from "./app";
-import { env } from "./config/env";
+import { assertProductionReady, env } from "./config/env";
 import { initAppContext } from "./lib/appInit";
 import { prisma } from "./db/prisma";
 import { logger } from "./lib/logger";
 
 async function main() {
+  assertProductionReady();
   await initAppContext();
   const app = createApp();
   app.listen(env.PORT, () => {

@@ -119,12 +119,38 @@ export function personasForApp(app: DemoApp): DemoPersona[] {
   return DEMO_PERSONAS.filter((p) => p.apps.includes(app));
 }
 
+const PRODUCTION_HOSTS = new Set([
+  "hamsahman.ir",
+  "www.hamsahman.ir",
+  "sahman.ir",
+  "www.sahman.ir",
+  "panel.sahman.ir",
+  "api.sahman.ir",
+]);
+
+function hostIsProduction(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  if (PRODUCTION_HOSTS.has(h)) return true;
+  return h.endsWith(".sahman.ir") || h.endsWith(".hamsahman.ir");
+}
+
 /** Dev/UAT — local dev, explicit flag, or staging API on raw IP (VPS without domain). */
 export function isDemoLoginEnabled(): boolean {
   if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "false") return false;
+  if (typeof window !== "undefined" && hostIsProduction(window.location.hostname)) return false;
+  const api = import.meta.env.VITE_API_BASE ?? "";
+  if (api.startsWith("/")) {
+    if (typeof window !== "undefined" && hostIsProduction(window.location.hostname)) return false;
+  } else {
+    try {
+      const u = new URL(api);
+      if (hostIsProduction(u.hostname)) return false;
+    } catch {
+      /* ignore */
+    }
+  }
   if (import.meta.env.DEV) return true;
   if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "true") return true;
-  const api = import.meta.env.VITE_API_BASE ?? "";
   if (/https?:\/\/(\d{1,3}\.){3}\d{1,3}/.test(api)) return true;
   return false;
 }

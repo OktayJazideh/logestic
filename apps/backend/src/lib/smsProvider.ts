@@ -1,4 +1,4 @@
-import { getSmsApiKey, getSmsSenderLine, isProduction, resolveSmsProvider } from "../config/env";
+import { env, getSmsApiKey, getSmsSenderLine, isProduction, resolveSmsProvider } from "../config/env";
 
 export interface SmsProvider {
   sendOtp(mobile: string, code: string): Promise<void>;
@@ -51,8 +51,9 @@ export class KavenegarProvider implements SmsProvider {
   }
 
   async sendOtp(mobile: string, code: string): Promise<void> {
+    const brand = env.PLATFORM_NAME.trim() || "همسهمان";
     await this.send({
-      message: `کد ورود ${code}`,
+      message: `کد ورود ${brand}: ${code}`,
       sender: this.sender,
       receptor: mobile,
     });

@@ -62,6 +62,13 @@ const EnvSchema = z.object({
   PUBLIC_URL: z.string().url().default("http://localhost:4000"),
   /** Brand name on settlement receipt PDFs. */
   PLATFORM_NAME: z.string().min(1).default("Hamsahman"),
+  /** Comma-separated allowed browser origins (production). Empty → derive from PUBLIC_URL. */
+  CORS_ORIGINS: z.string().optional(),
+  /** Express trust proxy (set true behind nginx). */
+  TRUST_PROXY: z
+    .enum(["true", "false", "1", "0"])
+    .optional()
+    .transform((v) => v === "true" || v === "1"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -143,6 +150,8 @@ export const env: Env = EnvSchema.parse({
   MOCK_BANK_FAIL: process.env.MOCK_BANK_FAIL,
   PUBLIC_URL: process.env.PUBLIC_URL,
   PLATFORM_NAME: process.env.PLATFORM_NAME,
+  CORS_ORIGINS: process.env.CORS_ORIGINS,
+  TRUST_PROXY: process.env.TRUST_PROXY,
 });
 
 export function getWeighbridgeBridgeConfig(weighbridgeId: number): WeighbridgeBridgeConfig | null {
@@ -210,4 +219,50 @@ export function resolveSmsProvider(): "mock" | "kavenegar" | "faraz" {
   if (raw === "kavenegar" || raw === "faraz" || raw === "mock") return raw;
   if (raw === "farazsms") return "faraz";
   return "mock";
+}
+
+/** CORS allowlist. Development: allow all. Production: CORS_ORIGINS or PUBLIC_URL origin. */
+export function getCorsOriginConfig(): true | string[] {
+  if (!isProduction()) return true;
+  const raw = (process.env.CORS_ORIGINS ?? env.CORS_ORIGINS)?.trim();
+  if (raw) {
+    return raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  try {
+    const parsed = new URL(env.PUBLIC_URL);
+    const host = parsed.hostname;
+    const port = parsed.port ? `:${parsed.port}` : "";
+    const bareHost = host.startsWith("www.") ? host.slice(4) : host;
+    const wwwHost = host.startsWith("www.") ? host : `www.${host}`;
+    const bare = `${parsed.protocol}//${bareHost}${port}`;
+    const www = `${parsed.protocol}//${wwwHost}${port}`;
+    return [...new Set([parsed.origin, bare, www])];
+  } catch {
+    return true;
+  }
+}
+
+export function shouldTrustProxy(): boolean {
+  if (process.env.TRUST_PROXY === "true" || env.TRUST_PROXY === true) return true;
+  return isProduction();
+}
+
+/**
+ * DEPLOY-SAHMAN-1: production must use real SMS — fail fast at startup.
+ */
+export function assertProductionReady(): void {
+  if (!isProduction()) return;
+  const provider = resolveSmsProvider();
+  if (provider === "mock") {
+    throw new Error("production: set SMS_PROVIDER=kavenegar (or faraz), not mock");
+  }
+  if (!getSmsApiKey()) {
+    throw new Error("production: SMS_API_KEY is required");
+  }
+  if (!getSmsSenderLine()) {
+    throw new Error("production: SMS_SENDER_LINE is required");
+  }
 }

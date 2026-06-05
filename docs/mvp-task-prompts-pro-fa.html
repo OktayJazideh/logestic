@@ -41,7 +41,7 @@
 
 <div class="guide">
   <strong>اصل محصول (۱۴۰۵/۰۳/۱۲):</strong> هیچ عدد/تنظیم business در کد ثابت نماند — همه از DB + پنل (قرارداد، Rate Card، تنظیمات معدن). seed فقط دمو UAT است.<br />
-  <strong>P0 الان:</strong> production sahman (staging ✓). داده پایلوت در seed نیست — از پنل ADMIN.<br />
+  <strong>Production:</strong> <code>hamsahman.ir</code> — <a href="deploy-hamsahman-production-fa.md">deploy-hamsahman-production-fa.md</a> · DEPLOY-SAHMAN-1 ✓<br />
   <strong>تازه ✓:</strong> FIN-NO-HARDCODE-1 — <code>loadMineFinanceConfig</code> · 400 «تنظیمات معدن ناقص» · <a href="architecture/dynamic-config-fa.md">dynamic-config-fa.md</a><br />
   <strong>P1 UX (قبل UAT میدانی):</strong> ریدیزاین «بدون فکر کردن» — کاربر عادی دکمه/بخش لازم را پیدا کند؛ رنگ و چیدمان مغزپسند · <strong>اسکلت وایرفریم حفظ شود</strong> — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a><br />
   <strong>تازه ✓:</strong> UX-MOBILE-SIMPLE-1 — Flutter P1 · <a href="ux/mobile-screenshots/README.md">mobile-screenshots</a> · UX-WEB-SIMPLE-1 · UX-SIMPLE-SPEC-1.
@@ -50,7 +50,6 @@
 <nav class="toc">
   <strong>باقی‌مانده — اولویت اجرا (بالا → پایین)</strong>
   <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">P0 = blocker UAT · P1 = مهم پس از staging · P2/P3 = فاز بعد</em>
-  <a href="#deploy-sahman-1"><span class="p0">P0</span> DEPLOY-SAHMAN-1 — production + دامنه</a>
   <a href="#brand-sahman-1"><span class="p1">P1</span> BRAND-SAHMAN-1</a>
   <a href="#dispatch-auto-pilot-1"><span class="p1">P1</span> DISPATCH-AUTO-PILOT-1</a>
   <a href="#comm-bank-receipt-ui-1"><span class="p1">P1</span> COMM-BANK-RECEIPT-UI-1 — رسید بانک Community (در صورت نیاز)</a>
@@ -59,6 +58,7 @@
   <a href="#tenant-rls-1"><span class="p3">P3</span> TENANT-RLS-1</a>
   <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
   <strong>تازه انجام‌شده ✓</strong>
+  <a href="#deploy-sahman-1">DEPLOY-SAHMAN-1 ✅</a>
   <a href="#ux-mobile-simple-1">UX-MOBILE-SIMPLE-1 ✅</a>
   <a href="#ux-web-simple-1">UX-WEB-SIMPLE-1 ✅</a>
   <a href="#ux-simple-spec-1">UX-SIMPLE-SPEC-1 ✅</a>
@@ -86,39 +86,7 @@
   <a href="#tasks-done">… همه ۸۵ کارت پایین صفحه</a>
 </nav>
 
-<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۷)</h2>
-
-<article class="task" id="deploy-sahman-1">
-  <h2><span class="badge">DEPLOY-SAHMAN-1</span> <span class="p0">P0</span> استقرار production sahman.ir</h2>
-  <div class="ctx"><strong>زمینه:</strong> پس از DEPLOY-VPS-STAGING + CLIENT-DATA — DNS، SMS real، NODE_ENV=production. runbook آماده است.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>Staging روی IP باید UAT pass شده باشد.</li><li>تنظیمات معدن از پنل — نه seed production.</li><li>SMS real فقط با تأیید کارفرما.</li></ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>docs/deploy-runbook-fa.md</code></li><li><code>docs/uat-handover-checklist-fa.md</code></li><li><code>scripts/deploy-vps-from-windows.ps1</code></li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — DEPLOY-SAHMAN-1 (P0)
-
-## پیش‌نیاز
-- DEPLOY-VPS-STAGING-1 ✓
-- CLIENT-DATA-PILOT-1 ✓ (waived دمو — افراد از پنل ADMIN)
-- MINE-SETTINGS با داده واقعی تفتان (اختیاری قبل production)
-
-## گام‌ها (docs/deploy-runbook-fa.md)
-1. DNS: sahman.ir, panel.sahman.ir, api.sahman.ir
-2. NODE_ENV=production, SMS_PROVIDER=real
-3. prisma migrate deploy — بدون db:seed دمو در prod
-4. import pilot users از CLIENT-DATA
-5. Smoke: uat-handover-checklist §۳
-
-## DoD
-- HTTPS live
-- OTP SMS real (یا documented mock)
-- pilot-taftan1 روی production DB</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>production deploy</li><li>DNS</li><li>smoke checklist</li></ul>
-  <h3>تست</h3>
-  <ul><li>uat-handover-checklist §۳</li><li>curl health api</li></ul>
-</article>
+<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۶)</h2>
 
 <article class="task" id="brand-sahman-1">
   <h2><span class="badge">BRAND-SAHMAN-1</span> <span class="p1">P1</span> برند «سهمان» در UI و docs</h2>
@@ -320,7 +288,15 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <ul><li>npm -w @app/backend run test:tenant-rls1</li><li>manual DBA review</li></ul>
 </article>
 
-<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۵)</h2>
+<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۶)</h2>
+
+<article class="task task-done" id="deploy-sahman-1">
+  <h2><span class="badge done">✓</span> <span class="badge">DEPLOY-SAHMAN-1</span> <span class="p0">P0</span> استقرار production hamsahman.ir</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — دامنه <code>hamsahman.ir</code> · nginx + SSL · <code>NODE_ENV=production</code> · SMS کاوه‌نگار · <a href="deploy-hamsahman-production-fa.md">deploy-hamsahman-production-fa.md</a></p>
+  <div class="ctx"><strong>خروجی:</strong> <code>deploy/config/nginx-hamsahman.ir.conf</code> · <code>backend.env.production.example</code> · <code>scripts/deploy-production-hamsahman.ps1</code> · assert SMS در startup · بستن <code>__dev/*</code> در production.</div>
+  <h3>تست</h3>
+  <ul><li><code>curl https://hamsahman.ir/api/health</code></li><li><code>npm -w @app/backend run test:sms-prod1 -- --live</code> روی VPS</li><li>ورود OTP بدون پنل دمو</li></ul>
+</article>
 
 <article class="task task-done" id="tenant-onboard-1">
   <h2><span class="badge done">✓</span> <span class="badge">TENANT-ONBOARD-1</span> <span class="p1">P1</span> onboarding معدن جدید بدون ویرایش seed</h2>

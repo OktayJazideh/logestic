@@ -96,7 +96,7 @@
   <div class="good" style="margin-top:8px">
     <strong>Freeze فاز ۱ (قفل):</strong> فقط حمل · Community = تن × مبلغ ثابت قراردادی · Operational = 99/1 · Pool مساوی snapshot · HSA Draft→Lock انسانی · پرداخت معدن فقط به حساب رسمی تعاونی · اعتراض ناشناس ممنوع · پلتفرم = زیرساخت (مثل اسنپ) نه مجری معدن.
   </div>
-  <p><strong>P0 باقی:</strong> production sahman · UX ساده — staging IP <span class="status s-ok">✓</span> · تنظیمات معدن <span class="status s-ok">✓</span> · بدون fallback عددی <span class="status s-ok">✓</span> FIN-NO-HARDCODE-1 · داده پایلوت دمو <span class="status s-ok">✓</span></p>
+  <p><strong>P0 باقی:</strong> UX ساده (انجام ✓) · production <span class="status s-ok">✓</span> hamsahman.ir — staging IP <span class="status s-ok">✓</span> · تنظیمات معدن <span class="status s-ok">✓</span> · بدون fallback عددی <span class="status s-ok">✓</span> FIN-NO-HARDCODE-1 · داده پایلوت دمو <span class="status s-ok">✓</span></p>
   <div class="info">
     <strong>تصمیم قفل باسکول:</strong> خرید/نصب Agent سخت‌افزار برای UAT اول لازم نیست. COOP_OPERATOR وزن را در پنل وب وارد می‌کند. scaffold در <code>apps/weighbridge-agent/</code> برای بعد.
   </div>
@@ -294,11 +294,8 @@
     </li>
 
     <li class="task" id="deploy-sahman-1">
-      <div class="title">DEPLOY-SAHMAN-1 — استقرار production (دامنه + SMS) <span class="priority p0">P0</span></div>
-      <p><strong>وضعیت:</strong> ⏳ staging ✓ — production با دامنه sahman.ir و SMS واقعی باقی</p>
-      <p><strong>چرا مهم:</strong> UAT میدانی نهایی با HTTPS و OTP واقعی.</p>
-      <p><strong>فایل‌ها:</strong> <code>docs/deploy-runbook-fa.md</code></p>
-      <pre class="prompt">تسک DEPLOY-SAHMAN-1: دامنه sahman.ir، SSL، Kavenegar، NODE_ENV=production، حذف __dev/login از UI.</pre>
+      <div class="title"><span class="badge done">✓</span> DEPLOY-SAHMAN-1 — production hamsahman.ir + SMS <span class="priority p0">P0</span></div>
+      <p><strong>وضعیت:</strong> انجام شد — <a href="deploy-hamsahman-production-fa.md">deploy-hamsahman-production-fa.md</a> · nginx · Kavenegar · <code>NODE_ENV=production</code></p>
     </li>
 
     <li class="task" id="fin-no-hardcode-1">
@@ -479,7 +476,7 @@ npm -w @app/backend run test:comm-app1</pre>
       <tr><td>دمو یک‌کلیک + APK</td><td><span class="status s-ok">✓</span></td><td>MOBILE-DEMO-APK-1</td></tr>
       <tr><td>خروج موبایل</td><td><span class="status s-part">△</span></td><td>home/missions/workspace ✓ — صفحات میانی FSM راننده اختیاری</td></tr>
       <tr><td>Deploy staging روی IP</td><td><span class="status s-ok">✓</span></td><td>DEPLOY-VPS-STAGING-1 · production sahman ⏳</td></tr>
-      <tr><td>production sahman.ir + SMS واقعی</td><td><span class="status s-no">✗</span></td><td>DEPLOY-SAHMAN-1</td></tr>
+      <tr><td>production hamsahman.ir + SMS واقعی</td><td><span class="status s-ok">✓</span></td><td>DEPLOY-SAHMAN-1</td></tr>
       <tr><td>برند «سهمان»</td><td><span class="status s-no">✗</span></td><td>BRAND-SAHMAN-1</td></tr>
       <tr><td>RLS Postgres</td><td><span class="status s-no">✗</span></td><td>TENANT-RLS-1 · فاز ۱.۵</td></tr>
     </tbody>
