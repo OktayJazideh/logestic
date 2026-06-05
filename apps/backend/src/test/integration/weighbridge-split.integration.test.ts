@@ -1,25 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "../../db/prisma";
-import { ruleEngine } from "../../services/ruleEngine";
+import { loadMineFinanceConfig } from "../../services/mineSettingsService";
 import { isServerUp, loginAs } from "../helpers/http";
 import { seedMissionToVerified } from "../helpers/missionFlow";
-
-async function ensureDefaultSplitRules() {
-  const admin = await prisma.users.findFirst({ where: { mobile_number: "09000000000" } });
-  const uid = admin ? Number(admin.id) : 1;
-  const epoch = new Date("2026-01-01T00:00:00.000Z");
-  const scope = { type: "GLOBAL" as const };
-  await ruleEngine.setActive("split.owner", 0.98, scope, epoch, uid);
-  await ruleEngine.setActive("split.platform", 0.02, scope, epoch, uid);
-  await ruleEngine.setActive("community.rial_per_verified_ton", 500_000, scope, epoch, uid);
-}
 
 describe("weighbridge approve → split", () => {
   let serverUp = false;
 
   beforeAll(async () => {
     serverUp = await isServerUp();
-    if (serverUp) await ensureDefaultSplitRules();
   });
 
   afterAll(async () => {
