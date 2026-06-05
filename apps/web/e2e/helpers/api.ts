@@ -1,4 +1,4 @@
-import type { APIRequestContext } from "@playwright/test";
+import type { APIRequestContext, Page } from "@playwright/test";
 
 export const apiBase = process.env.API_BASE_URL ?? "http://localhost:4000";
 
@@ -39,6 +39,26 @@ export async function loginApi(request: APIRequestContext, mobile: string): Prom
     throw new Error(`login failed for ${mobile}`);
   }
   return body.data.access_token;
+}
+
+/** API login + token injection — avoids flaky OTP UI in CI. */
+export async function loginAsPanel(
+  page: Page,
+  request: APIRequestContext,
+  mobile: string,
+  opts?: { mineId?: number; cooperativeId?: number; membership_kind?: "OPERATIONAL" | "COMMUNITY" },
+) {
+  const token = await loginApi(request, mobile);
+  if (opts?.mineId != null) {
+    await selectWorkspace(request, token, opts.mineId, {
+      cooperativeId: opts.cooperativeId,
+      membership_kind: opts.membership_kind,
+    });
+  }
+  await page.goto("/login");
+  await page.evaluate((t) => localStorage.setItem("auth_token", t), token);
+  await page.goto("/panel");
+  await page.waitForURL(/\/panel/, { timeout: 15_000 });
 }
 
 export async function selectWorkspace(

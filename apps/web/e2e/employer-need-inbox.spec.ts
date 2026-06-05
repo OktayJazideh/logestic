@@ -11,7 +11,9 @@ test("Employer Need ثبت → Inbox", async ({ page, request }) => {
   await page.evaluate((token) => localStorage.setItem("auth_token", token), employerToken);
   await page.goto("/panel/employer");
 
-  await expect(page.getByTestId("employer-village").locator("option")).toHaveCount({ minimum: 2 }, { timeout: 15_000 });
+  await expect
+    .poll(async () => page.getByTestId("employer-village").locator("option").count(), { timeout: 15_000 })
+    .toBeGreaterThan(1);
   await page.getByTestId("employer-village").selectOption({ index: 1 });
   await page.getByRole("button", { name: "ادامه" }).click();
 

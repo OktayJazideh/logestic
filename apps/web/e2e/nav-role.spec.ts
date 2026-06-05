@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { loginViaUi } from "./helpers/auth";
+import { loginAsPanel } from "./helpers/api";
 
 test("EMPLOYER nav excludes settlement and has at most 4 items", async ({ page, request }) => {
-  await loginViaUi(page, "09000000007", request);
+  await loginAsPanel(page, request, "09000000007", { mineId: 1 });
   await expect(page.getByRole("link", { name: /Settlement/i })).toHaveCount(0);
   const count = await page.locator("aside a").count();
   expect(count).toBeLessThanOrEqual(4);
@@ -31,7 +32,7 @@ test("COOP_ADMIN sees user request form not admin users", async ({ page, request
 });
 
 test("home shows only accessible sections (no locked cards)", async ({ page, request }) => {
-  await loginViaUi(page, "09000000007", request);
+  await loginAsPanel(page, request, "09000000007", { mineId: 1 });
   await page.goto("/panel");
   await expect(page.getByTestId(/home-link-locked/)).toHaveCount(0);
   const homeLinks = page.locator("[data-testid^='home-link-']");

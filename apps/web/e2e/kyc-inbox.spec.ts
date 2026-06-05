@@ -9,12 +9,22 @@ test.beforeAll(() => {
   execSync("npm run db:seed", { cwd: "../backend", stdio: "pipe" });
 });
 
+function toPersianDigits(value: string): string {
+  const fa = "۰۱۲۳۴۵۶۷۸۹";
+  return value.replace(/\d/g, (d) => fa[Number(d)] ?? d);
+}
+
+function e2eHeadName(villageId: number, suffix: string): string {
+  const tag = toPersianDigits(suffix.replace(/\D/g, "").slice(-4));
+  return villageId === 1 ? `خانوار آزمایش الف ${tag}` : `خانوار آزمایش ب ${tag}`;
+}
+
 async function createPendingHousehold(
   request: import("@playwright/test").APIRequestContext,
   adminToken: string,
   villageId: number,
   suffix: string,
-) {
+): Promise<number> {
   const digits = suffix.replace(/\D/g, "").slice(-7);
   const mobile = `0904${String(villageId)}${digits}`.slice(0, 11);
   await registerDevUser(request, adminToken, mobile, { role: "HOUSEHOLD", cooperativeId: COOP_A });
@@ -29,7 +39,7 @@ async function createPendingHousehold(
   const applicantToken = ((await verify.json()) as { data?: { access_token?: string } }).data?.access_token;
   expect(applicantToken).toBeTruthy();
 
-  const headName = villageId === 1 ? "خانوار آزمایش الف" : "خانوار آزمایش ب";
+  const headName = e2eHeadName(villageId, suffix);
   const req = await request.post(`${apiBase}/api/coop/households/request`, {
     headers: { Authorization: `Bearer ${applicantToken}` },
     data: {
@@ -39,14 +49,19 @@ async function createPendingHousehold(
       national_id: `e2e${suffix.replace(/\D/g, "").slice(-10)}`,
     },
   });
-  expect(req.status(), await req.text()).toBe(201);
+  const bodyText = await req.text();
+  expect(req.status(), bodyText).toBe(201);
+  const body = JSON.parse(bodyText) as { data?: { household?: { id: number } } };
+  const householdId = body.data?.household?.id;
+  expect(householdId).toBeTruthy();
+  return householdId!;
 }
 
 test("KYC inbox: filter village → row count decreases", async ({ page, request }) => {
   const suffix = String(Date.now());
   const adminToken = await loginApi(request, "09000000000");
-  await createPendingHousehold(request, adminToken, 1, `${suffix}-v1`);
-  await createPendingHousehold(request, adminToken, 2, `${suffix}-v2`);
+  const householdV1 = await createPendingHousehold(request, adminToken, 1, `${suffix}-v1`);
+  const householdV2 = await createPendingHousehold(request, adminToken, 2, `${suffix}-v2`);
 
   const coopToken = await loginApi(request, "09000000111");
   await selectWorkspace(request, coopToken, MINE_A, {
@@ -90,6 +105,6 @@ test("KYC inbox: filter village → row count decreases", async ({ page, request
   const filteredTotal = await parseTotal();
   expect(filteredTotal).toBeGreaterThan(0);
 
-  await expect(page.getByText("خانوار آزمایش الف")).toBeVisible();
-  await expect(page.getByText("خانوار آزمایش ب")).not.toBeVisible();
+  await expect(page.getByTestId(`kyc-inbox-table-row-household-${householdV1}`)).toBeVisible();
+  await expect(page.getByTestId(`kyc-inbox-table-row-household-${householdV2}`)).toHaveCount(0);
 });
