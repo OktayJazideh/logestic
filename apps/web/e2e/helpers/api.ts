@@ -79,13 +79,9 @@ export async function expectSidebarNavLink(page: Page, name: RegExp | string) {
     await menuBtn.click();
   }
 
-  const link = sidebar.getByRole("link", { name });
-  const linkVisible = (await link.count()) > 0 && (await link.first().isVisible());
-  if (!linkVisible) {
-    const more = page.getByTestId("panel-nav-more-toggle");
-    if (await more.isVisible()) {
-      await more.click();
-    }
+  const more = page.getByTestId("panel-nav-more-toggle");
+  if (await more.isVisible()) {
+    await more.click();
   }
 
   await expect(sidebar.getByRole("link", { name })).toBeVisible({ timeout: 15_000 });
