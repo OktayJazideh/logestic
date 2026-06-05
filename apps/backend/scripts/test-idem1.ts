@@ -34,6 +34,21 @@ async function http(path: string, init?: RequestInit & { idempotencyKey?: string
   };
 }
 
+/** Idempotency row is persisted on res.finish — poll until replay is ready. */
+async function httpIdempotentReplay(
+  path: string,
+  init: RequestInit & { idempotencyKey: string },
+  expectedStatus: number,
+) {
+  for (let i = 0; i < 40; i++) {
+    const res = await http(path, init);
+    if (res.replayed === "true" && res.status === expectedStatus) return res;
+    if (res.json?.error?.code !== "idempotency_in_progress") return res;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error("idempotency replay timeout");
+}
+
 async function loginAs(mobile: string) {
   await http("/api/auth/request-otp", { method: "POST", body: JSON.stringify({ mobile_number: mobile }) });
   const devOtp = await http(`/api/auth/__dev/otp?mobile_number=${mobile}`);
@@ -109,12 +124,16 @@ async function runOnce(run: number) {
   assert(isOk(first.status, first.json), `run ${run}: first idempotent create failed (${first.status})`);
   const needId1 = first.json.data?.need?.id as number;
 
-  const second = await http("/api/employer/needs", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${employerToken}` },
-    body: JSON.stringify(body),
-    idempotencyKey: idemKey,
-  });
+  const second = await httpIdempotentReplay(
+    "/api/employer/needs",
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${employerToken}` },
+      body: JSON.stringify(body),
+      idempotencyKey: idemKey,
+    },
+    first.status,
+  );
   assert(isOk(second.status, second.json), `run ${run}: replay should succeed (${second.status})`);
   assert(second.status === first.status, `run ${run}: replay status must match first (${first.status} vs ${second.status})`);
   assert(second.replayed === "true", `run ${run}: Idempotency-Replayed header expected`);
