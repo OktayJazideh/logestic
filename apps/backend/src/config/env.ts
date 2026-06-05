@@ -254,7 +254,7 @@ export function shouldTrustProxy(): boolean {
  * DEPLOY-SAHMAN-1: production must use real SMS — fail fast at startup.
  */
 export function assertProductionReady(): void {
-  if (!isProduction()) return;
+  if (process.env.NODE_ENV === "test" || !isProduction()) return;
   const provider = resolveSmsProvider();
   if (provider === "mock") {
     throw new Error("production: set SMS_PROVIDER=kavenegar (or faraz), not mock");

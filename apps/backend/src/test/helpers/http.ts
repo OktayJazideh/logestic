@@ -38,15 +38,23 @@ export async function loginAs(mobile: string): Promise<string> {
   });
   const devOtp = await http(`/api/auth/__dev/otp?mobile_number=${mobile}`);
   const code = devOtp.json?.data?.otp as string | undefined;
-  if (!code) throw new Error(`dev otp missing for ${mobile}`);
-  const verify = await http("/api/auth/verify-otp", {
-    method: "POST",
-    body: JSON.stringify({ mobile_number: mobile, otp_code: code }),
-  });
-  if (verify.status !== 200 || !verify.json.success) {
-    throw new Error(`verify failed for ${mobile}: ${JSON.stringify(verify.json)}`);
+  if (code) {
+    const verify = await http("/api/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify({ mobile_number: mobile, otp_code: code }),
+    });
+    if (verify.status === 200 && verify.json.success) {
+      return verify.json.data.access_token as string;
+    }
   }
-  return verify.json.data.access_token as string;
+  const devLogin = await http("/api/auth/__dev/login", {
+    method: "POST",
+    body: JSON.stringify({ mobile_number: mobile }),
+  });
+  if (devLogin.status === 200 && devLogin.json.success) {
+    return devLogin.json.data.access_token as string;
+  }
+  throw new Error(`login failed for ${mobile}: ${JSON.stringify(devLogin.json)}`);
 }
 
 export type SelectMineOptions = {

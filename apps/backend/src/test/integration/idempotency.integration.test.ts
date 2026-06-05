@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { initAppContext } from "../../lib/appInit";
 import { appContext } from "../../appContext";
 import { prisma } from "../../db/prisma";
+import * as workspaceRepo from "../../repositories/workspaceMembershipsRepository";
 import { http, isServerUp, loginAs, httpIdempotentReplay, selectMine } from "../helpers/http";
 
 function uuidV4(): string {
@@ -17,7 +18,15 @@ describe("idempotency integration", () => {
     if (serverUp) {
       await initAppContext();
       await appContext.mineData.hydrate();
-      await appContext.userStore.upsertUserByMobile("09000000007", "EMPLOYER", { is_active: true });
+      const employer = await appContext.userStore.upsertUserByMobile("09000000007", "EMPLOYER", {
+        is_active: true,
+      });
+      await workspaceRepo.upsertMembership({
+        user_id: employer.id,
+        mine_id: 1,
+        role_in_workspace: "EMPLOYER",
+        status: "ACTIVE",
+      });
     }
   });
 

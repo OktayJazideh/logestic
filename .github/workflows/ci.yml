@@ -50,6 +50,9 @@ jobs:
 
       - name: Database migrate and seed
         working-directory: apps/backend
+        env:
+          # Integration tests + e2e expect demo users (0900000000x) and workspace memberships.
+          SEED_UAT_ENTITIES: "1"
         run: |
           npm run db:migrate
           npm run db:seed
