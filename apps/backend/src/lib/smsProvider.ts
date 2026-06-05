@@ -87,7 +87,8 @@ export class FarazSmsProvider implements SmsProvider {
   }
 
   async sendOtp(mobile: string, code: string): Promise<void> {
-    await this.post(`کد ورود همسهمان: ${code}`, mobile);
+    const brand = env.PLATFORM_NAME.trim() || "همسهمان";
+    await this.post(`کد ورود ${brand}: ${code}`, mobile);
   }
 
   async sendMessage(mobile: string, message: string): Promise<void> {

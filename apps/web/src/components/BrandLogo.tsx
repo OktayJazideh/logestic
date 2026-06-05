@@ -16,7 +16,7 @@ export function BrandLogo({ variant = "mark", size = 36, onDark = false }: Brand
   if (variant === "mark") {
     return (
       <img
-        src="/favicon.svg"
+        src="/logo-mark.png"
         alt={brandNames.master}
         width={size}
         height={size}
@@ -28,7 +28,7 @@ export function BrandLogo({ variant = "mark", size = 36, onDark = false }: Brand
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <img
-        src="/favicon.svg"
+        src="/logo-mark.png"
         alt=""
         width={size}
         height={size}

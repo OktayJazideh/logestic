@@ -35,7 +35,7 @@
 <div class="wrap">
 <header>
   <h1>پرامپت‌های حرفه‌ای MVP — logestic</h1>
-  <p><strong>۹ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۴ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
+  <p><strong>۵ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۷ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
   <p>مرجع: <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a> · <a href="gozaresh-tahvil-karfarma-mvp-fa.html">تحویل کارفرما</a> · <a href="demo-users-and-deploy-fa.md">دمو + Deploy</a></p>
 </header>
 
@@ -44,13 +44,13 @@
   <strong>Production:</strong> <code>hamsahman.ir</code> — <a href="deploy-hamsahman-production-fa.md">deploy-hamsahman-production-fa.md</a> · DEPLOY-SAHMAN-1 ✓<br />
   <strong>تازه ✓:</strong> FIN-NO-HARDCODE-1 — <code>loadMineFinanceConfig</code> · 400 «تنظیمات معدن ناقص» · <a href="architecture/dynamic-config-fa.md">dynamic-config-fa.md</a><br />
   <strong>P1 UX (قبل UAT میدانی):</strong> ریدیزاین «بدون فکر کردن» — کاربر عادی دکمه/بخش لازم را پیدا کند؛ رنگ و چیدمان مغزپسند · <strong>اسکلت وایرفریم حفظ شود</strong> — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a><br />
+  <strong>تازه ✓:</strong> BRAND-SAHMAN-1 — برند «همسهمان» · title وب/اپ · favicon حمل معدنی · OTP SMS · <a href="gozaresh-tahvil-karfarma-mvp-fa.html">gozaresh-tahvil</a> footer.<br />
   <strong>تازه ✓:</strong> UX-MOBILE-SIMPLE-1 — Flutter P1 · <a href="ux/mobile-screenshots/README.md">mobile-screenshots</a> · UX-WEB-SIMPLE-1 · UX-SIMPLE-SPEC-1.
 </div>
 
 <nav class="toc">
   <strong>باقی‌مانده — اولویت اجرا (بالا → پایین)</strong>
   <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">P0 = blocker UAT · P1 = مهم پس از staging · P2/P3 = فاز بعد</em>
-  <a href="#brand-sahman-1"><span class="p1">P1</span> BRAND-SAHMAN-1</a>
   <a href="#dispatch-auto-pilot-1"><span class="p1">P1</span> DISPATCH-AUTO-PILOT-1</a>
   <a href="#comm-bank-receipt-ui-1"><span class="p1">P1</span> COMM-BANK-RECEIPT-UI-1 — رسید بانک Community (در صورت نیاز)</a>
   <a href="#wb-local-agent-1"><span class="p2">P2</span> WB-LOCAL-AGENT-1</a>
@@ -58,6 +58,7 @@
   <a href="#tenant-rls-1"><span class="p3">P3</span> TENANT-RLS-1</a>
   <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
   <strong>تازه انجام‌شده ✓</strong>
+  <a href="#brand-sahman-1">BRAND-SAHMAN-1 ✅</a>
   <a href="#deploy-sahman-1">DEPLOY-SAHMAN-1 ✅</a>
   <a href="#ux-mobile-simple-1">UX-MOBILE-SIMPLE-1 ✅</a>
   <a href="#ux-web-simple-1">UX-WEB-SIMPLE-1 ✅</a>
@@ -86,32 +87,7 @@
   <a href="#tasks-done">… همه ۸۵ کارت پایین صفحه</a>
 </nav>
 
-<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۶)</h2>
-
-<article class="task" id="brand-sahman-1">
-  <h2><span class="badge">BRAND-SAHMAN-1</span> <span class="p1">P1</span> برند «سهمان» در UI و docs</h2>
-  <div class="ctx"><strong>زمینه:</strong> title وب/اپ، OTP SMS template، legal terms — پس از تأیید کارفرما.</div>
-  <h3>محدودیت‌ها / آنتی‌پترن</h3>
-  <ul><li>بدون تغییر domain تا DNS آماده.</li><li>فارسی RTL.</li></ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul><li><code>apps/web/index.html</code></li><li><code>apps/mobile/driver_app/pubspec.yaml</code></li><li><code>apps/mobile/community_app/pubspec.yaml</code></li></ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — BRAND-SAHMAN-1 (P1)
-
-## پس از تأیید نام «سهمان»
-- web title + favicon
-- Flutter app names
-- SMS OTP template prefix
-- docs/gozaresh-tahvil footer
-
-## DoD
-- grep «سهمان» در UI اصلی
-- کارفرما visual sign-off</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>سهمان in web/mobile titles</li></ul>
-  <h3>تست</h3>
-  <ul><li>visual review</li></ul>
-</article>
+<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۵)</h2>
 
 <article class="task" id="dispatch-auto-pilot-1">
   <h2><span class="badge">DISPATCH-AUTO-PILOT-1</span> <span class="p1">P1</span> تصمیم dispatch manual vs auto پایلوت</h2>
@@ -288,7 +264,21 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <ul><li>npm -w @app/backend run test:tenant-rls1</li><li>manual DBA review</li></ul>
 </article>
 
-<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۶)</h2>
+<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۷)</h2>
+
+<article class="task task-done" id="brand-sahman-1">
+  <h2><span class="badge done">✓</span> <span class="badge">BRAND-SAHMAN-1</span> <span class="p1">P1</span> برند «همسهمان» در UI و docs</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۶ · title وب/اپ · favicon حمل معدنی · OTP SMS · footer gozaresh-tahvil · <code>brand/names.ts</code> · <code>brand_names.dart</code></p>
+  <div class="ctx"><strong>خروجی:</strong> <code>apps/web/index.html</code> · <code>apps/web/public/favicon.svg</code> · <code>brand/logo-mark.svg</code> · Flutter <code>BrandLogoMark</code> · Android/iOS labels · <code>smsProvider.ts</code> OTP prefix.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>apps/web/src/brand/names.ts</code> · <code>apps/mobile/packages/mineral_api/lib/src/brand_names.dart</code></li>
+    <li><code>apps/mobile/driver_app/pubspec.yaml</code> · <code>apps/mobile/community_app/pubspec.yaml</code></li>
+    <li><code>apps/mobile/packages/mineral_ui/lib/src/widgets/brand_logo_mark.dart</code></li>
+  </ul>
+  <h3>تست</h3>
+  <ul><li><code>rg همسهمان apps/web apps/mobile</code></li><li>visual review title + favicon + login screens</li></ul>
+</article>
 
 <article class="task task-done" id="deploy-sahman-1">
   <h2><span class="badge done">✓</span> <span class="badge">DEPLOY-SAHMAN-1</span> <span class="p0">P0</span> استقرار production hamsahman.ir</h2>

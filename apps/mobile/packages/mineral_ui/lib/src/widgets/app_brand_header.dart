@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../mineral_theme.dart';
+import 'brand_logo_mark.dart';
 
 /// Login / splash brand block — shared look across driver & community apps.
 class AppBrandHeader extends StatelessWidget {
@@ -19,33 +20,24 @@ class AppBrandHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: MineralTheme.primaryDark,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: MineralTheme.border),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Text(
-                'ه',
-                style: TextStyle(
-                  fontFamily: MineralTheme.fontFamily,
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white.withValues(alpha: 0.95),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const BrandLogoMark(size: 72, borderRadius: 12),
+            Positioned(
+              right: -4,
+              bottom: -4,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: MineralTheme.panel,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: MineralTheme.border),
                 ),
+                child: Icon(icon, color: MineralTheme.accent, size: 18),
               ),
-              Positioned(
-                right: 10,
-                bottom: 10,
-                child: Icon(icon, color: MineralTheme.accent.withValues(alpha: 0.9), size: 22),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: 28),
         Text(
