@@ -35,7 +35,7 @@
 <div class="wrap">
 <header>
   <h1>پرامپت‌های حرفه‌ای MVP — logestic</h1>
-  <p><strong>۱۰ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۲ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
+  <p><strong>۹ باقی‌مانده</strong> (بالا، مرتب‌شده P0→P3) · <strong>۸۴ انجام‌شده</strong> (پایین). یک چت Cursor = یک کارت — کل بلوک <code>pre</code> را کپی کنید.</p>
   <p>مرجع: <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a> · <a href="gozaresh-tahvil-karfarma-mvp-fa.html">تحویل کارفرما</a> · <a href="demo-users-and-deploy-fa.md">دمو + Deploy</a></p>
 </header>
 
@@ -44,13 +44,12 @@
   <strong>P0 الان:</strong> production sahman (staging ✓). داده پایلوت در seed نیست — از پنل ADMIN.<br />
   <strong>تازه ✓:</strong> FIN-NO-HARDCODE-1 — <code>loadMineFinanceConfig</code> · 400 «تنظیمات معدن ناقص» · <a href="architecture/dynamic-config-fa.md">dynamic-config-fa.md</a><br />
   <strong>P1 UX (قبل UAT میدانی):</strong> ریدیزاین «بدون فکر کردن» — کاربر عادی دکمه/بخش لازم را پیدا کند؛ رنگ و چیدمان مغزپسند · <strong>اسکلت وایرفریم حفظ شود</strong> — <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a><br />
-  <strong>تازه ✓:</strong> UX-WEB-SIMPLE-1 — ریدیزاین پنل وب P1 · <a href="ux/web-screenshots/README.md">web-screenshots</a> · UX-SIMPLE-SPEC-1 · MINE-SETTINGS-UI-1 · FIN-NO-HARDCODE-1.
+  <strong>تازه ✓:</strong> UX-MOBILE-SIMPLE-1 — Flutter P1 · <a href="ux/mobile-screenshots/README.md">mobile-screenshots</a> · UX-WEB-SIMPLE-1 · UX-SIMPLE-SPEC-1.
 </div>
 
 <nav class="toc">
   <strong>باقی‌مانده — اولویت اجرا (بالا → پایین)</strong>
   <em style="display:block;font-size:12px;color:#6B7280;margin:4px 0 10px">P0 = blocker UAT · P1 = مهم پس از staging · P2/P3 = فاز بعد</em>
-  <a href="#ux-mobile-simple-1"><span class="p1">P1</span> UX-MOBILE-SIMPLE-1 — موبایل + وایرفریم ۱–۸</a>
   <a href="#tenant-onboard-1"><span class="p1">P1</span> TENANT-ONBOARD-1 — onboarding معدن بدون seed</a>
   <a href="#deploy-sahman-1"><span class="p0">P0</span> DEPLOY-SAHMAN-1 — production + دامنه</a>
   <a href="#brand-sahman-1"><span class="p1">P1</span> BRAND-SAHMAN-1</a>
@@ -61,6 +60,7 @@
   <a href="#tenant-rls-1"><span class="p3">P3</span> TENANT-RLS-1</a>
   <hr style="border:none;border-top:1px solid #E5E7EB;margin:10px 0" />
   <strong>تازه انجام‌شده ✓</strong>
+  <a href="#ux-mobile-simple-1">UX-MOBILE-SIMPLE-1 ✅</a>
   <a href="#ux-web-simple-1">UX-WEB-SIMPLE-1 ✅</a>
   <a href="#ux-simple-spec-1">UX-SIMPLE-SPEC-1 ✅</a>
   <a href="#fin-no-hardcode-1">FIN-NO-HARDCODE-1 ✅</a>
@@ -83,92 +83,10 @@
   <a href="#pilot-taftan-1">PILOT-TAFTAN-1 ✅</a>
   <a href="#fin-seed-99-1">FIN-SEED-99-1 ✅</a>
   <a href="#hold-settlement-1">HOLD-SETTLEMENT-1 ✅</a>
-  <a href="#tasks-done">… همه ۸۳ کارت پایین صفحه</a>
+  <a href="#tasks-done">… همه ۸۴ کارت پایین صفحه</a>
 </nav>
 
-<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۹)</h2>
-
-<article class="task" id="ux-mobile-simple-1">
-  <h2><span class="badge">UX-MOBILE-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین Flutter — راننده + تعاونی + وایرفریم</h2>
-  <div class="ctx"><strong>پیش‌نیاز:</strong> UX-SIMPLE-SPEC-1 · <strong>هدف:</strong> راننده در جاده — یک نگاه: «قدم بعدی چیه؟» · CTA پایین ثابت · استپر مثل <code>3.png</code> · خانه مثل <code>2.png</code>. خانوار: کیف پول و ثبت‌نام بدون jargon.</div>
-  <h3>وایرفریم → صفحه Flutter</h3>
-  <table>
-    <thead><tr><th>فایل</th><th>screen</th><th>نکته ریدیزاین</th></tr></thead>
-    <tbody>
-      <tr><td><code>1.png</code></td><td><code>login_screen.dart</code></td><td>OTP ۶ خانه بزرگ · Pending/Suspended جدا</td></tr>
-      <tr><td><code>2.png</code></td><td><code>driver_home_screen.dart</code></td><td>پروفایل+آمار بالا · یک CTA حالت‌محور</td></tr>
-      <tr><td><code>3.png</code></td><td><code>mission_detail_screen.dart</code></td><td>کارت مسیر · استپر ۷ عمودی · «مرحله بعد»</td></tr>
-      <tr><td><code>4.png</code>,<code>7.png</code></td><td>mine/factory entry</td><td>فاصله متر برجسته · نقشه جمع‌شونده</td></tr>
-      <tr><td><code>5.png</code></td><td>weighbridge read</td><td>فقط نمایش وزن — بدون ورود دستی</td></tr>
-      <tr><td><code>6.png</code></td><td><code>in_transit_screen.dart</code></td><td>read-only + CTA کارخانه</td></tr>
-      <tr><td><code>8.png</code></td><td><code>unload_confirm_screen.dart</code></td><td>checkbox + CTA قفل</td></tr>
-    </tbody>
-  </table>
-  <h3>محدودیت‌ها</h3>
-  <ul>
-    <li>mineral_ui مشترک — driver + community.</li>
-    <li>خروج در <strong>همه</strong> صفحات authenticated.</li>
-    <li>FSM/API عوض نشود — ۹ state → ۷ گام UI (جدول سند §۶).</li>
-    <li>یک فیلد per row · CTA پایین SafeArea.</li>
-  </ul>
-  <h3>فایل‌های کلیدی</h3>
-  <ul>
-    <li><code>docs/ux/simple-ui-spec-fa.md</code> · <code>docs/wireframes-review/</code></li>
-    <li><code>apps/mobile/packages/mineral_ui/</code></li>
-    <li><code>apps/mobile/driver_app/lib/ui/screens/</code></li>
-    <li><code>apps/mobile/community_app/lib/ui/screens/</code></li>
-  </ul>
-  <h3>پرامپت کپی — paste در Cursor</h3>
-  <pre>پروژه: logestic — UX-MOBILE-SIMPLE-1 (P1)
-
-## مرجع
-- docs/ux/simple-ui-spec-fa.md (کامل)
-- وایرفریم 1.png–8.png در docs/wireframes-review/
-- mission_stepper.dart / mission_detail — اسکلت فعلی را حفظ، وضوح را بالا ببر
-
-## هدف
-راننده/خانوار بدون آموزش و بدون «نقشه ذهنی» کار کنند.
-هر صفحه: StatusCard + یک CTA پایین «مرحله بعد» / اقدام اصلی.
-
-## mineral_ui (قبل از screens)
-- SimpleScaffold: AppBar عنوان · body · bottom primary ثابت
-- StepProgressBar: «مرحله ۳ از ۷» + استپر عمودی (✓ ● ○ قفل)
-- BigActionButton: full-width min 56dp
-- SimpleStatusCard: رنگ معنی‌دار + آیکون + یک خط
-- PlainLanguageError: map کد API → جمله فارسی + «چکار کنم؟»
-
-## driver_app — صفحه‌به‌صفحه (diff با وایرفریم)
-1.png login: OTP بزرگ، خطا واضح
-2.png home: کارت پروفایل، آمار روز، **یک** CTA (شروع/ادامه)
-3.png mission_detail: MSN/مسیر + timeline 7 + CTA پایین
-4/7 geofence: «فاصله شما: X متر» — نقشه Collapsible
-5 weighbridge: فقط نمایش — «منتظر ثبت باسکول»
-6 in_transit: read-only
-8 unload: checkbox اجباری + تأیید
-همه screens: LogoutAppBarButton (grep و fix جاافتاده)
-
-## community_app
-- home_shell: ۳ کارت بزرگ (کیف پول · اعضا · درخواست)
-- register wizard: یک فیلد per step + «مرحله N از M»
-- wallet: «موجودی شما» عدد بزرگ — بدون ledger
-
-## آنتی‌پترن
-- صفحه‌ای که فقط نقشه باشد بدون متن راهنما
-- چند دکمه سبز هم‌سطح
-- اصطلاح Geofence/FSM در UI
-
-## DoD
-- widgets در mineral_ui export
-- driver P1 screens + community P1
-- flutter analyze clean
-- APK manual 09000000003: FSM بدون سردرگمی
-- screenshot کنار 1–8.png در docs/ux/mobile-screenshots/
-- چک‌لیست §۷: ۱۰/۱۰</pre>
-  <h3>Definition of Done</h3>
-  <ul><li>SimpleScaffold + استپر ۷ گام · اسکلت وایرفریم</li><li>logout همه screens</li><li>چک‌لیست §۷</li></ul>
-  <h3>تست</h3>
-  <ul><li><code>flutter analyze</code> (driver + community)</li><li>APK UAT + مقایسه تصویری وایرفریم</li></ul>
-</article>
+<h2 class="section-h" id="tasks-pending">تسک‌های باقی‌مانده (۸)</h2>
 
 <article class="task" id="tenant-onboard-1">
   <h2><span class="badge">TENANT-ONBOARD-1</span> <span class="p1">P1</span> onboarding معدن جدید بدون ویرایش seed</h2>
@@ -430,7 +348,25 @@ After requireMineContext: `await prisma.$executeRaw`SET app.mine_id = ${mineId}`
   <ul><li>npm -w @app/backend run test:tenant-rls1</li><li>manual DBA review</li></ul>
 </article>
 
-<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۳)</h2>
+<h2 class="section-h" id="tasks-done">تسک‌های انجام‌شده (۸۴)</h2>
+
+<article class="task task-done" id="ux-mobile-simple-1">
+  <h2><span class="badge">UX-MOBILE-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین Flutter — راننده + تعاونی + وایرفریم</h2>
+  <p class="done-banner">✅ <strong>انجام شده</strong> — ۱۴۰۵/۰۳/۱۵ · <a href="ux/mobile-screenshots/README.md">mobile-screenshots</a> · <a href="ux/simple-ui-spec-fa.md">simple-ui-spec-fa.md</a></p>
+  <div class="ctx"><strong>خروجی:</strong> <code>SimpleScaffold</code> · <code>StepProgressBar</code> · <code>BigActionButton</code> (56dp) · <code>SimpleStatusCard</code> · <code>PlainLanguageError</code> · logout authenticated · geofence متن‌محور · خانوار ۳ کارت + wizard ثبت‌نام.</div>
+  <h3>فایل‌های کلیدی</h3>
+  <ul>
+    <li><code>apps/mobile/packages/mineral_ui/lib/src/widgets/simple/</code></li>
+    <li><code>apps/mobile/driver_app/lib/ui/screens/</code> (login، home، mission_detail، geofence، weighbridge، in_transit، unload)</li>
+    <li><code>apps/mobile/community_app/lib/ui/screens/home_shell.dart</code> · <code>household/register_screen.dart</code> · <code>wallet_screen.dart</code></li>
+  </ul>
+  <h3>تست</h3>
+  <ul>
+    <li><code>flutter analyze</code> + <code>flutter test</code> (mineral_ui، driver_app، community_app)</li>
+    <li>UAT راننده <code>09000000003</code> — مسیر FSM کامل</li>
+    <li>چک‌لیست §۷: ۱۰/۱۰ در <a href="ux/mobile-screenshots/README.md">README</a></li>
+  </ul>
+</article>
 
 <article class="task task-done" id="ux-web-simple-1">
   <h2><span class="badge">UX-WEB-SIMPLE-1</span> <span class="p1">P1</span> ریدیزاین پنل وب — بدون فکر کردن + وایرفریم</h2>

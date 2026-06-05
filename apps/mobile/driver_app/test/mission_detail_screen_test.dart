@@ -7,6 +7,7 @@ import 'package:driver_app/core/mission_flow.dart';
 import 'package:driver_app/models/api_models.dart';
 import 'package:driver_app/models/mission_detail_display.dart';
 import 'package:driver_app/ui/screens/mission_detail_screen.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 DriverMission _mission(String status) {
   return DriverMission(
@@ -51,6 +52,8 @@ void main() {
     expect(find.text('کارخانه شمال'), findsOneWidget);
     expect(find.text('24.5 تن'), findsOneWidget);
     expect(find.text('پذیرش ماموریت'), findsOneWidget);
+    expect(find.text('مرحله 1 از 7'), findsOneWidget);
+    expect(find.byType(BigActionButton), findsOneWidget);
   });
 
   testWidgets('ACCEPTED routes to geofence not direct advance label', (tester) async {
@@ -95,8 +98,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('رسیدم به مقصد'), findsOneWidget);
-    await tester.tap(find.text('رسیدم به مقصد'));
+    expect(find.text('ثبت ورود به کارخانه'), findsOneWidget);
+    await tester.tap(find.text('ثبت ورود به کارخانه'));
     await tester.pumpAndSettle();
     expect(find.text('in-transit'), findsOneWidget);
   });

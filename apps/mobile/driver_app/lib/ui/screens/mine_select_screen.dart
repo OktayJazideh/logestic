@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/driver_api_client.dart';
+import '../../core/driver_logout.dart';
 
 class MineSelectScreen extends StatefulWidget {
   const MineSelectScreen({
@@ -56,12 +58,20 @@ class _MineSelectScreenState extends State<MineSelectScreen> {
     }
   }
 
+  Future<void> _logout() => driverLogout(context, widget.sessionStore);
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('کار در معدن')),
+      child: SimpleScaffold(
+        title: simpleLabel('workspace'),
+        onLogout: _logout,
+        status: const SimpleStatusCard(
+          message: 'محل کار خود را انتخاب کنید.',
+          icon: Icons.domain_outlined,
+          tone: SimpleStatusTone.info,
+        ),
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -121,3 +131,4 @@ class _MineSelectScreenState extends State<MineSelectScreen> {
     );
   }
 }
+

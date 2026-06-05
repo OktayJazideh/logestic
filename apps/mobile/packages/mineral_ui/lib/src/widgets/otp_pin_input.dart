@@ -79,8 +79,8 @@ class OtpPinInputState extends State<OtpPinInput> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(_length, (i) {
         return SizedBox(
-          width: 46,
-          height: 52,
+          width: 52,
+          height: 56,
           child: TextField(
             controller: _controllers[i],
             focusNode: _focusNodes[i],

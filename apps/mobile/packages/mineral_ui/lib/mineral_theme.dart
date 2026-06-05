@@ -40,6 +40,9 @@ class MineralTheme {
   /// Primary / outlined buttons — login, demo panel, forms.
   static const double buttonHeight = 48;
 
+  /// Sticky bottom primary CTA — UX-SIMPLE-SPEC-1 §۲.۳.
+  static const double primaryCtaHeight = 56;
+
   static TextTheme _textTheme(Color body) {
     return TextTheme(
       headlineSmall: const TextStyle(

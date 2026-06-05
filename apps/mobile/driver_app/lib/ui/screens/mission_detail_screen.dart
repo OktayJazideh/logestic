@@ -7,7 +7,9 @@ import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/connectivity_service.dart';
 import '../../core/driver_api_client.dart';
+import '../../core/driver_logout.dart';
 import '../../core/mission_flow.dart';
+import '../../core/mission_primary_action.dart';
 import '../../core/offline/mission_step_queue_item.dart';
 import '../../core/offline/mission_step_queue_store.dart';
 import '../../core/offline/mission_sync_service.dart';
@@ -153,11 +155,7 @@ class _MissionDetailScreenState extends State<MissionDetailScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    await widget.sessionStore.clearSession();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
-  }
+  Future<void> _logout() => driverLogout(context, widget.sessionStore);
 
   Future<void> _enqueueOfflineStep({
     required DriverMission m,
@@ -310,10 +308,44 @@ class _MissionDetailScreenState extends State<MissionDetailScreen> {
     final m = _effectiveMission;
     final display = _display;
 
+    final statusCard = m != null
+        ? SimpleStatusCard(
+            message: MissionStatusBadge.labelFor(m.status),
+            icon: Icons.flag_outlined,
+            tone: MissionFlow.isDriverTerminal(m.status)
+                ? SimpleStatusTone.success
+                : SimpleStatusTone.info,
+          )
+        : null;
+
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: Text(m != null ? 'مأموریت #${m.id}' : 'جزئیات مأموریت')),
+      child: SimpleScaffold(
+        title: m != null ? '${simpleLabel('mission')} #${m.id}' : 'جزئیات مأموریت',
+        onLogout: _logout,
+        status: statusCard,
+        bottomBar: m != null
+            ? BigActionButton(
+                label: missionPrimaryLabel(m),
+                busy: _loading,
+                onPressed: missionPrimaryEnabled(m, loading: _loading) ? () => _onPrimaryPressed(m) : null,
+              )
+            : null,
+        secondaryLink: m != null && MissionFlow.showWeighbridgeStatusLink(m.status)
+            ? TextButton(
+                onPressed: _loading
+                    ? null
+                    : () => Navigator.pushNamed(
+                          context,
+                          '/missions/${m.id}/weighbridge',
+                          arguments: {
+                            'token': widget.token,
+                            'missionId': m.id,
+                          },
+                        ).then((_) => _refresh()),
+                child: const Text('مشاهده وضعیت باسکول'),
+              )
+            : null,
         body: RefreshIndicator(
           onRefresh: () async {
             await _refresh();
@@ -350,43 +382,15 @@ class _MissionDetailScreenState extends State<MissionDetailScreen> {
                       ),
                     ),
                   ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: MissionStatusBadge(status: m.status),
-                ),
-                const SizedBox(height: 12),
                 MissionIdBadges(loadId: m.loadId, missionId: m.id),
                 const SizedBox(height: 16),
-                Text(
-                  'پیشرفت مأموریت',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 12),
-                VerticalMissionStepper(
+                StepProgressBar(
+                  title: 'پیشرفت مأموریت',
                   currentStepIndex: MissionFlow.uiStepIndexFromStatus(m.status),
                   labels: MissionFlow.uiStepLabelsFa,
                 ),
                 const SizedBox(height: 20),
                 _MissionDetailsCard(mission: m, display: display),
-                if (MissionFlow.showWeighbridgeStatusLink(m.status)) ...[
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _loading
-                          ? null
-                          : () => Navigator.pushNamed(
-                                context,
-                                '/missions/${m.id}/weighbridge',
-                                arguments: {
-                                  'token': widget.token,
-                                  'missionId': m.id,
-                                },
-                              ).then((_) => _refresh()),
-                      child: const Text('مشاهده وضعیت باسکول'),
-                    ),
-                  ),
-                ],
                 if (m.status == 'DELIVERED') ...[
                   const SizedBox(height: 16),
                   WeighbridgeFlowStrip(
@@ -394,22 +398,7 @@ class _MissionDetailScreenState extends State<MissionDetailScreen> {
                     ticketPending: _ticket == null,
                   ),
                 ],
-                const SizedBox(height: 24),
-                SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _loading ||
-                            MissionFlow.isDriverTerminal(m.status) ||
-                            (!MissionFlow.canAdvanceInPlace(m.status) &&
-                                !MissionFlow.mustConfirmGeofenceBeforeAdvance(m.status) &&
-                                !MissionFlow.mustConfirmFactoryGeofenceBeforeAdvance(m.status) &&
-                                !MissionFlow.mustConfirmUnloadBeforeAdvance(m.status))
-                        ? null
-                        : () => _onPrimaryPressed(m),
-                    child: Text(MissionFlow.primaryActionLabel(m.status)),
-                  ),
-                ),
+                const SizedBox(height: 16),
               ],
             ],
           ),

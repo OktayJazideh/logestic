@@ -113,6 +113,7 @@ class AppRouter {
           api: api,
           token: args['token'] as String,
           missionId: args['missionId'] as int,
+          sessionStore: sessionStore,
         ),
       );
     }
@@ -127,6 +128,7 @@ class AppRouter {
           token: (args?['token'] as String?) ?? '',
           missionId: args?['missionId'] as int? ?? missionId,
           awaitingWb: args?['awaiting_wb'] as bool? ?? false,
+          sessionStore: sessionStore,
         ),
       );
     }
@@ -140,6 +142,7 @@ class AppRouter {
           missionId: args['missionId'] as int,
           destination: args['destination'] as String?,
           employerContact: args['employer_contact'] as String?,
+          sessionStore: sessionStore,
         ),
       );
     }
@@ -151,6 +154,7 @@ class AppRouter {
           api: api,
           token: args['token'] as String,
           missionId: args['missionId'] as int,
+          sessionStore: sessionStore,
           destination: args['destination'] as String?,
           employerContact: args['employer_contact'] as String?,
           latitude: (args['latitude'] as num?)?.toDouble(),

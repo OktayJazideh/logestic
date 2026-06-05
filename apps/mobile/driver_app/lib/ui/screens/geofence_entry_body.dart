@@ -29,6 +29,7 @@ class GeofenceEntryBody extends StatefulWidget {
     this.popAfterConfirm = true,
     this.queueStore,
     this.connectivity,
+    this.onLogout,
   });
 
   final DriverApiClient api;
@@ -44,6 +45,7 @@ class GeofenceEntryBody extends StatefulWidget {
   final bool popAfterConfirm;
   final MissionStepQueueStore? queueStore;
   final ConnectivityService? connectivity;
+  final Future<void> Function()? onLogout;
 
   @override
   State<GeofenceEntryBody> createState() => _GeofenceEntryBodyState();
@@ -262,71 +264,98 @@ class _GeofenceEntryBodyState extends State<GeofenceEntryBody> {
     final cfg = _config;
     final canConfirm = cfg != null && _position != null && _insideFence && !_submitting && !_loadingConfig;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.appBarTitle)),
-      body: _loadingConfig && cfg == null
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                if (_configError != null) ...[
-                  Text(_configError!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                  const SizedBox(height: 12),
-                  OutlinedButton(onPressed: _loadConfig, child: const Text('تلاش مجدد')),
-                  const SizedBox(height: 16),
-                ],
-                if (cfg != null) ...[
-                  Text(
-                    cfg.label,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'مأموریت #${widget.missionId}',
-                    style: const TextStyle(color: MineralTheme.muted, fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  GeofenceMapPanel(
-                    config: cfg,
-                    driverPosition: _position != null ? LatLng(_position!.latitude, _position!.longitude) : null,
-                  ),
-                  const SizedBox(height: 16),
-                  GeofenceStatusTable(
-                    areaLabel: cfg.label,
-                    driverLat: _position?.latitude,
-                    driverLng: _position?.longitude,
-                    distanceM: _distanceM,
-                    radiusM: cfg.radiusM,
-                    insideFence: _position != null && _distanceM != null ? _insideFence : null,
-                    gpsState: _locating
-                        ? GeofenceGpsState.locating
-                        : (_locationError != null ? GeofenceGpsState.error : GeofenceGpsState.ok),
-                    gpsError: _locationError,
-                  ),
-                  if (_position != null && _distanceM != null && !_insideFence) ...[
-                    const SizedBox(height: 10),
+    final distanceHero = _distanceM != null
+        ? 'فاصله شما: ${_distanceM!.round()} متر'
+        : (_locating ? 'در حال محاسبه فاصله…' : 'موقعیت شما هنوز مشخص نیست');
+
+    final statusTone = _insideFence
+        ? SimpleStatusTone.success
+        : (_distanceM != null ? SimpleStatusTone.warn : SimpleStatusTone.info);
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: SimpleScaffold(
+        title: widget.appBarTitle,
+        onLogout: widget.onLogout,
+        status: cfg != null
+            ? SimpleStatusCard(
+                message: _insideFence
+                    ? 'داخل ${simpleLabel('geofence')} هستید — می‌توانید تأیید کنید.'
+                    : 'به ${simpleLabel('geofence')} نزدیک شوید.',
+                icon: _insideFence ? Icons.check_circle_outline : Icons.near_me_outlined,
+                tone: statusTone,
+              )
+            : null,
+        bottomBar: cfg != null
+            ? BigActionButton(
+                label: widget.confirmLabel,
+                busy: _submitting,
+                onPressed: canConfirm ? _confirm : null,
+              )
+            : null,
+        body: _loadingConfig && cfg == null
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  if (_configError != null) ...[
+                    PlainLanguageError(
+                      message: _configError!,
+                      whatToDo: 'اتصال را بررسی کنید و دوباره تلاش کنید.',
+                      onRetry: _loadConfig,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (cfg != null) ...[
                     Text(
-                      'برای تأیید ورود باید داخل محدوده باشید.',
-                      style: TextStyle(color: Theme.of(context).colorScheme.error, height: 1.4),
+                      distanceHero,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: MineralTheme.primaryDark,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${cfg.label} · مأموریت #${widget.missionId}',
+                      style: const TextStyle(color: MineralTheme.muted, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    GeofenceStatusTable(
+                      areaLabel: cfg.label,
+                      driverLat: _position?.latitude,
+                      driverLng: _position?.longitude,
+                      distanceM: _distanceM,
+                      radiusM: cfg.radiusM,
+                      insideFence: _position != null && _distanceM != null ? _insideFence : null,
+                      gpsState: _locating
+                          ? GeofenceGpsState.locating
+                          : (_locationError != null ? GeofenceGpsState.error : GeofenceGpsState.ok),
+                      gpsError: _locationError,
+                    ),
+                    if (_position != null && _distanceM != null && !_insideFence) ...[
+                      const SizedBox(height: 10),
+                      const PlainLanguageError(
+                        message: 'هنوز داخل محدوده نیستید.',
+                        whatToDo: 'به سمت محدوده حرکت کنید تا دکمه تأیید فعال شود.',
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    ExpansionTile(
+                      title: const Text('نمایش نقشه (اختیاری)'),
+                      children: [
+                        GeofenceMapPanel(
+                          config: cfg,
+                          driverPosition:
+                              _position != null ? LatLng(_position!.latitude, _position!.longitude) : null,
+                        ),
+                      ],
                     ),
                   ],
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 48,
-                    child: FilledButton(
-                      onPressed: canConfirm ? _confirm : null,
-                      child: _submitting
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : Text(widget.confirmLabel),
-                    ),
-                  ),
                 ],
-              ],
-            ),
+              ),
+      ),
     );
   }
 }

@@ -9,7 +9,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/connectivity_service.dart';
 import '../../core/driver_api_client.dart';
+import '../../core/driver_logout.dart';
 import '../../core/mission_flow.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 import '../../core/offline/mission_step_queue_item.dart';
 import '../../core/offline/mission_step_queue_store.dart';
 import '../../models/api_models.dart';
@@ -21,6 +23,7 @@ class UnloadConfirmScreen extends StatefulWidget {
     required this.api,
     required this.token,
     required this.missionId,
+    required this.sessionStore,
     this.destination,
     this.employerContact,
     this.latitude,
@@ -36,6 +39,7 @@ class UnloadConfirmScreen extends StatefulWidget {
   final DriverApiClient api;
   final String token;
   final int missionId;
+  final SessionStore sessionStore;
   final String? destination;
   final String? employerContact;
   final double? latitude;
@@ -314,10 +318,25 @@ class _UnloadConfirmScreenState extends State<UnloadConfirmScreen> {
     final employer = _employerContact;
     final factoryGeofenceDone = widget.latitude != null && widget.longitude != null;
 
+    Future<void> logout() => driverLogout(context, widget.sessionStore);
+
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('تأیید تحویل')),
+      child: SimpleScaffold(
+        title: 'تأیید تحویل',
+        onLogout: logout,
+        status: const SimpleStatusCard(
+          message: 'هر دو مورد زیر را تأیید کنید تا تحویل ثبت شود.',
+          icon: Icons.fact_check_outlined,
+          tone: SimpleStatusTone.warn,
+        ),
+        bottomBar: _loadError == null && !_loadingMission
+            ? BigActionButton(
+                label: 'تأیید تحویل',
+                busy: _submitting || _locating,
+                onPressed: _canConfirm && !_locating ? _confirmDelivery : null,
+              )
+            : null,
         body: _loadingMission
             ? const Center(child: CircularProgressIndicator())
             : _loadError != null
@@ -326,9 +345,11 @@ class _UnloadConfirmScreenState extends State<UnloadConfirmScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(_loadError!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                        const SizedBox(height: 16),
-                        OutlinedButton(onPressed: _loadMission, child: const Text('تلاش مجدد')),
+                        PlainLanguageError(
+                          message: _loadError!,
+                          whatToDo: 'اتصال را بررسی کنید.',
+                          onRetry: _loadMission,
+                        ),
                       ],
                     ),
                   )
@@ -452,22 +473,8 @@ class _UnloadConfirmScreenState extends State<UnloadConfirmScreen> {
                       ],
                       if (_locationError != null) ...[
                         const SizedBox(height: 12),
-                        Text(_locationError!, style: TextStyle(color: Theme.of(context).colorScheme.error, height: 1.4)),
+                        PlainLanguageError(message: _locationError!, whatToDo: 'GPS را روشن کنید و دوباره تلاش کنید.'),
                       ],
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        height: 48,
-                        child: FilledButton(
-                          onPressed: _canConfirm && !_locating ? _confirmDelivery : null,
-                          child: _submitting || _locating
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Text('تأیید تحویل'),
-                        ),
-                      ),
                       if (!MissionFlow.wfGeofenceEnabled) ...[
                         const SizedBox(height: 8),
                         Text(

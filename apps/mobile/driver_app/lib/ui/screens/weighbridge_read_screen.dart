@@ -5,6 +5,7 @@ import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/connectivity_service.dart';
 import '../../core/driver_api_client.dart';
+import '../../core/driver_logout.dart';
 import '../../core/offline/weighbridge_status_cache.dart';
 import '../../models/api_models.dart';
 import '../widgets/weighbridge_read_stepper.dart';
@@ -135,10 +136,18 @@ class _WeighbridgeReadScreenState extends State<WeighbridgeReadScreen> {
     final s = _status;
     final scheme = Theme.of(context).colorScheme;
 
+    Future<void> logout() => driverLogout(context, widget.sessionStore);
+
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('وضعیت باسکول')),
+      child: SimpleScaffold(
+        title: 'وضعیت باسکول',
+        onLogout: logout,
+        status: SimpleStatusCard(
+          message: s?.netWeightKg != null ? 'وزن ثبت شده — فقط مشاهده' : 'منتظر ثبت باسکول',
+          icon: Icons.scale_outlined,
+          tone: s?.netWeightKg != null ? SimpleStatusTone.success : SimpleStatusTone.warn,
+        ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

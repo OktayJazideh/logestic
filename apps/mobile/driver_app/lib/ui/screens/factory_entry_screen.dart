@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mineral_api/mineral_api.dart';
 
 import '../../core/driver_api_client.dart';
+import '../../core/driver_logout.dart';
 import 'geofence_entry_body.dart';
 
 /// WF-GEOFENCE-1 — geofence at destination before unload (WF-UNLOAD) / DELIVERED.
@@ -12,6 +14,7 @@ class FactoryEntryScreen extends StatelessWidget {
     required this.missionId,
     this.destination,
     this.employerContact,
+    required this.sessionStore,
   });
 
   final DriverApiClient api;
@@ -19,12 +22,11 @@ class FactoryEntryScreen extends StatelessWidget {
   final int missionId;
   final String? destination;
   final String? employerContact;
+  final SessionStore sessionStore;
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: GeofenceEntryBody(
+    return GeofenceEntryBody(
         api: api,
         token: token,
         missionId: missionId,
@@ -52,7 +54,7 @@ class FactoryEntryScreen extends StatelessWidget {
             }
           });
         },
-      ),
+      onLogout: () => driverLogout(context, sessionStore),
     );
   }
 }

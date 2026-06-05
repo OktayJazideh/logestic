@@ -5,6 +5,7 @@ import 'package:mineral_api/mineral_api.dart';
 import 'package:driver_app/core/driver_api_client.dart';
 import 'package:driver_app/models/api_models.dart';
 import 'package:driver_app/ui/screens/driver_home_screen.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 DriverDashboard _dashboard({
   required String state,
@@ -85,7 +86,7 @@ void main() {
       expect(find.text('منتظر تأیید باسکول'), findsNothing);
     });
 
-    testWidgets('AWAITING_WB shows orange banner without continue CTA', (tester) async {
+    testWidgets('AWAITING_WB shows status and view mission CTA', (tester) async {
       await tester.pumpWidget(
         _wrap(
           DriverHomeScreen(
@@ -101,8 +102,27 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('منتظر تأیید باسکول'), findsOneWidget);
+      expect(find.text('منتظر ثبت باسکول'), findsOneWidget);
+      expect(find.text('مشاهده مأموریت'), findsOneWidget);
       expect(find.text('ادامه مأموریت'), findsNothing);
+    });
+
+    testWidgets('single bottom BigActionButton on ACTIVE', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          DriverHomeScreen(
+            api: DriverApiClient(baseUrl: 'http://test'),
+            token: 't',
+            sessionStore: SessionStore(),
+            loadDashboard: () async => _dashboard(
+              state: 'ACTIVE',
+              active: _mission(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(BigActionButton), findsOneWidget);
     });
 
     testWidgets('IDLE with history shows recent list', (tester) async {

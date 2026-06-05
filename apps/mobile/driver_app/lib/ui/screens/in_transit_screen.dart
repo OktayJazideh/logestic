@@ -4,6 +4,7 @@ import 'package:mineral_ui/mineral_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/driver_api_client.dart';
+import '../../core/driver_logout.dart';
 import '../../core/in_transit_eta.dart';
 import '../../core/mission_flow.dart';
 import '../../models/api_models.dart';
@@ -16,6 +17,7 @@ class InTransitScreen extends StatefulWidget {
     required this.api,
     required this.token,
     required this.missionId,
+    required this.sessionStore,
     this.awaitingWb = false,
     this.loadMission,
   });
@@ -23,6 +25,7 @@ class InTransitScreen extends StatefulWidget {
   final DriverApiClient api;
   final String token;
   final int missionId;
+  final SessionStore sessionStore;
   final bool awaitingWb;
 
   /// Test hook — bypasses HTTP.
@@ -129,12 +132,40 @@ class _InTransitScreenState extends State<InTransitScreen> {
   Widget build(BuildContext context) {
     final m = _mission;
 
+    Future<void> logout() => driverLogout(context, widget.sessionStore);
+
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('در حال حمل'),
+      child: SimpleScaffold(
+        title: 'در حال حمل',
+        onLogout: logout,
+        status: const SimpleStatusCard(
+          message: 'وضعیت حمل — فقط مشاهده. برای تحویل به کارخانه بروید.',
+          icon: Icons.local_shipping_outlined,
+          tone: SimpleStatusTone.info,
         ),
+        bottomBar: m != null
+            ? BigActionButton(
+                label: 'ثبت ورود به کارخانه',
+                busy: _loading,
+                onPressed: _loading ? null : () => _openFactoryEntry(m),
+              )
+            : null,
+        secondaryLink: m != null && MissionFlow.showWeighbridgeStatusLink(m.status)
+            ? TextButton(
+                onPressed: _loading
+                    ? null
+                    : () => Navigator.pushNamed(
+                          context,
+                          '/missions/${m.id}/weighbridge',
+                          arguments: {
+                            'token': widget.token,
+                            'missionId': m.id,
+                          },
+                        ),
+                child: const Text('مشاهده وضعیت باسکول'),
+              )
+            : null,
         body: RefreshIndicator(
           onRefresh: _refresh,
           child: ListView(
@@ -148,66 +179,15 @@ class _InTransitScreenState extends State<InTransitScreen> {
                 OutlinedButton(onPressed: _refresh, child: const Text('تلاش مجدد')),
               ],
               if (m != null) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: MineralTheme.panel,
-                    border: Border.all(color: MineralTheme.border),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'در حال حمل',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: MineralTheme.primaryDark),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'In Transit',
-                        style: TextStyle(fontSize: 12, color: MineralTheme.muted),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'وضعیت سیستم — فقط خواندنی',
-                  style: TextStyle(fontSize: 12, color: MineralTheme.muted),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
                 MissionIdBadges(loadId: m.loadId, missionId: m.id),
                 const SizedBox(height: 16),
                 _ReadOnlyInfoTable(mission: m, weightLabel: _weightLabel(m)),
                 const SizedBox(height: 16),
-                Text(
-                  'پیشرفت مأموریت',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 12),
-                VerticalMissionStepper(
+                StepProgressBar(
+                  title: 'پیشرفت مأموریت',
                   currentStepIndex: MissionFlow.uiStepIndexFromStatus(m.status),
                   labels: MissionFlow.uiStepLabelsFa,
                 ),
-                const SizedBox(height: 20),
-                if (_hasMapCoords)
-                  InTransitMapPanel(
-                    mineLat: m.mineLat!,
-                    mineLng: m.mineLng!,
-                    factoryLat: m.factoryLat!,
-                    factoryLng: m.factoryLng!,
-                  )
-                else
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        'مختصات نقشه برای این مأموریت پیکربندی نشده است.',
-                        style: TextStyle(color: MineralTheme.muted),
-                      ),
-                    ),
-                  ),
                 const SizedBox(height: 16),
                 if (_hasMapCoords)
                   Row(
@@ -238,35 +218,29 @@ class _InTransitScreenState extends State<InTransitScreen> {
                     ),
                   ),
                 ],
-                if (widget.awaitingWb ||
-                    MissionFlow.showWeighbridgeStatusLink(m.status)) ...[
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _loading
-                          ? null
-                          : () => Navigator.pushNamed(
-                                context,
-                                '/missions/${m.id}/weighbridge',
-                                arguments: {
-                                  'token': widget.token,
-                                  'missionId': m.id,
-                                },
-                              ),
-                      child: const Text('مشاهده وضعیت باسکول'),
+                const SizedBox(height: 12),
+                if (_hasMapCoords)
+                  ExpansionTile(
+                    title: const Text('نمایش مسیر روی نقشه'),
+                    children: [
+                      InTransitMapPanel(
+                        mineLat: m.mineLat!,
+                        mineLng: m.mineLng!,
+                        factoryLat: m.factoryLat!,
+                        factoryLng: m.factoryLng!,
+                      ),
+                    ],
+                  )
+                else
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'مختصات نقشه برای این مأموریت پیکربندی نشده است.',
+                        style: TextStyle(color: MineralTheme.muted),
+                      ),
                     ),
                   ),
-                ],
-                const SizedBox(height: 24),
-                SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _loading ? null : () => _openFactoryEntry(m),
-                    child: const Text('رسیدم به مقصد'),
-                  ),
-                ),
               ],
             ],
           ),

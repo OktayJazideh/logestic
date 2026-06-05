@@ -6,9 +6,9 @@ import '../../core/community_api_client.dart';
 import '../../core/community_roles.dart';
 import 'coop/coop_hub_screen.dart';
 import 'coop/objections_review_screen.dart';
+import 'household/household_hub_screen.dart';
 import 'household/monthly_share_screen.dart';
 import 'household/objection_screen.dart';
-import 'household/settlement_status_screen.dart';
 import 'household/wallet_screen.dart';
 
 class HomeShell extends StatefulWidget {
@@ -41,10 +41,10 @@ class _HomeShellState extends State<HomeShell> {
   List<NavigationDestination> _destinations() {
     if (isHouseholdRole(widget.role)) {
       return const [
+        NavigationDestination(icon: Icon(Icons.home_outlined), label: 'خانه'),
         NavigationDestination(icon: Icon(Icons.account_balance_wallet), label: 'کیف‌پول'),
-        NavigationDestination(icon: Icon(Icons.pie_chart_outline), label: 'سهم ماهانه'),
-        NavigationDestination(icon: Icon(Icons.fact_check_outlined), label: 'تسویه'),
-        NavigationDestination(icon: Icon(Icons.report_outlined), label: 'اعتراض'),
+        NavigationDestination(icon: Icon(Icons.pie_chart_outline), label: 'سهم'),
+        NavigationDestination(icon: Icon(Icons.report_outlined), label: 'درخواست'),
       ];
     }
     if (isCoopOperatorRole(widget.role)) {
@@ -66,9 +66,13 @@ class _HomeShellState extends State<HomeShell> {
     );
     if (isHouseholdRole(widget.role)) {
       return [
+        HouseholdHubScreen(
+          onWallet: () => setState(() => _index = 1),
+          onShare: () => setState(() => _index = 2),
+          onRequest: () => setState(() => _index = 3),
+        ),
         WalletScreen(api: widget.api, token: widget.token, onUnauthorized: _logout),
         MonthlyShareScreen(api: widget.api, token: widget.token, onUnauthorized: _logout),
-        SettlementStatusScreen(api: widget.api, token: widget.token, onUnauthorized: _logout),
         ObjectionScreen(api: widget.api, token: widget.token, onUnauthorized: _logout),
       ];
     }

@@ -181,6 +181,16 @@ class _LoginScreenState extends State<LoginScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: MineralTheme.bg,
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+            child: BigActionButton(
+              label: _otpRequested ? 'ورود' : 'دریافت ${simpleLabel('otp')}',
+              busy: _loading,
+              onPressed: _loading ? null : (_otpRequested ? _verifyOtp : _requestOtp),
+            ),
+          ),
+        ),
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -246,45 +256,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                     if (_errorText != null) ...[
                       const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: MineralTheme.danger.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: MineralTheme.danger.withOpacity(0.3)),
-                        ),
-                        child: Text(
-                          _errorText!,
-                          style: const TextStyle(color: MineralTheme.danger),
-                          textAlign: TextAlign.center,
-                        ),
+                      PlainLanguageError(
+                        message: _errorText!,
+                        whatToDo: 'شماره یا کد را بررسی کنید و دوباره تلاش کنید.',
                       ),
                     ],
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: MineralTheme.buttonHeight,
-                      child: ElevatedButton(
-                        onPressed: _loading
-                            ? null
-                            : (_otpRequested ? _verifyOtp : _requestOtp),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: MineralTheme.primary,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: MineralTheme.primary.withOpacity(0.5),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        child: _loading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : Text(_otpRequested ? 'ورود' : 'دریافت کد'),
-                      ),
-                    ),
+                    const SizedBox(height: 80),
                     DemoLoginPanel(
                       app: 'driver',
                       busy: _loading,

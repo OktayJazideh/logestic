@@ -3,6 +3,7 @@ import 'package:mineral_api/mineral_api.dart';
 import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/driver_api_client.dart';
+import '../../core/driver_logout.dart';
 import '../../models/api_models.dart';
 import '../../models/mission_detail_display.dart';
 
@@ -100,34 +101,82 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
-  Future<void> _logout() async {
-    await widget.sessionStore.clearSession();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+  Future<void> _logout() => driverLogout(context, widget.sessionStore);
+
+  SimpleStatusCard? _statusCard(DriverDashboard dash) {
+    if (dash.isActive && dash.activeMission != null) {
+      return const SimpleStatusCard(
+        message: 'مأموریت فعال دارید — برای ادامه دکمه پایین را بزنید.',
+        icon: Icons.local_shipping_outlined,
+        tone: SimpleStatusTone.success,
+      );
+    }
+    if (dash.isAwaitingWb) {
+      return const SimpleStatusCard(
+        message: 'منتظر ثبت باسکول',
+        icon: Icons.scale_outlined,
+        tone: SimpleStatusTone.warn,
+      );
+    }
+    if (dash.isIdle) {
+      return const SimpleStatusCard(
+        message: 'آماده دریافت مأموریت جدید هستید.',
+        icon: Icons.inbox_outlined,
+        tone: SimpleStatusTone.info,
+      );
+    }
+    return null;
+  }
+
+  ({String label, VoidCallback? onPressed})? _bottomAction(DriverDashboard dash) {
+    if (dash.isActive && dash.activeMission != null) {
+      final m = dash.activeMission!;
+      return (
+        label: 'ادامه مأموریت',
+        onPressed: () => _openMissionDetail(m.id, mission: m),
+      );
+    }
+    if (dash.isAwaitingWb && dash.activeMission != null) {
+      final m = dash.activeMission!;
+      return (
+        label: 'مشاهده مأموریت',
+        onPressed: () => _openMissionDetail(m.id, mission: m),
+      );
+    }
+    return (label: 'در انتظار تخصیص', onPressed: null);
   }
 
   @override
   Widget build(BuildContext context) {
     final dash = _dashboard;
+    final bottom = dash != null ? _bottomAction(dash) : null;
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(BrandNames.driverAppTitle),
-          actions: [
-            IconButton(
-              tooltip: 'مأموریت‌ها',
-              icon: const Icon(Icons.list_alt_outlined),
-              onPressed: () => Navigator.pushNamed(
-                context,
-                '/missions',
-                arguments: widget.token,
-              ),
+      child: SimpleScaffold(
+        title: BrandNames.driverAppTitle,
+        onLogout: _logout,
+        actions: [
+          IconButton(
+            tooltip: 'مأموریت‌ها',
+            icon: const Icon(Icons.list_alt_outlined),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              '/missions',
+              arguments: widget.token,
             ),
-            LogoutAppBarButton(onLogout: _logout),
-          ],
-        ),
+          ),
+        ],
+        status: dash != null ? _statusCard(dash) : null,
+        bottomBar: bottom != null
+            ? BigActionButton(
+                label: bottom.label,
+                onPressed: bottom.onPressed,
+              )
+            : null,
+        secondaryLink: dash?.isIdle == true
+            ? TextButton(onPressed: _onDeclareReadiness, child: const Text('اعلام آمادگی (اختیاری)'))
+            : null,
         body: RefreshIndicator(
           onRefresh: _refresh,
           child: _loading && dash == null
@@ -160,10 +209,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                             driverCode: dash.driver.driverCode,
                           ),
                           const SizedBox(height: 10),
-                          DriverStatusBadge(
-                            dashboardState: dash.state,
-                            missionStatus: dash.activeMission?.status,
-                          ),
                           const SizedBox(height: 16),
                           Text(
                             'مأموریت جاری',
@@ -171,22 +216,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                           ),
                           const SizedBox(height: 8),
                           if (dash.isIdle) _IdleBody(dash: dash),
-                          if (dash.isActive && dash.activeMission != null)
-                            _ActiveBody(
-                              mission: dash.activeMission!,
-                              onContinue: () => _openMissionDetail(
-                                dash.activeMission!.id,
-                                mission: dash.activeMission,
-                              ),
-                            ),
-                          if (dash.isAwaitingWb && dash.activeMission != null)
-                            _AwaitingWbBody(
-                              mission: dash.activeMission!,
-                              onOpen: () => _openMissionDetail(
-                                dash.activeMission!.id,
-                                mission: dash.activeMission,
-                              ),
-                            ),
+                          if ((dash.isActive || dash.isAwaitingWb) && dash.activeMission != null)
+                            _MissionPreviewCard(mission: dash.activeMission!),
                           const SizedBox(height: 20),
                           Text(
                             'خلاصه امروز',
@@ -198,17 +229,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                             todayKm: dash.summary.todayKm,
                             todayDeliveries: dash.summary.todayDeliveries,
                           ),
-                          if (dash.isIdle) ...[
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              height: 48,
-                              width: double.infinity,
-                              child: OutlinedButton(
-                                onPressed: _onDeclareReadiness,
-                                child: const Text('اعلام آمادگی'),
-                              ),
-                            ),
-                          ],
                           if (dash.recentHistory.isNotEmpty) ...[
                             const SizedBox(height: 20),
                             _RecentHistorySection(
@@ -226,6 +246,22 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       ],
                     ),
         ),
+      ),
+    );
+  }
+}
+
+class _MissionPreviewCard extends StatelessWidget {
+  const _MissionPreviewCard({required this.mission});
+
+  final DriverDashboardMission mission;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: _MissionRouteCard(mission: mission),
       ),
     );
   }
@@ -260,83 +296,6 @@ class _IdleBody extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ActiveBody extends StatelessWidget {
-  const _ActiveBody({required this.mission, required this.onContinue});
-
-  final DriverDashboardMission mission;
-  final VoidCallback onContinue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _MissionRouteCard(mission: mission),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: onContinue,
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('ادامه مأموریت'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AwaitingWbBody extends StatelessWidget {
-  const _AwaitingWbBody({required this.mission, required this.onOpen});
-
-  final DriverDashboardMission mission;
-  final VoidCallback onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Material(
-          color: MineralTheme.accent.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Icon(Icons.scale_outlined, color: MineralTheme.accent.withOpacity(0.95)),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'منتظر تأیید باسکول',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _MissionRouteCard(mission: mission),
-                const SizedBox(height: 12),
-                OutlinedButton(onPressed: onOpen, child: const Text('مشاهده جزئیات')),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

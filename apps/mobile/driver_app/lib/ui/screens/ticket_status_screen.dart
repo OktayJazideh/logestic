@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/driver_api_client.dart';
+import '../../core/driver_logout.dart';
 import '../../models/api_models.dart';
 import '../widgets/weighbridge_flow_strip.dart';
 
@@ -86,13 +88,19 @@ class _TicketStatusScreenState extends State<TicketStatusScreen> {
     }
   }
 
+  Future<void> _logout() => driverLogout(context, widget.sessionStore);
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('وضعیت باسکول'),
+      child: SimpleScaffold(
+        title: 'وضعیت باسکول',
+        onLogout: _logout,
+        bottomBar: BigActionButton(
+          label: 'به‌روزرسانی',
+          busy: _loading,
+          onPressed: _loading ? null : _refresh,
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),
@@ -130,7 +138,7 @@ class _TicketStatusScreenState extends State<TicketStatusScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                'Ticket شماره: ${_ticket!.ticketNumber}',
+                                'شماره تیکت: ${_ticket!.ticketNumber}',
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -171,9 +179,9 @@ class _TicketStatusScreenState extends State<TicketStatusScreen> {
                             spacing: 18,
                             runSpacing: 8,
                             children: [
-                              Text('Mission: ${_ticket!.missionId}'),
-                              Text('Load: ${_ticket!.loadId}'),
-                              Text('Status Code: ${_ticket!.status}'),
+                              Text('${simpleLabel('mission')}: ${_ticket!.missionId}'),
+                              Text('${simpleLabel('load')}: ${_ticket!.loadId}'),
+                              Text('وضعیت: ${_statusTitle(_ticket!.status)}'),
                             ],
                           ),
                         ),
@@ -207,12 +215,6 @@ class _TicketStatusScreenState extends State<TicketStatusScreen> {
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: _refresh,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('به‌روزرسانی'),
                 ),
                 const SizedBox(height: 12),
                 TextButton(
