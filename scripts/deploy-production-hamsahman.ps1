@@ -20,17 +20,17 @@ npm run build
 Pop-Location
 
 $ApkApiBase = "https://$Domain"
-Write-Host "==> build mobile APKs (API=$ApkApiBase, demo login for UAT)"
+Write-Host "==> build mobile APKs (API=$ApkApiBase, no demo login)"
 if (Get-Command flutter -ErrorAction SilentlyContinue) {
-    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApkApiBase -App both
+    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApkApiBase -App both -NoDemoLogin
 } else {
-    Write-Warning "Flutter not on PATH - skip APK. Run: .\scripts\build-apk.ps1 -ApiBaseUrl $ApkApiBase"
+    Write-Warning "Flutter not on PATH - skip APK. Run: .\scripts\build-apk.ps1 -ApiBaseUrl $ApkApiBase -NoDemoLogin"
 }
 
-Write-Host "==> build web (demo login + API same-origin /api)"
+Write-Host "==> build web (OTP-only, API same-origin /api)"
 Push-Location apps/web
 $env:VITE_API_BASE = "/api"
-$env:VITE_ENABLE_DEMO_LOGIN = "true"
+$env:VITE_ENABLE_DEMO_LOGIN = "false"
 npm run build
 $sha = git rev-parse --short HEAD
 Write-Host "    web build SHA: $sha"
@@ -44,18 +44,19 @@ Write-Host "==> upload web dist"
 scp -r apps/web/dist "root@${VpsHost}:${RemoteRoot}/apps/web/"
 
 Write-Host "==> upload nginx + env example (manual merge env on server)"
+ssh "root@${VpsHost}" "mkdir -p ${RemoteRoot}/deploy/config"
 scp deploy/config/nginx-hamsahman.ir.conf "root@${VpsHost}:${RemoteRoot}/deploy/config/"
 scp deploy/config/backend.env.production.example "root@${VpsHost}:${RemoteRoot}/deploy/config/"
 
 Write-Host "==> prisma migrate + restart on VPS"
 # Bash one-liner passed to ssh (string concat avoids PS parsing).
-$remoteCmd = 'set -e; if [ ! -f /etc/logestic/backend.env ]; then echo WARNING: /etc/logestic/backend.env missing; fi; if ! grep -q "^ENABLE_DEMO_LOGIN=true" /etc/logestic/backend.env 2>/dev/null; then echo WARNING: add ENABLE_DEMO_LOGIN=true to /etc/logestic/backend.env for UAT demo login; fi; if [ -f ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf ]; then cp ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true; ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true; fi; cd ' + $RemoteRoot + '/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && sleep 2 && nginx -t && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK'
+$remoteCmd = 'set -e; if [ ! -f /etc/logestic/backend.env ]; then echo WARNING: /etc/logestic/backend.env missing; fi; if grep -q "^ENABLE_DEMO_LOGIN=true" /etc/logestic/backend.env 2>/dev/null; then echo WARNING: set ENABLE_DEMO_LOGIN=false in /etc/logestic/backend.env for OTP-only login; fi; if [ -f ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf ]; then cp ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true; ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true; fi; cd ' + $RemoteRoot + '/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && sleep 2 && nginx -t && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK'
 ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""
 Write-Host "Done. Open https://$Domain"
 Write-Host "  APK downloads: https://$Domain/downloads/logestic-driver.apk"
 Write-Host "                 https://$Domain/downloads/logestic-community.apk"
-Write-Host "  - Verify SMS on VPS: npm -w backend run test:sms-prod1 -- --live"
-Write-Host "  - Ensure /etc/logestic/backend.env has NODE_ENV=production and SMS_*"
+Write-Host "  - On VPS: ENABLE_DEMO_LOGIN=false + SMS_* in /etc/logestic/backend.env"
+Write-Host "  - Verify SMS: cd $RemoteRoot && npm -w backend run test:sms-prod1 -- --live"
 Write-Host "  - SSL: certbot --nginx -d $Domain -d www.$Domain"
