@@ -16,13 +16,13 @@ import { brand, cardStyle, inputStyle, radius, shadow, space } from "../theme";
 const MOBILE_DOWNLOADS = [
   {
     href: "/downloads/logestic-driver.apk",
-    label: "دانلود اپ راننده",
-    hint: "Android · OTP + ورود دمو",
+    label: "اپ راننده",
+    hint: "مأموریت و باسکول",
   },
   {
     href: "/downloads/logestic-community.apk",
-    label: "دانلود اپ تعاونی",
-    hint: "Android · خانوار و تعاونی",
+    label: "اپ تعاونی",
+    hint: "اعضا و عملیات",
   },
 ] as const;
 
@@ -32,21 +32,13 @@ type VerifyDetails = { reason?: string; attemptsLeft?: number };
 
 function otpErrorMessage(details: VerifyDetails | undefined, fallback: string): string {
   const reason = details?.reason;
-  if (reason === "locked") {
-    return "پس از ۳ تلاش اشتباه ورود قفل شد. OTP جدید درخواست کنید.";
-  }
-  if (reason === "expired") {
-    return "کد منقضی شده است. OTP جدید درخواست کنید.";
-  }
-  if (reason === "not_found") {
-    return "ابتدا درخواست OTP دهید.";
-  }
+  if (reason === "locked") return "۳ بار اشتباه زدید. «ارسال دوباره» بزنید.";
+  if (reason === "expired") return "کد منقضی شده. «ارسال دوباره» بزنید.";
+  if (reason === "not_found") return "ابتدا «دریافت کد ورود» را بزنید.";
   if (reason === "invalid") {
     const left = details?.attemptsLeft;
-    if (typeof left === "number") {
-      return left > 0 ? `کد اشتباه است. ${left} تلاش باقی‌مانده.` : "کد اشتباه است.";
-    }
-    return "کد اشتباه است.";
+    if (typeof left === "number" && left > 0) return `کد نادرست (${left} تلاش مانده).`;
+    return "کد نادرست است.";
   }
   return fallback;
 }
@@ -148,7 +140,7 @@ export default function LoginPage() {
       return;
     }
     if (r.status === 429) {
-      setError("درخواست‌های زیاد. کمی بعد دوباره تلاش کنید.");
+      setError("درخواست زیاد. یک دقیقه صبر کنید.");
       return;
     }
     setError(loginErrorMessage(r.code, r.message));
@@ -181,7 +173,7 @@ export default function LoginPage() {
     return (
       <LoginShell>
         <LoginCard>
-          <p style={{ margin: 0, color: brand.textMuted, fontSize: 14 }}>در حال بررسی نشست…</p>
+          <p style={{ margin: 0, color: brand.textMuted, fontSize: 14 }}>بررسی ورود…</p>
         </LoginCard>
       </LoginShell>
     );
@@ -197,21 +189,33 @@ export default function LoginPage() {
           <BrandLogo variant="full" size={44} />
         </div>
         <h1 style={{ margin: "0 0 4px", fontSize: 22, color: brand.primaryDark, fontWeight: 700, textAlign: "center" }}>
-          ورود
+          ورود به {brandNames.panel.short}
         </h1>
-        <p style={{ margin: "0 0 8px", fontSize: 14, color: brand.textMuted, textAlign: "center" }}>
-          {brandNames.panel.title} — {brandNames.tagline}
+        <p style={{ margin: "0 0 4px", fontSize: 13, color: brand.textSoft, textAlign: "center" }}>
+          {brandNames.tagline}
         </p>
-        <p style={{ margin: "0 0 20px", fontSize: 15, color: brand.textMuted, lineHeight: 1.6, textAlign: "center" }}>
-          {step === 1
-            ? `شماره موبایل را وارد کنید تا ${simpleLabel("otp")} ارسال شود.`
-            : `کد ارسال‌شده به ${mobile} را وارد کنید.`}
+        <p style={{ margin: "0 0 20px", fontSize: 15, color: brand.textMuted, lineHeight: 1.55, textAlign: "center" }}>
+          {step === 1 ? "شماره موبایل ثبت‌شده را وارد کنید." : "کد ۶ رقمی پیامک‌شده را وارد کنید."}
         </p>
+        {step === 2 && (
+          <p
+            style={{
+              margin: "-12px 0 16px",
+              fontSize: 13,
+              color: brand.textSoft,
+              textAlign: "center",
+              direction: "ltr",
+              letterSpacing: 0.5,
+            }}
+          >
+            {mobile}
+          </p>
+        )}
 
         {error && (
           <ErrorBanner
             message={error}
-            actionHint={step === 2 ? "در صورت انقضا، «ارسال مجدد کد» را بزنید." : "شماره را بررسی کنید و دوباره تلاش کنید."}
+            actionHint={step === 2 ? "«ارسال دوباره» یا «تغییر شماره»." : "شماره ثبت‌شده را وارد کنید."}
             onRetry={
               step === 2
                 ? () => void requestOtp()
@@ -234,7 +238,7 @@ export default function LoginPage() {
               label="شماره موبایل"
               required
               error={mobileError}
-              hint="۹ تا ۱۵ رقم، مثلاً 09121234567"
+              hint="مثال: ۰۹۱۲۱۲۳۴۵۶۷"
               htmlFor="login-mobile"
             >
               <Input
@@ -278,7 +282,7 @@ export default function LoginPage() {
                 }}
                 disabled={busy}
               />
-              مرا بخاطر داشته باش
+              مرا به خاطر بسپار
             </label>
             <Button
               data-testid="login-request-otp"
@@ -286,7 +290,7 @@ export default function LoginPage() {
               fullWidth
               disabled={busy || !mobileValid}
             >
-              {busy ? "در حال ارسال…" : "دریافت کد"}
+              {busy ? "در حال ارسال…" : "دریافت کد ورود"}
             </Button>
             <DemoLoginPanel app="web" />
             <MobileDownloadLinks />
@@ -299,7 +303,7 @@ export default function LoginPage() {
               void verifyOtp();
             }}
           >
-            <FormField label="کد ۶ رقمی" required error={otpError} htmlFor="login-otp">
+            <FormField label={simpleLabel("otp")} required error={otpError} htmlFor="login-otp">
               <Input
                 id="login-otp"
                 data-testid="login-otp"
@@ -333,7 +337,7 @@ export default function LoginPage() {
                 disabled={busy || resendSec > 0 || !mobileValid}
                 onClick={() => void requestOtp()}
               >
-                {resendSec > 0 ? `ارسال مجدد (${resendSec}ث)` : "ارسال مجدد کد"}
+                {resendSec > 0 ? `ارسال دوباره (${resendSec})` : "ارسال دوباره"}
               </Button>
               <Button
                 variant="ghost"
@@ -352,9 +356,11 @@ export default function LoginPage() {
             </div>
           </form>
         )}
-        <p style={{ margin: "16px 0 0", fontSize: 10, color: brand.textSoft, textAlign: "center" }}>
-          نسخه پنل: {import.meta.env.VITE_BUILD_SHA ?? "?"}
-        </p>
+        {import.meta.env.VITE_BUILD_SHA ? (
+          <p style={{ margin: "16px 0 0", fontSize: 10, color: brand.textSoft, textAlign: "center" }}>
+            {import.meta.env.VITE_BUILD_SHA}
+          </p>
+        ) : null}
       </LoginCard>
     </LoginShell>
   );
@@ -382,7 +388,7 @@ function MobileDownloadLinks() {
       }}
     >
       <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, color: brand.primaryDark, textAlign: "center" }}>
-        اپ‌های موبایل
+        دانلود اپ
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {MOBILE_DOWNLOADS.map((item) => (
