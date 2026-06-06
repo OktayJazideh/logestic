@@ -145,6 +145,23 @@ export const RULE_STATUS_FA: Record<string, string> = {
   ARCHIVED: "بایگانی",
 };
 
+export const RULE_KEY_FA: Record<string, string> = {
+  "split.owner": "سهم مالک ناوگان",
+  "split.platform": "سهم پلتفرم",
+  "community.rial_per_verified_ton": "مبلغ مشارکت جامعه (ریال/تن)",
+  "weighbridge.threshold": "آستانه اختلاف باسکول",
+  "settlement.period_days": "دوره تسویه (روز)",
+  "settlement.owner_period_days": "دوره تسویه مالک (روز)",
+  "reverse.window_hours": "پنجره برگشت (ساعت)",
+  "pool.remainder.target": "مقصد باقیمانده استخر",
+  "geofence.radius_m": "شعاع ژئوفنس (متر)",
+  "geofence.factory": "مختصات کارخانه (ژئوفنس)",
+};
+
+export function ruleKeyLabelFa(key: string): string {
+  return RULE_KEY_FA[key] ?? key;
+}
+
 export const RATE_CARD_STATUS_FA: Record<string, string> = {
   DRAFT: "پیش‌نویس",
   ACTIVE: "فعال",
@@ -177,6 +194,10 @@ export const AUDIT_ACTION_FA: Record<string, string> = {
   SIGN: "امضا",
   ACTIVATE: "فعال‌سازی",
   ARCHIVE: "بایگانی",
+  ACTIVATED: "فعال شد",
+  ARCHIVED: "بایگانی شد",
+  SOFT_DELETED: "حذف نرم",
+  RESTORED: "بازیابی",
   LOGIN: "ورود",
   LOGOUT: "خروج",
 };

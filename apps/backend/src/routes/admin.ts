@@ -619,12 +619,25 @@ const ruleScopeSchema = z.discriminatedUnion("type", [
 router.get("/admin/rules", requireAuth, requireRoles(["ADMIN"]), async (req, res, next) => {
   const requestId = (req as { requestId?: string }).requestId;
   try {
-    const key = typeof req.query.key === "string" ? req.query.key : undefined;
-    const status =
-      req.query.status === "ACTIVE" || req.query.status === "ARCHIVED"
-        ? req.query.status
-        : undefined;
-    const rules = await ruleEngine.list({ key, status });
+    const query = z
+      .object({
+        key: z.string().min(1).optional(),
+        status: z.enum(["ACTIVE", "ARCHIVED"]).optional(),
+        scope_type: z.enum(["GLOBAL", "MINE", "COOPERATIVE"]).optional(),
+        mine_id: z.coerce.number().int().positive().optional(),
+        cooperative_id: z.coerce.number().int().positive().optional(),
+      })
+      .safeParse(req.query);
+    if (!query.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid query", requestId }));
+    }
+    const rules = await ruleEngine.list({
+      key: query.data.key,
+      status: query.data.status,
+      scope_type: query.data.scope_type,
+      mine_id: query.data.mine_id,
+      cooperative_id: query.data.cooperative_id,
+    });
     return res.json(
       success(
         {
@@ -652,6 +665,7 @@ router.post("/admin/rules", requireAuth, requireRoles(["ADMIN"]), async (req, re
       value: z.union([z.number(), z.string(), z.record(z.unknown())]),
       scope: ruleScopeSchema,
       effective_from: z.string().min(8),
+      effective_to: z.string().min(8).nullable().optional(),
     })
     .safeParse(req.body);
 
@@ -664,8 +678,31 @@ router.post("/admin/rules", requireAuth, requireRoles(["ADMIN"]), async (req, re
   if (Number.isNaN(effectiveFrom.getTime())) {
     return next(new ApiError({ statusCode: 400, code: "invalid_date", message: "Invalid effective_from", requestId }));
   }
+  let effectiveTo: Date | null = null;
+  if (body.data.effective_to) {
+    effectiveTo = new Date(body.data.effective_to);
+    if (Number.isNaN(effectiveTo.getTime())) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_date", message: "Invalid effective_to", requestId }));
+    }
+    if (effectiveTo <= effectiveFrom) {
+      return next(
+        new ApiError({
+          statusCode: 400,
+          code: "invalid_date",
+          message: "effective_to must be after effective_from",
+          requestId,
+        }),
+      );
+    }
+  }
 
   const scope = body.data.scope as FinanceRuleScope;
+  if (scope.type === "MINE") {
+    const mine = appContext.mineData.listMines().find((m) => m.id === scope.mine_id);
+    if (!mine) {
+      return next(new ApiError({ statusCode: 404, code: "not_found", message: "Mine not found", requestId }));
+    }
+  }
   const numericValue =
     typeof body.data.value === "number"
       ? body.data.value
@@ -680,6 +717,7 @@ router.post("/admin/rules", requireAuth, requireRoles(["ADMIN"]), async (req, re
       scope,
       effectiveFrom,
       auth.user.id,
+      effectiveTo,
     );
     return res.status(201).json(
       success(

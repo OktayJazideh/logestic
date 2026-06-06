@@ -417,7 +417,7 @@ export default function KycInbox() {
           : "درخواست‌های نیاز به اصلاح را پیگیری کنید."
       }
       breadcrumb={breadcrumbsForPath("/panel/kyc")}
-      expectedRoles={["COOP_ADMIN", "COOP_OPERATOR", "ADMIN"]}
+      expectedRoles={["COOP_ADMIN", "ADMIN"]}
     >
       <InboxTabs
         inboxStatus={inboxStatus}

@@ -1,5 +1,5 @@
 import * as financeRulesRepo from "../repositories/financeRulesRepository";
-import type { FinanceRuleRow, FinanceRuleScope } from "../repositories/financeRulesRepository";
+import type { FinanceRuleRow, FinanceRuleScope, FinanceRuleScopeType } from "../repositories/financeRulesRepository";
 import { computePeriodKey } from "../lib/periodKey";
 import { SEED_FINANCE_RULES, SEED_RULE_KEYS } from "../lib/seedFinanceRules";
 
@@ -91,11 +91,25 @@ export class RuleEngine {
     scope: FinanceRuleScope,
     effective_from: Date,
     created_by: number,
+    effective_to?: Date | null,
   ): Promise<{ activated: FinanceRuleRow; archived: FinanceRuleRow[] }> {
-    return financeRulesRepo.setActiveFinanceRule({ key, value, scope, effective_from, created_by });
+    return financeRulesRepo.setActiveFinanceRule({
+      key,
+      value,
+      scope,
+      effective_from,
+      effective_to,
+      created_by,
+    });
   }
 
-  list(params?: { key?: string; status?: "ACTIVE" | "ARCHIVED" }) {
+  list(params?: {
+    key?: string;
+    status?: "ACTIVE" | "ARCHIVED";
+    scope_type?: FinanceRuleScopeType;
+    mine_id?: number;
+    cooperative_id?: number;
+  }) {
     return financeRulesRepo.listFinanceRules(params);
   }
 

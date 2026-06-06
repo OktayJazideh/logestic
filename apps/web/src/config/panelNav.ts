@@ -59,6 +59,9 @@ export function navForRole(
   if (role === "CONSULTANT") {
     return allowed.filter((item) => item.to === "/panel/consultant/hourly");
   }
+  if (role === "COOP_OPERATOR") {
+    return allowed.filter((item) => item.to === "/panel" || item.to === "/panel/weighbridge");
+  }
   return allowed;
 }
 

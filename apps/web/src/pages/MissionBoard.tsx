@@ -36,7 +36,16 @@ export default function MissionBoard() {
   return (
     <PageFrame
       title="بورد ماموریت / نرخ"
-      expectedRoles={["COOP", "EMPLOYER", "CONSULTANT", "ADMIN"]}
+      expectedRoles={[
+        "ADMIN",
+        "OPERATION_ADMIN",
+        "COOP_ADMIN",
+        "COOP_OPERATOR",
+        "COOP",
+        "EMPLOYER",
+        "CONSULTANT",
+        "HOUSEHOLD",
+      ]}
       intro="جدول نرخ‌های فعال برای عملیات حمل تنی. لیست سراسری ماموریت‌ها در صورت افزوده شدن endpoint مدیریتی به همین جدول الصاق می‌شود."
     >
       {err && (

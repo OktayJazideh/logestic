@@ -152,7 +152,7 @@ export default function CoopRequests() {
   return (
     <PageFrame
       title="درخواست‌ها و دادهٔ پایه — تعاونی"
-      expectedRoles={["COOP", "ADMIN"]}
+      expectedRoles={["COOP_ADMIN", "COOP", "ADMIN"]}
       intro="نقش COOP: انتخاب معدن فعال، مشاهده روستاها و نرخ‌ها؛ ورود گروهی خانوار پایلوت (CSV) با وضعیت PENDING برای KYC."
     >
       <MineScope onMineSelected={() => loadVillages()} />

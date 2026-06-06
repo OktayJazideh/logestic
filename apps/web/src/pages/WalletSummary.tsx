@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, getStoredToken } from "../api";
+import { useAuthMe } from "../hooks/useAuthMe";
 import { formatMoney } from "../lib/formatMoney";
 
 type WalletTx = {
@@ -23,6 +24,21 @@ function sumByType(txs: WalletTx[], types: string[]) {
   return txs
     .filter((t) => types.includes(t.type))
     .reduce((sum, t) => sum + (t.amount >= 0 ? t.amount : 0), 0);
+}
+
+function friendlyWalletError(message?: string): string {
+  if (!message) return "اطلاعات کیف پول در دسترس نیست.";
+  const m = message.toLowerCase();
+  if (m.includes("household not found") || m.includes("owner not found")) {
+    return "هنوز پروفایل مالی برای این نقش ثبت نشده است.";
+  }
+  if (m.includes("wallet not found")) {
+    return "هنوز تراکنش مالی ثبت نشده — پس از اولین مأموریت/تسویه، کیف ساخته می‌شود.";
+  }
+  if (m.includes("select workspace") || m.includes("mine")) {
+    return "ابتدا معدن را از منوی بالا انتخاب کنید.";
+  }
+  return message;
 }
 
 function WalletSection({
@@ -55,7 +71,9 @@ function WalletSection({
           نرخ جاری: {formatMoney(communityRatePerTon)} به ازای هر تن تأییدشده
         </p>
       )}
-      {error && <div style={{ color: "#B45309", fontSize: 14, marginBottom: 8 }}>{error}</div>}
+      {error && !payload && (
+        <div style={{ color: "#6B7280", fontSize: 14, marginBottom: 8 }}>{error}</div>
+      )}
       {payload && (
         <>
           <div
@@ -73,7 +91,7 @@ function WalletSection({
               </div>
             </div>
             <div style={dualCardCommunity}>
-              <div style={{ fontSize: 12, color: "#1E3A2F" }}>{communityLabel}</div>
+              <div style={{ fontSize: 12, color: "#1E3A8A" }}>{communityLabel}</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: "#1E3A8A", marginTop: 4 }}>
                 {formatMoney(communityTotal)}
               </div>
@@ -114,6 +132,11 @@ function WalletSection({
 }
 
 export default function WalletSummary() {
+  const { me } = useAuthMe();
+  const role = me?.role ?? "";
+  const showOwner = role === "FLEET_OWNER" || role === "ADMIN";
+  const showHousehold = role === "HOUSEHOLD" || role === "ADMIN";
+
   const [owner, setOwner] = useState<WalletPayload | null>(null);
   const [household, setHousehold] = useState<WalletPayload | null>(null);
   const [errO, setErrO] = useState<string | null>(null);
@@ -125,25 +148,29 @@ export default function WalletSummary() {
       setErrH("توکن تنظیم نشده.");
       return;
     }
-    apiGetData<WalletPayload>("/wallet/owner").then((r) => {
-      if (r.ok) {
-        setOwner(r.data);
-        setErrO(null);
-      } else {
-        setOwner(null);
-        setErrO(r.message);
-      }
-    });
-    apiGetData<WalletPayload>("/wallet/household").then((r) => {
-      if (r.ok) {
-        setHousehold(r.data);
-        setErrH(null);
-      } else {
-        setHousehold(null);
-        setErrH(r.message);
-      }
-    });
-  }, []);
+    if (showOwner) {
+      apiGetData<WalletPayload>("/wallet/owner").then((r) => {
+        if (r.ok) {
+          setOwner(r.data);
+          setErrO(null);
+        } else {
+          setOwner(null);
+          setErrO(friendlyWalletError(r.message));
+        }
+      });
+    }
+    if (showHousehold) {
+      apiGetData<WalletPayload>("/wallet/household").then((r) => {
+        if (r.ok) {
+          setHousehold(r.data);
+          setErrH(null);
+        } else {
+          setHousehold(null);
+          setErrH(friendlyWalletError(r.message));
+        }
+      });
+    }
+  }, [showOwner, showHousehold]);
 
   const ownerOperational = useMemo(
     () => (owner ? sumByType(owner.transactions, ["CREDIT"]) : 0),
@@ -160,27 +187,31 @@ export default function WalletSummary() {
       expectedRoles={["FLEET_OWNER", "HOUSEHOLD", "ADMIN"]}
       intro="دو اقتصاد جدا: عملیاتی (کرایه → مالک + پلتفرم) و جامعه (تن تأییدشده × نرخ ثابت → Pool). بدون نمایش درصد از کرایه."
     >
-      <WalletSection
-        title="مالک ناوگان"
-        intro="جمع واریزهای عملیاتی (CREDIT مرتبط با ماموریت) — مستقل از مشارکت جامعه."
-        operationalTotal={ownerOperational}
-        communityTotal={0}
-        payload={owner}
-        error={errO}
-        operationalLabel="واریز عملیاتی (جمع CREDIT)"
-        communityLabel="مشارکت جامعه (این نقش)"
-      />
-      <WalletSection
-        title="خانوار"
-        intro="جمع توزیع‌های Pool (POOL_DISTRIBUTION) — سهم ثابت به ازای تن تأییدشده، نه درصد کرایه."
-        operationalTotal={0}
-        communityTotal={householdCommunity}
-        payload={household}
-        error={errH}
-        operationalLabel="عملیاتی (این نقش)"
-        communityLabel="مشارکت جامعه دریافتی (جمع POOL_DISTRIBUTION)"
-        communityRatePerTon={household?.community_rial_per_ton}
-      />
+      {showOwner && (
+        <WalletSection
+          title="مالک ناوگان"
+          intro="جمع واریزهای عملیاتی (CREDIT مرتبط با ماموریت) — مستقل از مشارکت جامعه."
+          operationalTotal={ownerOperational}
+          communityTotal={0}
+          payload={owner}
+          error={errO}
+          operationalLabel="واریز عملیاتی (جمع CREDIT)"
+          communityLabel="مشارکت جامعه (این نقش)"
+        />
+      )}
+      {showHousehold && (
+        <WalletSection
+          title="خانوار"
+          intro="جمع توزیع‌های Pool (POOL_DISTRIBUTION) — سهم ثابت به ازای تن تأییدشده، نه درصد کرایه."
+          operationalTotal={0}
+          communityTotal={householdCommunity}
+          payload={household}
+          error={errH}
+          operationalLabel="عملیاتی (این نقش)"
+          communityLabel="مشارکت جامعه دریافتی (جمع POOL_DISTRIBUTION)"
+          communityRatePerTon={household?.community_rial_per_ton}
+        />
+      )}
     </PageFrame>
   );
 }

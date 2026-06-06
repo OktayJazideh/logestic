@@ -68,12 +68,18 @@ function scopeWhere(scope: FinanceRuleScope) {
 export async function listFinanceRules(params?: {
   key?: string;
   status?: FinanceRuleStatus;
+  scope_type?: FinanceRuleScopeType;
+  mine_id?: number;
+  cooperative_id?: number;
   limit?: number;
 }): Promise<FinanceRuleRow[]> {
   const rows = await prisma.finance_rules.findMany({
     where: {
       ...(params?.key ? { key: params.key } : {}),
       ...(params?.status ? { status: params.status } : {}),
+      ...(params?.scope_type ? { scope_type: params.scope_type } : {}),
+      ...(params?.mine_id != null ? { mine_id: toBig(params.mine_id) } : {}),
+      ...(params?.cooperative_id != null ? { cooperative_id: toBig(params.cooperative_id) } : {}),
     },
     orderBy: [{ key: "asc" }, { scope_type: "asc" }, { version: "desc" }],
     take: params?.limit ?? 500,
@@ -112,6 +118,7 @@ export async function setActiveFinanceRule(params: {
   value: unknown;
   scope: FinanceRuleScope;
   effective_from: Date;
+  effective_to?: Date | null;
   created_by: number;
 }): Promise<{ activated: FinanceRuleRow; archived: FinanceRuleRow[] }> {
   return prisma.$transaction(async (tx) => {
@@ -151,6 +158,7 @@ export async function setActiveFinanceRule(params: {
         mine_id: params.scope.type === "MINE" ? toBig(params.scope.mine_id) : null,
         cooperative_id: params.scope.type === "COOPERATIVE" ? toBig(params.scope.cooperative_id) : null,
         effective_from: params.effective_from,
+        effective_to: params.effective_to ?? null,
         status: "ACTIVE",
         version,
         created_by: toBig(params.created_by),
