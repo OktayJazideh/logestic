@@ -170,38 +170,6 @@
   border-radius: var(--radius-lg, 14px);
 }
 
-.panel-shell__more-nav {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.panel-shell__more-toggle {
-  width: 100%;
-  text-align: right;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--brand-sidebar-text, #e8eeeb);
-  padding: 10px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.panel-shell__more-toggle:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.panel-shell__more-list {
-  margin-top: 8px;
-}
-
-.panel-shell__more-list[hidden] {
-  display: none;
-}
-
 .finance-load-rows {
   display: flex;
   flex-direction: column;

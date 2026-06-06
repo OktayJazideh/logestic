@@ -12,10 +12,19 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { FormRow } from "../components/ui/FormRow";
 import { FilterField } from "../components/ui/FilterBar";
-import { Input } from "../components/ui/Input";
+import { Input, Select } from "../components/ui";
 import { Badge } from "../components/ui/Badge";
 import { PROVISIONING_HINT_FA } from "../lib/identityFieldRules";
-import { optionalPersianName, provisioningMobile, runValidators } from "../lib/validation";
+import { roleLabelFa, roleOptionsFa } from "../lib/roleLabels";
+import {
+  iranIban,
+  nationalId,
+  optionalPersianName,
+  positiveInt,
+  provisioningMobile,
+  required,
+  runValidators,
+} from "../lib/validation";
 
 type RequestRow = {
   id: number;
@@ -23,10 +32,14 @@ type RequestRow = {
   target_role: string;
   mobile_number: string;
   national_id?: string;
+  bank_iban?: string;
+  village_name?: string;
   full_name?: string;
   rejection_reason?: string;
   created_at: string;
 };
+
+type VillageRow = { id: number; name: string };
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "در انتظار تأیید",
@@ -50,6 +63,7 @@ export default function UserRequestForm() {
   const isOp = role === "OPERATION_ADMIN";
 
   const [requests, setRequests] = useState<RequestRow[]>([]);
+  const [villages, setVillages] = useState<VillageRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -57,12 +71,23 @@ export default function UserRequestForm() {
   const [unitType, setUnitType] = useState<"MINE_OPS" | "PLATFORM_SUPPORT">("MINE_OPS");
   const [targetRole, setTargetRole] = useState("");
   const [mobile, setMobile] = useState("");
-  const [nationalId, setNationalId] = useState("");
+  const [nationalIdVal, setNationalIdVal] = useState("");
+  const [iban, setIban] = useState("");
+  const [villageId, setVillageId] = useState("");
   const [fullName, setFullName] = useState("");
   const [note, setNote] = useState("");
 
   const roleOptions: readonly string[] =
     role === "COOP_ADMIN" ? COOP_ROLES : unitType === "MINE_OPS" ? MINE_ROLES : PLATFORM_ROLES;
+  const roleSelect = roleOptionsFa(roleOptions);
+
+  const loadVillages = useCallback(async () => {
+    const res = await apiGetData<{ villages: VillageRow[] }>("/villages");
+    if (res.ok) {
+      setVillages(res.data.villages);
+      setVillageId((prev) => prev || (res.data.villages[0] ? String(res.data.villages[0].id) : ""));
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const res = await apiGetData<{ requests: RequestRow[] }>("/user-provisioning/requests");
@@ -77,7 +102,8 @@ export default function UserRequestForm() {
 
   useEffect(() => {
     void load();
-  }, [load]);
+    void loadVillages();
+  }, [load, loadVillages]);
 
   useEffect(() => {
     if (!roleOptions.includes(targetRole)) {
@@ -88,9 +114,13 @@ export default function UserRequestForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const mobileErr = runValidators(mobile, [provisioningMobile()]);
+    const natErr = runValidators(nationalIdVal, [required("کد ملی"), nationalId()]);
+    const ibanErr = runValidators(iban, [required("شماره شبا"), iranIban()]);
+    const villageErr = positiveInt("روستا")(villageId);
     const nameErr = runValidators(fullName, [optionalPersianName("نام")]);
-    if (mobileErr || nameErr) {
-      setError(mobileErr ?? nameErr ?? null);
+    const firstErr = mobileErr ?? natErr ?? ibanErr ?? villageErr ?? nameErr;
+    if (firstErr) {
+      setError(firstErr);
       return;
     }
     setBusy(true);
@@ -99,11 +129,12 @@ export default function UserRequestForm() {
     const body: Record<string, unknown> = {
       target_role: targetRole,
       mobile_number: mobile.trim(),
+      national_id: nationalIdVal.trim(),
+      bank_iban: iban.trim(),
+      village_id: Number(villageId),
       full_name: fullName.trim() || undefined,
       note: note.trim() || undefined,
     };
-    const nat = nationalId.trim();
-    if (nat) body.national_id = nat;
     if (isOp) body.unit_type = unitType;
 
     const res = await apiPostData<{ request: RequestRow }>("/user-provisioning/requests", body);
@@ -114,7 +145,8 @@ export default function UserRequestForm() {
     }
     setOk("درخواست ثبت شد و پس از تأیید مدیر سیستم، کاربر فعال می‌شود.");
     setMobile("");
-    setNationalId("");
+    setNationalIdVal("");
+    setIban("");
     setFullName("");
     setNote("");
     await load();
@@ -140,57 +172,78 @@ export default function UserRequestForm() {
         },
       ]}
     >
-      {error && <ErrorBanner message={error} actionHint="فیلدها را بررسی و دوباره ارسال کنید." onRetry={() => setError(null)} />}
+      {error && (
+        <ErrorBanner message={error} actionHint="فیلدها را بررسی و دوباره ارسال کنید." onRetry={() => setError(null)} />
+      )}
       {ok && <Alert variant="success">{ok}</Alert>}
 
       <form id="user-request-form" noValidate onSubmit={(e) => void submit(e)}>
-      <FormRow>
-        {isOp && (
+        <FormRow>
+          {isOp && (
+            <FilterField minWidth={160}>
+              <FormField label="نوع واحد">
+                <Select
+                  value={unitType}
+                  onChange={(e) => setUnitType(e.target.value as "MINE_OPS" | "PLATFORM_SUPPORT")}
+                >
+                  <option value="MINE_OPS">عملیات معدن</option>
+                  <option value="PLATFORM_SUPPORT">پشتیبانی پلتفرم</option>
+                </Select>
+              </FormField>
+            </FilterField>
+          )}
           <FilterField minWidth={160}>
-            <FormField label="نوع واحد">
-              <select
-                value={unitType}
-                onChange={(e) => setUnitType(e.target.value as "MINE_OPS" | "PLATFORM_SUPPORT")}
-                style={selectStyle}
-              >
-                <option value="MINE_OPS">عملیات معدن</option>
-                <option value="PLATFORM_SUPPORT">پشتیبانی پلتفرم</option>
-              </select>
+            <FormField label="نقش">
+              <Select value={targetRole} onChange={(e) => setTargetRole(e.target.value)}>
+                {roleSelect.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </Select>
             </FormField>
           </FilterField>
-        )}
-        <FilterField minWidth={140}>
-          <FormField label="نقش">
-            <select value={targetRole} onChange={(e) => setTargetRole(e.target.value)} style={selectStyle}>
-              {roleOptions.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </FormField>
-        </FilterField>
-        <FilterField minWidth={140}>
-          <FormField label="موبایل" required>
-            <Input value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="09xxxxxxxxx" />
-          </FormField>
-        </FilterField>
-        <FilterField minWidth={140}>
-          <FormField label="کد ملی (اختیاری)">
-            <Input value={nationalId} onChange={(e) => setNationalId(e.target.value)} placeholder="در صورت ورود یکتا" />
-          </FormField>
-        </FilterField>
-        <FilterField minWidth={140}>
-          <FormField label="نام (اختیاری، فارسی)">
-            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
-          </FormField>
-        </FilterField>
-        <FilterField minWidth={160}>
-          <FormField label="یادداشت">
-            <Input value={note} onChange={(e) => setNote(e.target.value)} />
-          </FormField>
-        </FilterField>
-      </FormRow>
+          <FilterField minWidth={140}>
+            <FormField label="موبایل" required>
+              <Input value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="09xxxxxxxxx" />
+            </FormField>
+          </FilterField>
+          <FilterField minWidth={140}>
+            <FormField label="کد ملی" required>
+              <Input value={nationalIdVal} onChange={(e) => setNationalIdVal(e.target.value)} />
+            </FormField>
+          </FilterField>
+          <FilterField minWidth={180}>
+            <FormField label="شماره شبا" required>
+              <Input value={iban} onChange={(e) => setIban(e.target.value)} placeholder="IR…" />
+            </FormField>
+          </FilterField>
+          <FilterField minWidth={140}>
+            <FormField label="روستا" required>
+              <Select value={villageId} onChange={(e) => setVillageId(e.target.value)}>
+                {villages.length === 0 ? (
+                  <option value="">ابتدا معدن را از منوی بالا انتخاب کنید</option>
+                ) : (
+                  villages.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name}
+                    </option>
+                  ))
+                )}
+              </Select>
+            </FormField>
+          </FilterField>
+          <FilterField minWidth={140}>
+            <FormField label="نام (اختیاری، فارسی)">
+              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            </FormField>
+          </FilterField>
+          <FilterField minWidth={160}>
+            <FormField label="یادداشت">
+              <Input value={note} onChange={(e) => setNote(e.target.value)} />
+            </FormField>
+          </FilterField>
+        </FormRow>
       </form>
 
       <h3 style={{ fontSize: 15, marginBottom: 8 }}>درخواست‌های قبلی</h3>
@@ -215,9 +268,11 @@ export default function UserRequestForm() {
                 >
                   {STATUS_LABELS[r.status] ?? r.status}
                 </span>
-                <Badge>{r.target_role}</Badge>
+                <Badge>{roleLabelFa(r.target_role)}</Badge>
                 <span>{r.mobile_number}</span>
                 {r.national_id && <span>{r.national_id}</span>}
+                {r.bank_iban && <span>{r.bank_iban}</span>}
+                {r.village_name && <span>{r.village_name}</span>}
                 {r.full_name && <span>{r.full_name}</span>}
               </div>
               {r.status === "REJECTED" && r.rejection_reason && (
@@ -238,11 +293,3 @@ export default function UserRequestForm() {
     </SimplePageLayout>
   );
 }
-
-const selectStyle: React.CSSProperties = {
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #E5E7EB",
-  fontSize: 13,
-  width: "100%",
-};

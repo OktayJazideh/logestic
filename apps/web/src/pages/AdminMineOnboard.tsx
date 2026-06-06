@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageFrame } from "../components/PageFrame";
 import { FormField } from "../components/FormField";
-import { apiPostData } from "../api";
+import { apiGetData, apiPostData } from "../api";
 import { apiErrorMessageFa } from "../lib/apiErrorsFa";
 import { Alert, Button, FormRow } from "../components/ui";
 import { selectStyle, brand } from "../theme";
@@ -17,11 +17,28 @@ type OnboardResult = {
   village_id: number | null;
 };
 
+type MineRow = {
+  id: number;
+  mine_code: string;
+  name: string;
+  cooperatives: { id: number; name: string }[];
+};
+
 export default function AdminMineOnboard() {
   const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [existingMines, setExistingMines] = useState<MineRow[]>([]);
+
+  useEffect(() => {
+    void apiGetData<{ mines: MineRow[] }>("/admin/mines").then((r) => {
+      if (r.ok) setExistingMines(r.data.mines);
+    });
+  }, []);
+
+  const slugTaken = (code: string) =>
+    existingMines.some((m) => m.mine_code.toUpperCase() === code.trim().toUpperCase());
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -40,6 +57,14 @@ export default function AdminMineOnboard() {
     }
     if (!/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(slug.trim()) || slug.trim().length < 2) {
       setErr("کد معدن باید انگلیسی/عدد باشد (خط تیره مجاز).");
+      return false;
+    }
+    if (slugTaken(slug)) {
+      const existing = existingMines.find((m) => m.mine_code.toUpperCase() === slug.trim().toUpperCase());
+      setErr(
+        `کد «${slug.trim().toUpperCase()}» قبلاً ثبت شده (${existing?.name ?? "معدن موجود"}). ` +
+          "کد یکتا و جدید وارد کنید — مثلاً SANGAN یا MINE-2.",
+      );
       return false;
     }
     setErr(null);
@@ -111,9 +136,36 @@ export default function AdminMineOnboard() {
   return (
     <PageFrame
       title="ثبت معدن جدید"
-      intro="ایجاد معدن، تعاونی، کارت نرخ و قرارداد نسخه ۱ — بدون ویرایش seed."
+      intro="ایجاد معدن جدید با کد یکتا (slug). اگر TAFTAN قبلاً از seed آمده، همان را دوباره ثبت نکنید — کد جدید بزنید."
       expectedRoles={["ADMIN"]}
     >
+      {existingMines.length > 0 && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: 12,
+            borderRadius: 8,
+            background: "#F0FDF4",
+            border: "1px solid #BBF7D0",
+            fontSize: 13,
+          }}
+        >
+          <strong>معادن ثبت‌شده ({existingMines.length}):</strong>
+          <ul style={{ margin: "8px 0 0", paddingInlineStart: 20 }}>
+            {existingMines.map((m) => (
+              <li key={m.id}>
+                {m.name} — کد: <code>{m.mine_code}</code>
+                {m.cooperatives.length > 0 && (
+                  <span style={{ color: brand.textMuted }}>
+                    {" "}
+                    · تعاونی #{m.cooperatives[0]!.id} {m.cooperatives[0]!.name}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="simple-wizard-steps" data-testid="mine-onboard-wizard-step" style={{ marginBottom: 16 }}>
         <span className={step === 1 ? "simple-wizard-steps__item--active" : ""}>مرحله ۱ — شناسه</span>
         <span>·</span>

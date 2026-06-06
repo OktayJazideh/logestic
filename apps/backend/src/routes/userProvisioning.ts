@@ -9,7 +9,7 @@ import { ApiError } from "../http/errors";
 import { isCoopScopedRole, normalizeRole, UserRoles, type UserRole } from "../types/userRole";
 import * as provisioningRepo from "../repositories/userProvisioningRepository";
 import * as provisioningService from "../services/userProvisioningService";
-import { optionalNationalIdSchema, optionalPersianNameSchema, provisioningMobileSchema } from "../lib/identityPolicy";
+import { optionalIbanSchema, optionalNationalIdSchema, optionalPersianNameSchema, provisioningMobileSchema } from "../lib/identityPolicy";
 import { appContext } from "../appContext";
 import { prismaToApiError } from "../lib/prismaErrors";
 
@@ -30,17 +30,24 @@ function forwardError(e: unknown, next: NextFunction, requestId?: string) {
   next(e);
 }
 
-function mapRequest(r: provisioningRepo.ProvisioningRequestRow) {
+function mapRequest(r: provisioningRepo.ProvisioningRequestRow | provisioningRepo.ProvisioningRequestAdminRow) {
+  const admin = r as provisioningRepo.ProvisioningRequestAdminRow;
   return {
     id: r.id,
     status: r.status,
     unit_type: r.unit_type,
     requester_user_id: r.requester_user_id,
     cooperative_id: r.cooperative_id,
+    cooperative_name: admin.cooperative_name,
     mine_id: r.mine_id,
+    mine_name: admin.mine_name,
+    mine_code: admin.mine_code,
+    village_id: r.village_id,
+    village_name: admin.village_name,
     target_role: r.target_role,
     mobile_number: r.mobile_number,
     national_id: r.national_id,
+    bank_iban: r.bank_iban,
     full_name: r.full_name,
     note: r.note,
     rejection_reason: r.rejection_reason,
@@ -56,6 +63,8 @@ function mapUser(u: {
   id: number;
   mobile_number: string;
   national_id?: string;
+  bank_iban?: string;
+  village_id?: number;
   full_name?: string;
   role: string;
   cooperative_id?: number;
@@ -66,6 +75,8 @@ function mapUser(u: {
     id: u.id,
     mobile_number: u.mobile_number,
     national_id: u.national_id,
+    bank_iban: u.bank_iban,
+    village_id: u.village_id,
     full_name: u.full_name,
     role: u.role,
     cooperative_id: u.cooperative_id,
@@ -74,11 +85,22 @@ function mapUser(u: {
   };
 }
 
+const adminListQuerySchema = z.object({
+  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
+  mine_id: z.coerce.number().int().positive().optional(),
+  cooperative_id: z.coerce.number().int().positive().optional(),
+  village_id: z.coerce.number().int().positive().optional(),
+  role: z.enum(UserRoles as unknown as [string, ...string[]]).optional(),
+  q: z.string().max(80).optional(),
+});
+
 const createRequestSchema = z.object({
   unit_type: z.enum(["COOPERATIVE", "MINE_OPS", "PLATFORM_SUPPORT"]).optional(),
   target_role: z.enum(UserRoles as unknown as [string, ...string[]]),
   mobile_number: provisioningMobileSchema,
   national_id: optionalNationalIdSchema,
+  bank_iban: optionalIbanSchema,
+  village_id: z.number().int().positive().optional(),
   full_name: optionalPersianNameSchema,
   note: z.string().max(500).optional(),
   cooperative_id: z.number().int().positive().optional(),
@@ -112,10 +134,12 @@ router.post(
         requesterRole: role,
         cooperativeId,
         mineId,
+        village_id: body.data.village_id,
         unit_type: body.data.unit_type as ProvisioningUnitType | undefined,
         target_role: body.data.target_role as UserRole,
         mobile_number: body.data.mobile_number,
         national_id: body.data.national_id,
+        bank_iban: body.data.bank_iban,
         full_name: body.data.full_name,
         note: body.data.note,
         requestId,
@@ -185,10 +209,18 @@ router.get(
   requirePermission("users:manage"),
   async (req, res, next) => {
     const requestId = (req as { requestId?: string }).requestId;
-    const status = z.enum(["PENDING", "APPROVED", "REJECTED"]).optional().safeParse(req.query.status);
+    const query = adminListQuerySchema.safeParse(req.query);
+    if (!query.success) {
+      return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid query", requestId }));
+    }
     try {
       const requests = await provisioningRepo.listProvisioningRequestsAdmin({
-        status: status.success ? status.data : undefined,
+        status: query.data.status,
+        mine_id: query.data.mine_id,
+        cooperative_id: query.data.cooperative_id,
+        village_id: query.data.village_id,
+        role: query.data.role as UserRole | undefined,
+        q: query.data.q,
       });
       return res.json(success({ requests: requests.map(mapRequest) }, requestId));
     } catch (e) {

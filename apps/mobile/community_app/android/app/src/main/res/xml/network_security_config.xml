@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- UAT/pilot: allow HTTP fallback when HTTPS is not ready yet. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">hamsahman.ir</domain>
+        <domain includeSubdomains="true">185.36.145.164</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'api_base_url_resolver.dart';
 import 'app_config.dart';
 
 /// UAT: debug, explicit ENABLE_DEMO_LOGIN, staging IP, or hamsahman.ir during pilot testing.
@@ -8,9 +9,13 @@ bool isDemoLoginEnabled({String? apiBaseUrl}) {
   if (flag == 'false' || flag == '0') return false;
   if (flag == 'true' || flag == '1') return true;
   if (kDebugMode) return true;
-  final base = apiBaseUrl ?? AppConfig.apiBaseUrl;
-  if (_isStagingApiHost(base)) return true;
-  return _isHamsahmanHost(base);
+  final bases = apiBaseUrl != null
+      ? ApiBaseUrlResolver.candidatesFrom(apiBaseUrl)
+      : ApiBaseUrlResolver.candidatesFrom(AppConfig.apiBaseUrl);
+  for (final base in bases) {
+    if (_isStagingApiHost(base) || _isHamsahmanHost(base)) return true;
+  }
+  return false;
 }
 
 bool _isHamsahmanHost(String url) {

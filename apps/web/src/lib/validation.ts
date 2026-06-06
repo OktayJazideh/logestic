@@ -96,6 +96,33 @@ export function positiveInt(label = "شناسه"): FieldValidator {
   };
 }
 
+/** Iranian national ID — 10 digits with valid checksum. */
+export function nationalId(label = "کد ملی"): FieldValidator {
+  return (value) => {
+    const digits = value.replace(/\D/g, "");
+    if (!/^\d{10}$/.test(digits)) return `${label} باید ۱۰ رقم باشد.`;
+    if (/^(\d)\1{9}$/.test(digits)) return `${label} نامعتبر است.`;
+    let sum = 0;
+    for (let i = 0; i < 9; i++) sum += Number(digits[i]) * (10 - i);
+    const remainder = sum % 11;
+    const expected = remainder < 2 ? remainder : 11 - remainder;
+    if (Number(digits[9]) !== expected) return `${label} نامعتبر است.`;
+    return undefined;
+  };
+}
+
+/** Iran IBAN — IR + 24 digits. */
+export function iranIban(label = "شماره شبا"): FieldValidator {
+  return (value) => {
+    const n = value.trim().replace(/\s+/g, "").toUpperCase();
+    const normalized = n.startsWith("IR") ? n : `IR${n.replace(/^IR/i, "")}`;
+    if (!/^IR\d{24}$/.test(normalized)) {
+      return `${label} باید ۲۶ کاراکتر (IR + ۲۴ رقم) باشد.`;
+    }
+    return undefined;
+  };
+}
+
 export function optionalPositiveNumber(label = "مقدار"): FieldValidator {
   return (value) => {
     if (!value.trim()) return undefined;

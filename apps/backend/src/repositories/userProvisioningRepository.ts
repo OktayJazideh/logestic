@@ -1,4 +1,5 @@
 import type { ApprovalStatus, ProvisioningUnitType, UserRole } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "../db/prisma";
 import { runWithSoftDeleteBypass } from "../lib/softDelete";
 import { toBig, toNum } from "./id";
@@ -10,9 +11,11 @@ export type ProvisioningRequestRow = {
   requester_user_id: number;
   cooperative_id?: number;
   mine_id?: number;
+  village_id?: number;
   target_role: UserRole;
   mobile_number: string;
   national_id?: string;
+  bank_iban?: string;
   full_name?: string;
   note?: string;
   rejection_reason?: string;
@@ -23,6 +26,13 @@ export type ProvisioningRequestRow = {
   updated_at: Date;
 };
 
+export type ProvisioningRequestAdminRow = ProvisioningRequestRow & {
+  mine_name?: string;
+  mine_code?: string;
+  cooperative_name?: string;
+  village_name?: string;
+};
+
 function mapRow(row: {
   id: bigint;
   status: ApprovalStatus;
@@ -30,9 +40,11 @@ function mapRow(row: {
   requester_user_id: bigint;
   cooperative_id: bigint | null;
   mine_id: bigint | null;
+  village_id: bigint | null;
   target_role: UserRole;
   mobile_number: string;
   national_id: string | null;
+  bank_iban: string | null;
   full_name: string | null;
   note: string | null;
   rejection_reason: string | null;
@@ -49,9 +61,11 @@ function mapRow(row: {
     requester_user_id: toNum(row.requester_user_id),
     cooperative_id: row.cooperative_id != null ? toNum(row.cooperative_id) : undefined,
     mine_id: row.mine_id != null ? toNum(row.mine_id) : undefined,
+    village_id: row.village_id != null ? toNum(row.village_id) : undefined,
     target_role: row.target_role,
     mobile_number: row.mobile_number,
     national_id: row.national_id ?? undefined,
+    bank_iban: row.bank_iban ?? undefined,
     full_name: row.full_name ?? undefined,
     note: row.note ?? undefined,
     rejection_reason: row.rejection_reason ?? undefined,
@@ -63,14 +77,50 @@ function mapRow(row: {
   };
 }
 
+function mapAdminRow(row: {
+  id: bigint;
+  status: ApprovalStatus;
+  unit_type: ProvisioningUnitType;
+  requester_user_id: bigint;
+  cooperative_id: bigint | null;
+  mine_id: bigint | null;
+  village_id: bigint | null;
+  target_role: UserRole;
+  mobile_number: string;
+  national_id: string | null;
+  bank_iban: string | null;
+  full_name: string | null;
+  note: string | null;
+  rejection_reason: string | null;
+  reviewed_by_user_id: bigint | null;
+  reviewed_at: Date | null;
+  created_user_id: bigint | null;
+  created_at: Date;
+  updated_at: Date;
+  cooperative: { name: string } | null;
+  mine: { name: string; mine_code: string } | null;
+  village: { name: string } | null;
+}): ProvisioningRequestAdminRow {
+  const base = mapRow(row);
+  return {
+    ...base,
+    cooperative_name: row.cooperative?.name,
+    mine_name: row.mine?.name,
+    mine_code: row.mine?.mine_code,
+    village_name: row.village?.name,
+  };
+}
+
 export async function createProvisioningRequest(input: {
   unit_type: ProvisioningUnitType;
   requester_user_id: number;
   cooperative_id?: number;
   mine_id?: number;
+  village_id?: number;
   target_role: UserRole;
   mobile_number: string;
   national_id?: string | null;
+  bank_iban?: string | null;
   full_name?: string;
   note?: string;
 }): Promise<ProvisioningRequestRow> {
@@ -80,9 +130,11 @@ export async function createProvisioningRequest(input: {
       requester_user_id: toBig(input.requester_user_id),
       cooperative_id: input.cooperative_id != null ? toBig(input.cooperative_id) : null,
       mine_id: input.mine_id != null ? toBig(input.mine_id) : null,
+      village_id: input.village_id != null ? toBig(input.village_id) : null,
       target_role: input.target_role,
       mobile_number: input.mobile_number,
       national_id: input.national_id ?? null,
+      bank_iban: input.bank_iban ?? null,
       full_name: input.full_name ?? null,
       note: input.note ?? null,
     },
@@ -140,12 +192,40 @@ export async function listProvisioningRequestsForMine(
 
 export async function listProvisioningRequestsAdmin(opts?: {
   status?: ApprovalStatus;
-}): Promise<ProvisioningRequestRow[]> {
+  mine_id?: number;
+  cooperative_id?: number;
+  village_id?: number;
+  role?: UserRole;
+  q?: string;
+}): Promise<ProvisioningRequestAdminRow[]> {
+  const and: Prisma.user_provisioning_requestsWhereInput[] = [];
+  if (opts?.status) and.push({ status: opts.status });
+  if (opts?.mine_id != null) and.push({ mine_id: toBig(opts.mine_id) });
+  if (opts?.cooperative_id != null) and.push({ cooperative_id: toBig(opts.cooperative_id) });
+  if (opts?.village_id != null) and.push({ village_id: toBig(opts.village_id) });
+  if (opts?.role) and.push({ target_role: opts.role });
+  const q = opts?.q?.trim();
+  if (q) {
+    and.push({
+      OR: [
+        { mobile_number: { contains: q } },
+        { national_id: { contains: q } },
+        { full_name: { contains: q } },
+        { bank_iban: { contains: q.toUpperCase() } },
+      ],
+    });
+  }
+
   const rows = await prisma.user_provisioning_requests.findMany({
-    where: opts?.status ? { status: opts.status } : undefined,
+    where: and.length > 0 ? { AND: and } : undefined,
     orderBy: { id: "desc" },
+    include: {
+      cooperative: true,
+      mine: true,
+      village: true,
+    },
   });
-  return rows.map(mapRow);
+  return rows.map(mapAdminRow);
 }
 
 export async function findPendingByNationalId(

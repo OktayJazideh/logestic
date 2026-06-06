@@ -2,9 +2,9 @@
 
 # چک‌لیست UAT و تحویل — logestic
 
-**کارت:** UAT-SIGNOFF-1 · **مرجع:** [گزارش v4](mvp-flow-chat-master-report-fa-v4.html) · [v3 آرشیو](mvp-flow-chat-master-report-fa-v3.html#testing) · [Runbook استقرار](deploy-runbook-fa.md)
+**کارت:** UAT-SIGNOFF-1 · **مرجع:** [گزارش v4](mvp-flow-chat-master-report-fa-v4.html) · [v3 آرشیو](mvp-flow-chat-master-report-fa-v3.html#testing) · [Runbook استقرار](deploy-runbook-fa.md) · **[UAT User Journey (HTML)](uat-pilot-user-journey-fa.html)**
 
-این سند برای تیم **کارفرما** (پذیرش UAT) و **DevOps** (استقرار Staging) است. هر بند شامل دستور **copy-paste** است. برای چاپ PDF: از Markdown viewer یا «Print to PDF» استفاده کنید.
+این سند برای تیم **کارفرما** (پذیرش UAT) و **DevOps** (استقرار Staging) است. هر بند شامل دستور **copy-paste** است. برای تست دستی **هر نقش** گام‌به‌گام: [uat-pilot-user-journey-fa.html](uat-pilot-user-journey-fa.html). برای چاپ PDF: از Markdown viewer یا «Print to PDF» استفاده کنید.
 
 ---
 
@@ -198,6 +198,8 @@ npm -w @app/backend run test:uat-haul1
 ---
 
 ## ۴. سناریوی UAT دستی — پایلوت تفتان (۴۵–۹۰ دقیقه)
+
+> **راهنمای ساده از صفر تا آخر (شروع از اینجا):** [uat-pilot-user-journey-fa.html](uat-pilot-user-journey-fa.html) — فلو برنامه · فاز ۱ راه‌اندازی · فاز ۲ یک بار حمل کامل · فاز ۳–۴
 
 **پیش‌شرط:** §۲ seed TAFTAN · **بدون** `POST /api/__dev/seed/demo` (برخلاف سناریوی عمومی گزارش v3 §۳).
 

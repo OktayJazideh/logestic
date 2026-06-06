@@ -48,6 +48,8 @@ export async function assertIbanAvailable(
     if (found && (!excludeId || found.id !== excludeId)) throw ibanConflictError(requestId);
     const fleet = await db.fleet_owners.findFirst({ where: { bank_iban: normalized } });
     if (fleet) throw ibanConflictError(requestId);
+    const user = await db.users.findFirst({ where: { bank_iban: normalized } });
+    if (user) throw ibanConflictError(requestId);
     return normalized;
   }
 
@@ -55,5 +57,43 @@ export async function assertIbanAvailable(
   if (found && (!excludeId || found.id !== excludeId)) throw ibanConflictError(requestId);
   const hh = await db.households.findFirst({ where: { bank_iban: normalized } });
   if (hh) throw ibanConflictError(requestId);
+  const user = await db.users.findFirst({ where: { bank_iban: normalized } });
+  if (user) throw ibanConflictError(requestId);
+  return normalized;
+}
+
+/** Cross-table IBAN check before assigning to a user account or provisioning request. */
+export async function assertUserIbanAvailable(
+  iban: string,
+  excludeUserId?: number,
+  excludeProvisioningRequestId?: number,
+  db: PrismaClient = prisma,
+  requestId?: string,
+): Promise<string> {
+  const normalized = normalizeAndValidateIban(iban, requestId);
+  const excludeUserBig = excludeUserId != null && excludeUserId > 0 ? toBig(excludeUserId) : null;
+  const excludeReqBig =
+    excludeProvisioningRequestId != null && excludeProvisioningRequestId > 0
+      ? toBig(excludeProvisioningRequestId)
+      : null;
+
+  const user = await db.users.findFirst({ where: { bank_iban: normalized } });
+  if (user && (!excludeUserBig || user.id !== excludeUserBig)) throw ibanConflictError(requestId);
+
+  const hh = await db.households.findFirst({ where: { bank_iban: normalized } });
+  if (hh) throw ibanConflictError(requestId);
+
+  const fleet = await db.fleet_owners.findFirst({ where: { bank_iban: normalized } });
+  if (fleet) throw ibanConflictError(requestId);
+
+  const pending = await db.user_provisioning_requests.findFirst({
+    where: {
+      status: "PENDING",
+      bank_iban: normalized,
+      ...(excludeReqBig ? { NOT: { id: excludeReqBig } } : {}),
+    },
+  });
+  if (pending) throw ibanConflictError(requestId);
+
   return normalized;
 }

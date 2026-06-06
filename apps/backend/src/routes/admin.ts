@@ -19,7 +19,12 @@ import type { FinanceRuleScope } from "../repositories/financeRulesRepository";
 import { reconciliationService } from "../services/reconciliationService";
 import { restoreEntity, softDeleteEntity } from "../services/softDeleteService";
 import * as provisioningService from "../services/userProvisioningService";
-import { optionalNationalIdSchema, optionalPersianNameSchema } from "../lib/identityPolicy";
+import * as usersRepo from "../repositories/usersRepository";
+import {
+  optionalIbanSchema,
+  optionalNationalIdSchema,
+  optionalPersianNameSchema,
+} from "../lib/identityPolicy";
 import { requireMineContext } from "../middleware/requireMineContext";
 import { resolveEffectiveMineId } from "../lib/mineScope";
 import { isDispatchQueueEnabled } from "../config/env";
@@ -220,9 +225,16 @@ function mapAdminUser(u: {
   id: number;
   mobile_number: string;
   national_id?: string;
+  bank_iban?: string;
+  village_id?: number;
+  village_name?: string;
   full_name?: string;
   role: string;
   cooperative_id?: number;
+  cooperative_name?: string;
+  mine_id?: number;
+  mine_code?: string;
+  mine_name?: string;
   is_active: boolean;
   is_weighbridge_operator?: boolean;
 }) {
@@ -230,23 +242,47 @@ function mapAdminUser(u: {
     id: u.id,
     mobile_number: u.mobile_number,
     national_id: u.national_id,
+    bank_iban: u.bank_iban,
+    village_id: u.village_id,
+    village_name: u.village_name,
     full_name: u.full_name,
     role: u.role,
     cooperative_id: u.cooperative_id,
+    cooperative_name: u.cooperative_name,
+    mine_id: u.mine_id,
+    mine_code: u.mine_code,
+    mine_name: u.mine_name,
     is_active: u.is_active,
     is_weighbridge_operator: u.is_weighbridge_operator,
   };
 }
 
+const adminUsersListQuerySchema = z.object({
+  include_deleted: z.enum(["true", "false"]).optional(),
+  mine_id: z.coerce.number().int().positive().optional(),
+  cooperative_id: z.coerce.number().int().positive().optional(),
+  village_id: z.coerce.number().int().positive().optional(),
+  role: z.string().optional(),
+  q: z.string().max(80).optional(),
+});
+
 router.get("/admin/users", requireAuth, requirePermission("users:manage"), async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
-  const includeDeleted = z
-    .enum(["true", "false"])
-    .optional()
-    .safeParse(req.query.include_deleted);
+  const query = adminUsersListQuerySchema.safeParse(req.query);
+  if (!query.success) {
+    return next(new ApiError({ statusCode: 400, code: "invalid_request", message: "Invalid query", requestId }));
+  }
+  if (query.data.role && !appContext.authService.validateRole(query.data.role)) {
+    return next(new ApiError({ statusCode: 400, code: "invalid_role", message: "Invalid role", requestId }));
+  }
   try {
-    const users = await appContext.userStore.listUsers({
-      includeDeleted: includeDeleted.success && includeDeleted.data === "true",
+    const users = await usersRepo.listUsersForAdmin({
+      includeDeleted: query.data.include_deleted === "true",
+      mine_id: query.data.mine_id,
+      cooperative_id: query.data.cooperative_id,
+      village_id: query.data.village_id,
+      role: query.data.role as UserRole | undefined,
+      q: query.data.q,
     });
     return res.json(
       success(
@@ -263,12 +299,15 @@ router.get("/admin/users", requireAuth, requirePermission("users:manage"), async
 
 router.post("/admin/users", requireAuth, requirePermission("users:manage"), async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
-  const body = z
+    const body = z
     .object({
       mobile_number: z.string().regex(provisioningService.MOBILE_REGEX),
       national_id: optionalNationalIdSchema,
+      bank_iban: optionalIbanSchema,
+      village_id: z.number().int().positive().nullable().optional(),
       role: z.string(),
       cooperative_id: z.number().int().positive().nullable().optional(),
+      mine_id: z.number().int().positive().nullable().optional(),
       full_name: optionalPersianNameSchema,
       is_active: z.boolean().optional(),
     })
@@ -283,8 +322,11 @@ router.post("/admin/users", requireAuth, requirePermission("users:manage"), asyn
     const user = await provisioningService.createUserDirect({
       mobile_number: body.data.mobile_number,
       national_id: body.data.national_id,
+      bank_iban: body.data.bank_iban,
+      village_id: body.data.village_id,
       role: body.data.role as UserRole,
       cooperative_id: body.data.cooperative_id,
+      mine_id: body.data.mine_id,
       full_name: body.data.full_name,
       is_active: body.data.is_active ?? true,
       requestId,
@@ -314,6 +356,9 @@ router.patch(
       .object({
         role: z.string().optional(),
         cooperative_id: z.number().int().positive().nullable().optional(),
+        mine_id: z.number().int().positive().nullable().optional(),
+        bank_iban: optionalIbanSchema.nullable().optional(),
+        village_id: z.number().int().positive().nullable().optional(),
         is_active: z.boolean().optional(),
         full_name: optionalPersianNameSchema.nullable().optional(),
         national_id: optionalNationalIdSchema.nullable().optional(),
@@ -331,6 +376,9 @@ router.patch(
         {
           role: body.data.role as UserRole | undefined,
           cooperative_id: body.data.cooperative_id,
+          mine_id: body.data.mine_id,
+          bank_iban: body.data.bank_iban,
+          village_id: body.data.village_id,
           is_active: body.data.is_active,
           full_name: body.data.full_name,
           national_id: body.data.national_id,

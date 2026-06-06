@@ -1,4 +1,5 @@
 import type { UserRole } from "../types/userRole";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "../db/prisma";
 import { runWithSoftDeleteBypass } from "../lib/softDelete";
 import { toBig, toNum } from "./id";
@@ -7,6 +8,8 @@ export type UserRow = {
   id: number;
   mobile_number: string;
   national_id?: string;
+  bank_iban?: string;
+  village_id?: number;
   full_name?: string;
   role: UserRole;
   is_active: boolean;
@@ -16,10 +19,20 @@ export type UserRow = {
   deleted_at?: Date;
 };
 
+export type AdminUserListRow = UserRow & {
+  mine_id?: number;
+  mine_code?: string;
+  mine_name?: string;
+  cooperative_name?: string;
+  village_name?: string;
+};
+
 function mapUser(row: {
   id: bigint;
   mobile_number: string;
   national_id: string | null;
+  bank_iban: string | null;
+  village_id: bigint | null;
   full_name: string | null;
   role: UserRole;
   is_active: boolean;
@@ -32,6 +45,8 @@ function mapUser(row: {
     id: toNum(row.id),
     mobile_number: row.mobile_number,
     national_id: row.national_id ?? undefined,
+    bank_iban: row.bank_iban ?? undefined,
+    village_id: row.village_id != null ? toNum(row.village_id) : undefined,
     full_name: row.full_name ?? undefined,
     role: row.role,
     is_active: row.is_active,
@@ -55,6 +70,8 @@ export async function findUserById(id: number): Promise<UserRow | null> {
 export async function createUser(input: {
   mobile_number: string;
   national_id?: string | null;
+  bank_iban?: string | null;
+  village_id?: number | null;
   role: UserRole;
   full_name?: string;
   cooperative_id?: number | null;
@@ -65,6 +82,8 @@ export async function createUser(input: {
     data: {
       mobile_number: input.mobile_number,
       national_id: input.national_id ?? null,
+      bank_iban: input.bank_iban ?? null,
+      village_id: input.village_id != null ? toBig(input.village_id) : null,
       full_name: input.full_name ?? null,
       role: input.role,
       password_hash: "",
@@ -117,11 +136,84 @@ export async function listUsers(opts?: { includeDeleted?: boolean }): Promise<Us
   return rows.map(mapUser);
 }
 
+export async function listUsersForAdmin(opts?: {
+  includeDeleted?: boolean;
+  mine_id?: number;
+  cooperative_id?: number;
+  village_id?: number;
+  role?: UserRole;
+  q?: string;
+}): Promise<AdminUserListRow[]> {
+  const and: Prisma.usersWhereInput[] = [];
+  if (opts?.cooperative_id != null) and.push({ cooperative_id: toBig(opts.cooperative_id) });
+  if (opts?.village_id != null) and.push({ village_id: toBig(opts.village_id) });
+  if (opts?.role) and.push({ role: opts.role });
+  if (opts?.mine_id != null) {
+    and.push({
+      OR: [
+        { cooperative: { mine_id: toBig(opts.mine_id) } },
+        {
+          workspace_memberships: {
+            some: { mine_id: toBig(opts.mine_id), status: "ACTIVE" },
+          },
+        },
+      ],
+    });
+  }
+  const q = opts?.q?.trim();
+  if (q) {
+    and.push({
+      OR: [
+        { mobile_number: { contains: q } },
+        { national_id: { contains: q } },
+        { full_name: { contains: q } },
+        { bank_iban: { contains: q.toUpperCase() } },
+      ],
+    });
+  }
+
+  const where: Prisma.usersWhereInput = and.length > 0 ? { AND: and } : {};
+  const fetch = () =>
+    prisma.users.findMany({
+      where,
+      orderBy: { id: "asc" },
+      include: {
+        cooperative: { include: { mine: true } },
+        village: true,
+        workspace_memberships: {
+          where: { status: "ACTIVE" },
+          include: { mine: true },
+          orderBy: { id: "asc" },
+          take: 1,
+        },
+      },
+    });
+
+  const rows = opts?.includeDeleted ? await runWithSoftDeleteBypass(fetch) : await fetch();
+
+  return rows.map((row) => {
+    const base = mapUser(row);
+    const membershipMine = row.workspace_memberships[0]?.mine;
+    const coopMine = row.cooperative?.mine;
+    const mine = membershipMine ?? coopMine;
+    return {
+      ...base,
+      mine_id: mine ? toNum(mine.id) : undefined,
+      mine_code: mine?.mine_code,
+      mine_name: mine?.name,
+      cooperative_name: row.cooperative?.name,
+      village_name: row.village?.name,
+    };
+  });
+}
+
 export async function updateUser(
   userId: number,
   data: {
     role?: UserRole;
     cooperative_id?: number | null;
+    bank_iban?: string | null;
+    village_id?: number | null;
     is_active?: boolean;
     full_name?: string | null;
     national_id?: string | null;
@@ -135,6 +227,10 @@ export async function updateUser(
         ...(data.role !== undefined ? { role: data.role } : {}),
         ...(data.cooperative_id !== undefined
           ? { cooperative_id: data.cooperative_id != null ? toBig(data.cooperative_id) : null }
+          : {}),
+        ...(data.bank_iban !== undefined ? { bank_iban: data.bank_iban } : {}),
+        ...(data.village_id !== undefined
+          ? { village_id: data.village_id != null ? toBig(data.village_id) : null }
           : {}),
         ...(data.is_active !== undefined ? { is_active: data.is_active } : {}),
         ...(data.full_name !== undefined ? { full_name: data.full_name } : {}),
@@ -163,6 +259,8 @@ export async function restoreUser(
   data: {
     mobile_number: string;
     national_id?: string | null;
+    bank_iban?: string | null;
+    village_id?: number | null;
     role: UserRole;
     full_name?: string | null;
     cooperative_id?: number | null;
@@ -177,6 +275,8 @@ export async function restoreUser(
           deleted_at: null,
           mobile_number: data.mobile_number,
           national_id: data.national_id ?? null,
+          bank_iban: data.bank_iban ?? null,
+          village_id: data.village_id != null ? toBig(data.village_id) : null,
           role: data.role,
           full_name: data.full_name ?? null,
           cooperative_id: data.cooperative_id != null ? toBig(data.cooperative_id) : null,

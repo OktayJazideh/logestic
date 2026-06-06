@@ -3,13 +3,125 @@ import { ApiError } from "../http/errors";
 import { assertNationalIdFreeForUserAccount } from "../lib/nationalIdEnforcement";
 import { normalizeNationalId } from "../lib/nationalId";
 import { normalizeOptionalNationalId } from "../lib/identityPolicy";
+import { assertUserIbanAvailable } from "../lib/ibanEnforcement";
 import { optionalPersianName } from "../lib/persianText";
 import { isCoopScopedRole, normalizeRole, type UserRole } from "../types/userRole";
+import { prisma } from "../db/prisma";
+import { toBig, toNum } from "../repositories/id";
+import * as cooperativesRepo from "../repositories/cooperativesRepository";
 import * as usersRepo from "../repositories/usersRepository";
 import * as provisioningRepo from "../repositories/userProvisioningRepository";
-import * as workspaceRepo from "../repositories/workspaceMembershipsRepository";
+import {
+  assertOperationalMineAccess,
+  membershipKindForRole,
+  upsertMembership as upsertWorkspaceMembership,
+} from "../repositories/workspaceMembershipsRepository";
 
 export const MOBILE_REGEX = /^09\d{9}$/;
+
+/** Roles that see every mine without an explicit workspace membership row. */
+export function isGlobalWorkspaceRole(role: UserRole): boolean {
+  const n = normalizeRole(role);
+  return n === "ADMIN" || n === "OPERATION_ADMIN";
+}
+
+function roleInWorkspaceForMembership(role: UserRole): UserRole {
+  if (role === "COOP") return "COOP_ADMIN";
+  return role;
+}
+
+function membershipCooperativeId(role: UserRole, cooperativeId?: number | null): number | undefined {
+  if (cooperativeId == null) return undefined;
+  if (
+    isCoopScopedRole(role) ||
+    role === "HOUSEHOLD" ||
+    role === "DRIVER" ||
+    role === "FLEET_OWNER"
+  ) {
+    return cooperativeId;
+  }
+  return undefined;
+}
+
+/** Ensures user can select the target mine in workspace-select (TENANT-1). */
+export async function syncWorkspaceMembershipForUser(input: {
+  userId: number;
+  role: UserRole;
+  mineId?: number | null;
+  cooperativeId?: number | null;
+  requestId?: string;
+}): Promise<void> {
+  if (isGlobalWorkspaceRole(input.role)) return;
+  if (!membershipKindForRole(input.role)) return;
+
+  let mineId = input.mineId ?? null;
+  let cooperativeId = input.cooperativeId ?? null;
+
+  if (isCoopScopedRole(input.role) || input.role === "HOUSEHOLD") {
+    if (cooperativeId == null) {
+      throw new ApiError({
+        statusCode: 400,
+        code: "cooperative_required",
+        message: "cooperative_id is required for COOP roles",
+        requestId: input.requestId,
+      });
+    }
+    const coop = await cooperativesRepo.findCooperativeById(cooperativeId);
+    if (!coop) {
+      throw new ApiError({
+        statusCode: 404,
+        code: "not_found",
+        message: "Cooperative not found",
+        requestId: input.requestId,
+      });
+    }
+    if (mineId != null && coop.mine_id !== mineId) {
+      throw new ApiError({
+        statusCode: 400,
+        code: "cooperative_mine_mismatch",
+        message: "Cooperative does not belong to the selected mine",
+        requestId: input.requestId,
+      });
+    }
+    mineId = coop.mine_id;
+  } else if (cooperativeId != null) {
+    const coop = await cooperativesRepo.findCooperativeById(cooperativeId);
+    if (!coop) {
+      throw new ApiError({
+        statusCode: 404,
+        code: "not_found",
+        message: "Cooperative not found",
+        requestId: input.requestId,
+      });
+    }
+    if (mineId != null && coop.mine_id !== mineId) {
+      throw new ApiError({
+        statusCode: 400,
+        code: "cooperative_mine_mismatch",
+        message: "Cooperative does not belong to the selected mine",
+        requestId: input.requestId,
+      });
+    }
+    mineId = mineId ?? coop.mine_id;
+  }
+
+  if (mineId == null) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "mine_id_required",
+      message: "mine_id is required for this role",
+      requestId: input.requestId,
+    });
+  }
+
+  await upsertWorkspaceMembership({
+    user_id: input.userId,
+    mine_id: mineId,
+    cooperative_id: membershipCooperativeId(input.role, cooperativeId),
+    role_in_workspace: roleInWorkspaceForMembership(input.role),
+    status: "ACTIVE",
+  });
+}
 
 const COOP_UNIT_ROLES: UserRole[] = ["COOP_ADMIN", "COOP_OPERATOR", "HOUSEHOLD"];
 const MINE_OPS_ROLES: UserRole[] = ["OPERATOR", "OPERATION_ADMIN"];
@@ -90,6 +202,155 @@ export async function assertProvisioningIdentityAvailable(
   return { mobile: mobileNorm, national_id };
 }
 
+type ScopedProfile = {
+  national_id: string | null;
+  bank_iban: string | null;
+  village_id: number | null;
+};
+
+async function resolveMineIdForScope(input: {
+  mineId?: number | null;
+  cooperativeId?: number | null;
+  requestId?: string;
+}): Promise<number | null> {
+  let mineId = input.mineId ?? null;
+  if (input.cooperativeId != null) {
+    const coop = await cooperativesRepo.findCooperativeById(input.cooperativeId);
+    if (!coop) {
+      throw new ApiError({
+        statusCode: 404,
+        code: "not_found",
+        message: "Cooperative not found",
+        requestId: input.requestId,
+      });
+    }
+    if (mineId != null && coop.mine_id !== mineId) {
+      throw new ApiError({
+        statusCode: 400,
+        code: "cooperative_mine_mismatch",
+        message: "Cooperative does not belong to the selected mine",
+        requestId: input.requestId,
+      });
+    }
+    mineId = mineId ?? coop.mine_id;
+  }
+  return mineId;
+}
+
+async function assertVillageInMine(
+  villageId: number,
+  mineId: number,
+  requestId?: string,
+): Promise<void> {
+  const village = await prisma.villages.findUnique({ where: { id: toBig(villageId) } });
+  if (!village || toNum(village.mine_id) !== mineId) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "village_mine_mismatch",
+      message: "Village does not belong to the selected mine",
+      requestId,
+    });
+  }
+}
+
+/** Validates national_id, IBAN, village for mine-scoped roles. */
+export async function resolveScopedProfileFields(input: {
+  role: UserRole;
+  national_id?: string | null;
+  bank_iban?: string | null;
+  village_id?: number | null;
+  mine_id?: number | null;
+  cooperative_id?: number | null;
+  excludeUserId?: number;
+  excludeProvisioningRequestId?: number;
+  requestId?: string;
+}): Promise<ScopedProfile> {
+  if (isGlobalWorkspaceRole(input.role)) {
+    const natRaw = normalizeOptionalNationalId(input.national_id);
+    let national_id: string | null = null;
+    if (natRaw) {
+      national_id = await assertNationalIdFreeForUserAccount(
+        natRaw,
+        input.excludeUserId,
+        undefined,
+        input.requestId,
+      );
+    }
+    return { national_id, bank_iban: null, village_id: null };
+  }
+
+  const natRaw = normalizeOptionalNationalId(input.national_id);
+  if (!natRaw) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "national_id_required",
+      message: "national_id is required for this role",
+      requestId: input.requestId,
+    });
+  }
+  if (!input.bank_iban?.trim()) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "bank_iban_required",
+      message: "bank_iban is required for this role",
+      requestId: input.requestId,
+    });
+  }
+  if (input.village_id == null || input.village_id <= 0) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "village_id_required",
+      message: "village_id is required for this role",
+      requestId: input.requestId,
+    });
+  }
+
+  const mineId = await resolveMineIdForScope({
+    mineId: input.mine_id,
+    cooperativeId: input.cooperative_id,
+    requestId: input.requestId,
+  });
+  if (mineId == null) {
+    throw new ApiError({
+      statusCode: 400,
+      code: "mine_id_required",
+      message: "mine_id is required for this role",
+      requestId: input.requestId,
+    });
+  }
+
+  await assertVillageInMine(input.village_id, mineId, input.requestId);
+
+  const national_id = await assertNationalIdFreeForUserAccount(
+    natRaw,
+    input.excludeUserId,
+    undefined,
+    input.requestId,
+  );
+  const pendingNat = await provisioningRepo.findPendingByNationalId(
+    national_id,
+    input.excludeProvisioningRequestId,
+  );
+  if (pendingNat) {
+    throw new ApiError({
+      statusCode: 409,
+      code: "national_id_pending",
+      message: "A pending provisioning request already exists for this national ID",
+      requestId: input.requestId,
+    });
+  }
+
+  const bank_iban = await assertUserIbanAvailable(
+    input.bank_iban,
+    input.excludeUserId,
+    input.excludeProvisioningRequestId,
+    undefined,
+    input.requestId,
+  );
+
+  return { national_id, bank_iban, village_id: input.village_id };
+}
+
 export function assertRoleAllowedForUnit(
   unitType: ProvisioningUnitType,
   targetRole: UserRole,
@@ -127,10 +388,12 @@ export async function createProvisioningRequest(input: {
   requesterRole: UserRole;
   cooperativeId?: number;
   mineId?: number;
+  village_id?: number;
   unit_type?: ProvisioningUnitType;
   target_role: UserRole;
   mobile_number: string;
   national_id?: string | null;
+  bank_iban?: string | null;
   full_name?: string;
   note?: string;
   requestId?: string;
@@ -167,7 +430,7 @@ export async function createProvisioningRequest(input: {
       });
     }
     try {
-      await workspaceRepo.assertOperationalMineAccess({
+      await assertOperationalMineAccess({
         userId: input.requesterUserId,
         userRole: input.requesterRole,
         mineId: mine_id,
@@ -202,6 +465,16 @@ export async function createProvisioningRequest(input: {
     input.requestId,
   );
 
+  const profile = await resolveScopedProfileFields({
+    role: input.target_role,
+    national_id: identity.national_id ?? input.national_id,
+    bank_iban: input.bank_iban,
+    village_id: input.village_id,
+    mine_id: mine_id,
+    cooperative_id: cooperative_id,
+    requestId: input.requestId,
+  });
+
   const full_name = optionalPersianName(input.full_name, input.requestId);
 
   return provisioningRepo.createProvisioningRequest({
@@ -209,9 +482,11 @@ export async function createProvisioningRequest(input: {
     requester_user_id: input.requesterUserId,
     cooperative_id,
     mine_id,
+    village_id: profile.village_id ?? undefined,
     target_role: input.target_role,
     mobile_number: identity.mobile,
-    national_id: identity.national_id,
+    national_id: profile.national_id,
+    bank_iban: profile.bank_iban,
     full_name,
     note: input.note?.trim() || undefined,
   });
@@ -220,8 +495,11 @@ export async function createProvisioningRequest(input: {
 export async function createUserDirect(input: {
   mobile_number: string;
   national_id?: string | null;
+  bank_iban?: string | null;
+  village_id?: number | null;
   role: UserRole;
   cooperative_id?: number | null;
+  mine_id?: number | null;
   full_name?: string;
   is_active?: boolean;
   requestId?: string;
@@ -244,6 +522,17 @@ export async function createUserDirect(input: {
     input.excludeProvisioningRequestId,
   );
 
+  const profile = await resolveScopedProfileFields({
+    role: input.role,
+    national_id: identity.national_id ?? input.national_id,
+    bank_iban: input.bank_iban,
+    village_id: input.village_id,
+    mine_id: input.mine_id,
+    cooperative_id: input.cooperative_id,
+    excludeProvisioningRequestId: input.excludeProvisioningRequestId,
+    requestId: input.requestId,
+  });
+
   const full_name = optionalPersianName(input.full_name, input.requestId);
 
   const existing = await provisioningRepo.findUserByMobileIncludingDeleted(identity.mobile);
@@ -251,7 +540,9 @@ export async function createUserDirect(input: {
     if (existing.deleted_at) {
       const restored = await usersRepo.restoreUser(Number(existing.id), {
         mobile_number: identity.mobile,
-        national_id: identity.national_id,
+        national_id: profile.national_id,
+        bank_iban: profile.bank_iban,
+        village_id: profile.village_id,
         role: input.role,
         cooperative_id: input.cooperative_id ?? null,
         full_name: full_name ?? null,
@@ -265,6 +556,13 @@ export async function createUserDirect(input: {
           requestId: input.requestId,
         });
       }
+      await syncWorkspaceMembershipForUser({
+        userId: restored.id,
+        role: input.role,
+        mineId: input.mine_id,
+        cooperativeId: input.cooperative_id,
+        requestId: input.requestId,
+      });
       return restored;
     }
     throw new ApiError({
@@ -275,14 +573,26 @@ export async function createUserDirect(input: {
     });
   }
 
-  return usersRepo.createUser({
+  const user = await usersRepo.createUser({
     mobile_number: identity.mobile,
-    national_id: identity.national_id,
+    national_id: profile.national_id,
+    bank_iban: profile.bank_iban,
+    village_id: profile.village_id,
     role: input.role,
     cooperative_id: input.cooperative_id ?? undefined,
     full_name,
     is_active: input.is_active ?? true,
   });
+
+  await syncWorkspaceMembershipForUser({
+    userId: user.id,
+    role: input.role,
+    mineId: input.mine_id,
+    cooperativeId: input.cooperative_id,
+    requestId: input.requestId,
+  });
+
+  return user;
 }
 
 export async function approveProvisioningRequest(
@@ -314,8 +624,11 @@ export async function approveProvisioningRequest(
   const user = await createUserDirect({
     mobile_number: req.mobile_number,
     national_id: req.national_id,
+    bank_iban: req.bank_iban,
+    village_id: req.village_id,
     role: req.target_role,
     cooperative_id: req.cooperative_id ?? null,
+    mine_id: req.mine_id != null ? Number(req.mine_id) : null,
     full_name: req.full_name,
     is_active: true,
     requestId: httpRequestId,
@@ -340,6 +653,9 @@ export async function updateUserAdmin(
   patch: {
     role?: UserRole;
     cooperative_id?: number | null;
+    mine_id?: number | null;
+    bank_iban?: string | null;
+    village_id?: number | null;
     is_active?: boolean;
     full_name?: string | null;
     national_id?: string | null;
@@ -390,13 +706,70 @@ export async function updateUserAdmin(
         : null
       : undefined;
 
-  return usersRepo.updateUser(userId, {
+  const roleForProfile = patch.role ?? existing.role;
+  const cooperativeForProfile =
+    patch.cooperative_id !== undefined ? patch.cooperative_id : existing.cooperative_id ?? null;
+  const needsProfileValidation =
+    patch.role != null ||
+    patch.national_id !== undefined ||
+    patch.bank_iban !== undefined ||
+    patch.village_id !== undefined ||
+    patch.cooperative_id !== undefined ||
+    patch.mine_id !== undefined;
+
+  let bank_iban: string | null | undefined = patch.bank_iban;
+  let village_id: number | null | undefined = patch.village_id;
+  let national_id_final = national_id;
+
+  if (needsProfileValidation && !isGlobalWorkspaceRole(roleForProfile)) {
+    const profile = await resolveScopedProfileFields({
+      role: roleForProfile,
+      national_id:
+        patch.national_id !== undefined ? patch.national_id : existing.national_id ?? null,
+      bank_iban: patch.bank_iban !== undefined ? patch.bank_iban : existing.bank_iban ?? null,
+      village_id: patch.village_id !== undefined ? patch.village_id : existing.village_id ?? null,
+      mine_id: patch.mine_id,
+      cooperative_id: cooperativeForProfile,
+      excludeUserId: userId,
+      requestId: httpRequestId,
+    });
+    national_id_final = profile.national_id;
+    bank_iban = profile.bank_iban;
+    village_id = profile.village_id;
+  } else if (isGlobalWorkspaceRole(roleForProfile)) {
+    if (patch.bank_iban !== undefined) bank_iban = null;
+    if (patch.village_id !== undefined) village_id = null;
+  }
+
+  const updated = await usersRepo.updateUser(userId, {
     role: patch.role,
     cooperative_id,
+    bank_iban,
+    village_id,
     is_active: patch.is_active,
     full_name,
-    national_id,
+    national_id: national_id_final,
   });
+  if (!updated) {
+    throw new ApiError({
+      statusCode: 404,
+      code: "user_not_found",
+      message: "User not found",
+      requestId: httpRequestId,
+    });
+  }
+
+  if (patch.mine_id != null || patch.role != null || patch.cooperative_id !== undefined) {
+    await syncWorkspaceMembershipForUser({
+      userId,
+      role: updated.role,
+      mineId: patch.mine_id,
+      cooperativeId: updated.cooperative_id,
+      requestId: httpRequestId,
+    });
+  }
+
+  return updated;
 }
 
 export async function softDeleteUserAdmin(userId: number, httpRequestId?: string) {

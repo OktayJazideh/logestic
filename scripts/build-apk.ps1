@@ -11,11 +11,16 @@ param(
     [string]$App = "both",
     [Parameter(Mandatory = $true)]
     [string]$ApiBaseUrl,
+    [string]$HttpFallbackUrl = "",
     [switch]$NoDemoLogin
 )
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path $PSScriptRoot -Parent
+
+if (-not $HttpFallbackUrl -and $ApiBaseUrl -match '^https://hamsahman\.ir') {
+    $HttpFallbackUrl = "http://185.36.145.164"
+}
 
 if (-not $env:ANDROID_HOME -and -not $env:ANDROID_SDK_ROOT) {
     $defaultSdk = Join-Path $env:LOCALAPPDATA "Android\Sdk"
@@ -43,6 +48,11 @@ function Build-OneApk {
         "build", "apk", "--release",
         "--dart-define=API_BASE_URL=$ApiBaseUrl"
     ) + $demoDefine
+
+    if ($HttpFallbackUrl) {
+        $buildArgs += "--dart-define=API_BASE_URL_HTTP_FALLBACK=$HttpFallbackUrl"
+        Write-Host "    HTTP fallback: $HttpFallbackUrl" -ForegroundColor DarkGray
+    }
 
     & "$RepoRoot\scripts\run-flutter.ps1" @buildArgs
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

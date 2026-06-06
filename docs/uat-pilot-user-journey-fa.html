@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<title>راهنمای کار با برنامه — از صفر تا تست کامل (UAT)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#FAFAF7; --panel:#FFF; --text:#1F2937; --muted:#6B7280;
+    --border:#E5E7EB; --soft:#F3F4F6; --primary:#1B5E20;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Tahoma,"Segoe UI",Arial,sans-serif;font-size:15.5px;line-height:1.9}
+  a{color:var(--primary)}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 16px 64px}
+  header.hero{background:linear-gradient(180deg,#0F3D17,#1B5E20);color:#fff;border-radius:14px;padding:24px;margin-bottom:20px}
+  header.hero h1{margin:0 0 8px;font-size:24px}
+  header.hero p{margin:6px 0;color:#D1FAE5;font-size:14px}
+  header.hero a{color:#D1FAE5}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
+  .panel h2{margin:0 0 12px;font-size:19px;color:#0F3D17;border-bottom:2px solid var(--soft);padding-bottom:8px}
+  .panel h3{margin:16px 0 8px;font-size:16px;color:#374151}
+  .prose p{margin:10px 0}
+  .muted{color:var(--muted);font-size:13px}
+  .good,.info,.warn,.important{padding:12px 14px;border-radius:8px;margin:12px 0;font-size:14px}
+  .good{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46}
+  .info{background:#E0F2FE;border:1px solid #7DD3FC;color:#075985}
+  .warn{background:#FFFBEB;border:1px solid #FCD34D;color:#92400E}
+  .important{background:#FEF2F2;border:2px solid #FCA5A5;color:#991B1B}
+  .flow-box{background:#F3F6F1;border:2px solid #1B5E20;border-radius:12px;padding:16px;margin:14px 0;font-size:14.5px;line-height:2}
+  .flow-box .step{display:block;padding:4px 0}
+  .flow-box .arrow{color:#1B5E20;font-weight:bold}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:12px 0}
+  th,td{border:1px solid var(--border);padding:10px;text-align:right;vertical-align:top}
+  th{background:#F3F6F1;color:#0F3D17}
+  .toc ol{padding-inline-start:22px;line-height:2}
+  .phase{background:#0F3D17;color:#fff;display:inline-block;padding:4px 12px;border-radius:6px;font-size:13px;font-weight:bold;margin-bottom:8px}
+  .steps{list-style:none;padding:0;margin:0}
+  .steps>li{padding:12px 0;border-bottom:1px dashed var(--border);display:flex;gap:10px;align-items:flex-start}
+  .steps>li:last-child{border-bottom:none}
+  .steps input[type=checkbox]{width:18px;height:18px;margin-top:4px;flex-shrink:0}
+  .steps .num{background:#1B5E20;color:#fff;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;flex-shrink:0}
+  .steps .text{flex:1}
+  .steps .who{font-weight:bold;color:#0F3D17}
+  .steps .where{font-size:13px;color:var(--muted);margin-top:4px}
+  .steps .expect{font-size:13px;color:#065F46;margin-top:4px;background:#ECFDF5;padding:6px 10px;border-radius:6px}
+  code{background:#F1F5F9;padding:2px 6px;border-radius:4px;font-size:12px;direction:ltr}
+  .app-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}
+  @media(max-width:700px){.app-grid{grid-template-columns:1fr}}
+  .app-card{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fff;text-align:center}
+  .app-card strong{display:block;color:#0F3D17;margin-bottom:4px}
+  .fill{background:#FFFBEB;min-height:28px}
+  .role-block{border:2px solid #1B5E20;border-radius:12px;padding:16px;margin:20px 0;background:#fff}
+  .role-block>h3{margin-top:0;color:#0F3D17;font-size:17px}
+  .menu-tag{display:inline-block;background:#E8F5E9;color:#1B5E20;font-size:12px;padding:2px 8px;border-radius:4px;margin:2px 0 2px 4px}
+  .menu-more{background:#F3F4F6;color:#374151}
+  .page-card{border:1px solid var(--border);border-radius:8px;padding:12px;margin:10px 0;background:#FAFAF7}
+  .page-card h4{margin:0 0 8px;font-size:14px;color:#0F3D17}
+  .page-card ul{margin:6px 0;padding-inline-start:20px;font-size:13.5px}
+  .no-access{color:#991B1B;font-size:13px}
+  footer{text-align:center;font-size:12px;color:var(--muted);margin-top:32px;padding-top:16px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>راهنمای کار با برنامه — از صفر تا آخر</h1>
+  <p>این سند برای کسی است که <strong>اولین بار</strong> می‌خواهد بفهمد برنامه <strong>چطور کار می‌کند</strong> و <strong>قدم‌به‌قدم</strong> همه‌اش را تست کند قبل از production.</p>
+  <p>نیازی به دانستن برنامه‌نویسی نیست — فقط مرورگر + (برای راننده) گوشی اندروید.</p>
+</header>
+
+<nav class="panel toc">
+  <h2>فهرست — از کجا شروع کنم؟</h2>
+  <ol>
+    <li><a href="#what">این برنامه دقیقاً چیست؟</a></li>
+    <li><a href="#story">داستان یک بار حمل — از اول تا آخر (مهم‌ترین بخش)</a></li>
+    <li><a href="#roles">چه کسانی با برنامه کار می‌کنند؟</a></li>
+    <li><a href="#apps">سه تا برنامه — کدام را باز کنم؟</a></li>
+    <li><a href="#login">ورود، OTP، workspace — قبل از هر کاری</a></li>
+    <li><a href="#phase1">فاز ۱ — راه‌اندازی (فقط ADMIN، یک بار)</a></li>
+    <li><a href="#phase2">فاز ۲ — اولین بار حمل را کامل بازی کنید (۴۵–۹۰ دقیقه)</a></li>
+    <li><a href="#phase3">فاز ۳ — بقیه بخش‌ها را جدا تست کنید</a></li>
+    <li><a href="#phase4">فاز ۴ — قبل از رفتن به production</a></li>
+    <li><strong><a href="#dashboards">راهنمای کامل داشبورد — همه نقش‌ها (جزئیات)</a></strong></li>
+    <li style="margin-inline-start:18px"><a href="#dash-admin">→ ADMIN</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-employer">→ EMPLOYER</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-ops">→ OPERATION_ADMIN</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-locker">→ OPERATION_LOCKER</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-coop-admin">→ COOP_ADMIN</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-coop-op">→ COOP_OPERATOR</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-driver">→ DRIVER (اپ)</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-fleet">→ FLEET_OWNER</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-household">→ HOUSEHOLD (اپ)</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-consultant">→ CONSULTANT</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-operator">→ OPERATOR (اپ)</a></li>
+    <li style="margin-inline-start:18px"><a href="#dash-household-web">→ HOUSEHOLD وب</a></li>
+    <li><a href="#routes-matrix">ماتریس کامل مسیرها</a></li>
+    <li><a href="#bugs">اگر باگ دیدید — کجا بنویسم؟</a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel prose" id="what">
+  <h2>۱ — این برنامه دقیقاً چیست؟</h2>
+  <p><strong>هم‌سازمان (logestic)</strong> یک نرم‌افزار برای <strong>مدیریت حمل بار معدن</strong> است — مثلاً معدن تفتان می‌خواهد ۱۰ تن سنگ حمل شود:</p>
+  <ul>
+    <li>کارفرما/معدن <strong>نیاز</strong> ثبت می‌کند.</li>
+    <li>مدیر عملیات <strong>راننده</strong> را روی آن نیاز می‌گذارد (dispatch).</li>
+    <li>راننده با <strong>اپ موبایل</strong> مسیر را طی می‌کند تا بار تحویل شود.</li>
+    <li>اپرator <strong>باسکول</strong> وزن خالی/پر را وارد می‌کند.</li>
+    <li>سیستم <strong>پول</strong> را بین مالک ناوگان، پلتفرم (۱٪) و <strong>صندوق تعاونی</strong> (سهم روستا) تقسیم می‌کند.</li>
+    <li>آخر ماه <strong>تسویه</strong> انجام می‌شود و خانوارها <strong>سهم</strong> خود را در اپ تعاونی می‌بینند.</li>
+  </ul>
+  <div class="good">
+    <strong>شما در UAT چه می‌کنید؟</strong> خودتان نقش هر شخص را یک‌بار بازی می‌کنید — مثل یک نمایش — تا ببینید همه مراحل درست کار می‌کند یا نه.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="story">
+  <h2>۲ — داستان یک بار حمل (قلب برنامه)</h2>
+  <p>قبل از کلیک کردن، <strong>کل فلو</strong> را یک‌بار بخوانید. بعد در <a href="#phase2">فاز ۲</a> همین را عملی انجام می‌دهید.</p>
+
+  <div class="flow-box">
+    <span class="step"><strong>۱.</strong> کارفرما → «۱۰ تن سنگ می‌خواهم» (ثبت نیاز)</span>
+    <span class="arrow">↓</span>
+    <span class="step"><strong>۲.</strong> مدیر عملیات → راننده را روی نیاز می‌گذارد (تخصیص / dispatch)</span>
+    <span class="arrow">↓</span>
+    <span class="step"><strong>۳.</strong> راننده (اپ) → می‌پذیرد → می‌رود معدن → بار می‌زند → می‌آورد → تحویل می‌دهد</span>
+    <span class="arrow">↓</span>
+    <span class="step"><strong>۴.</strong> اپرator باسکول (وب) → وزن خالی و پر را از نمایشگر باسکول می‌خواند و وارد می‌کند</span>
+    <span class="arrow">↓</span>
+    <span class="step"><strong>۵.</strong> مدیر عملیات → باسکول را تأیید می‌کند → بار «تأییدشده» (VERIFIED) می‌شود</span>
+    <span class="arrow">↓</span>
+    <span class="step"><strong>۶.</strong> سیستم → ~۹۹٪ برای مالک ناوگان · ~۱٪ پلتفرم · مبلغ تعاونی = تن × نرخ قرارداد</span>
+    <span class="arrow">↓</span>
+    <span class="step"><strong>۷.</strong> آخر ماه → بستن ماه → صورت وضعیت → تأیید تعاونی + عملیات → قفل → پرداخت معدن → قفل تسویه</span>
+    <span class="arrow">↓</span>
+    <span class="step"><strong>۸.</strong> مالک ناوگان و خانوار → کیف پول / سهم را می‌بینند</span>
+  </div>
+
+  <div class="info">
+    <strong>قبل از مرحله ۳:</strong> راننده باید در سیستم ساخته شده و <strong>احراز هویت (KYC)</strong>اش را مدیر تعاونی تأیید کرده باشد — وگرنه اپ اجازه مأموریت نمی‌دهد.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="roles">
+  <h2>۳ — چه کسانی با برنامه کار می‌کنند؟</h2>
+  <p>هر نفر با <strong>شماره موبایل</strong> وارد می‌شود. نقشش تعیین می‌کند چه منوهایی ببیند.</p>
+  <table>
+    <tr><th>شخص در واقعیت</th><th>نقش در برنامه</th><th>کجا کار می‌کند</th></tr>
+    <tr><td>شما / IT / مدیر پلتفرم</td><td><strong>ADMIN</strong></td><td>وب — ساخت کاربر، مالی، قفل صورت وضعیت</td></tr>
+    <tr><td>نماینده معدن / کارفرما</td><td><strong>EMPLOYER</strong></td><td>وب — ثبت نیاز حمل</td></tr>
+    <tr><td>مسئول عملیات معدن</td><td><strong>OPERATION_ADMIN</strong></td><td>وب — تخصیص راننده، تأیید باسکول، تسویه</td></tr>
+    <tr><td>همکار دوم (فقط قفل تسویه)</td><td><strong>OPERATION_ADMIN</strong> (locker · مثلاً <code>09000000103</code>)</td><td>وب — فقط قفل نهایی تسویه + صندوق تأییدها</td></tr>
+    <tr><td>مسئول باسکول</td><td><strong>COOP_OPERATOR</strong></td><td>وب — صفحه باسکول</td></tr>
+    <tr><td>مدیر تعاونی روستا</td><td><strong>COOP_ADMIN</strong></td><td>وب + اپ تعاونی — KYC، تأیید صورت وضعیت</td></tr>
+    <tr><td>راننده کامیون</td><td><strong>DRIVER</strong></td><td><strong>اپ راننده</strong> — مأموریت</td></tr>
+    <tr><td>صاحب کامیون</td><td><strong>FLEET_OWNER</strong></td><td>وب — ناوگان و کیف پول</td></tr>
+    <tr><td>سرپرست خانوار روستا</td><td><strong>HOUSEHOLD</strong></td><td><strong>اپ تعاونی</strong> (+ وب wallet/members) — ثبت‌نام، سهم، کیف پول</td></tr>
+    <tr><td>مشاور / ناظر ساعتی</td><td><strong>CONSULTANT</strong></td><td>وب — فقط «کارکرد ساعتی» (فاز ۲)</td></tr>
+    <tr><td>اپرator میدانی ساعتی</td><td><strong>OPERATOR</strong></td><td>اپ تعاونی — hourly/start · hourly/end (فاز ۲)</td></tr>
+  </table>
+  <p class="muted">نقش legacy <strong>COOP</strong> در DB = همان COOP_ADMIN · <strong>OPERATOR/CONSULTANT</strong> = فاز ۲ ساعتی</p>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="apps">
+  <h2>۴ — سه تا برنامه — کدام را باز کنم؟</h2>
+  <div class="app-grid">
+    <div class="app-card">
+      <strong>پنل وب</strong>
+      <span class="muted">مرورگر کامپیوتر</span>
+      <p style="font-size:13px;margin:8px 0 0">ADMIN · کارفرما · عملیات · باسکول · تعاونی (مدیر) · مالک ناوگان</p>
+    </div>
+    <div class="app-card">
+      <strong>اپ راننده</strong>
+      <span class="muted">Android APK</span>
+      <p style="font-size:13px;margin:8px 0 0">فقط DRIVER — مأموریت و GPS</p>
+    </div>
+    <div class="app-card">
+      <strong>اپ تعاونی</strong>
+      <span class="muted">Android APK</span>
+      <p style="font-size:13px;margin:8px 0 0">خانوار · مدیر تعاونی · (اپرator KYC)</p>
+    </div>
+  </div>
+  <h3>آدرس‌ها (پایلوت فعلی)</h3>
+  <table>
+    <tr><th>محیط</th><th>پنل وب</th><th>نکته</th></tr>
+    <tr><td>سرور (VPS)</td><td><code>http://185.36.145.164</code></td><td>یا <code>hamsahman.ir</code> وقتی DNS/SSL آماده شد</td></tr>
+    <tr><td>لوکال روی PC</td><td><code>http://localhost:5173</code></td><td>بعد از <code>npm -w @app/web run dev</code></td></tr>
+  </table>
+  <p>APK از همان سایت: مسیر <code>/downloads/</code> — یا build با <a href="demo-users-and-deploy-fa.md">راهنمای deploy</a>.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="login">
+  <h2>۵ — ورود، OTP، workspace</h2>
+
+  <h3>۵.۱ ورود</h3>
+  <ol>
+    <li>صفحه login را باز کنید (وب یا اپ).</li>
+    <li>شماره موبایل را بزنید → «دریافت کد».</li>
+    <li>کد OTP را وارد کنید.</li>
+  </ol>
+  <div class="warn">
+    <strong>برای تست UAT (بدون SMS):</strong> روی پنل وب دکمه‌های <strong>ورود دمو</strong> هست — یا در اپ همان نقش را از لیست دمو انتخاب کنید. برای OTP بدون SMS: <code>GET /api/auth/__dev/otp?mobile_number=...</code> (فقط وقتی <code>ENABLE_DEMO_LOGIN=true</code>).
+  </div>
+
+  <h3>۵.۲ بعد از ورود — «workspace» یعنی چی؟</h3>
+  <p>سیستم می‌پرسد روی <strong>کدام معدن</strong> و با <strong>چه نوع عضویت</strong> کار می‌کنید:</p>
+  <table>
+    <tr><th>انتخاب</th><th>کی بزند</th></tr>
+    <tr><td><strong>کار عملیاتی · معدن ۱ (TAFTAN)</strong></td><td>کارفرما، عملیات، راننده، باسکول (وب)، مالک ناوگان، ADMIN</td></tr>
+    <tr><td><strong>عضویت تعاونی · معدن ۱</strong></td><td>مدیر تعاونی، خانوار، (KYC در اپ تعاونی)</td></tr>
+  </table>
+  <div class="important">workspace اشتباه = منو خالی یا خطا. logout کنید و دوباره workspace درست را بزنید.</div>
+
+  <h3>۵.۳ خروج و عوض کردن نقش</h3>
+  <p>برای تست هر نقش: <strong>خروج</strong> (منوی پنل وب · یا دکمه logout در app bar اپ‌های موبایل) → دوباره login با موبایل آن نقش (یا دکمه دمو). شما یک نفرید که همه نقش‌ها را پشت سر هم بازی می‌کنید.</p>
+
+  <h3>۵.۴ صفحه انتخاب workspace — <code>/workspace-select</code></h3>
+  <ul class="steps">
+    <li><input type="checkbox" /> بعد از OTP لیست membershipها نمایش داده شود</li>
+    <li><input type="checkbox" /> <strong>کار عملیاتی · معدن TAFTAN</strong> — برای ADMIN، EMPLOYER، OPS، DRIVER، FLEET، COOP_OPERATOR (باسکول)</li>
+    <li><input type="checkbox" /> <strong>عضویت تعاونی · معدن TAFTAN</strong> — برای COOP_ADMIN، HOUSEHOLD، COOP_OPERATOR (KYC موبایل)</li>
+    <li><input type="checkbox" /> انتخاب → redirect به home نقش</li>
+  </ul>
+
+  <h3>۵.۵ خانه پنل — <code>/panel</code> (همه نقش‌های وب)</h3>
+  <ul class="steps">
+    <li><input type="checkbox" /> حداکثر <strong>۵ کارت</strong> میانبر — بدون کارت قفل</li>
+    <li><input type="checkbox" /> کلیک هر کارت → همان صفحه درست باز شود</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="phase1">
+  <h2><span class="phase">فاز ۱</span> راه‌اندازی — فقط یک بار، با ADMIN</h2>
+  <p>قبل از اینکه کارفرما یا راننده کاری کنند، ADMIN باید سیستم و افراد را آماده کند.</p>
+
+  <ul class="steps">
+    <li><input type="checkbox" /><span class="num">۱</span><div class="text">
+      <span class="who">ADMIN</span> — وارد پنل وب شوید (دمو یا OTP <code>09000000000</code> اگر seed زده‌اید).
+      <div class="where">workspace: <strong>کار عملیاتی · معدن ۱</strong></div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۲</span><div class="text">
+      منو → <strong>مدیریت کاربران</strong> (<code>/panel/admin/users</code>)
+      <div class="where">برای هر نقش §۳ یک کاربر با موبایل واقعی (یا موبایل تست) بسازید: EMPLOYER، OPERATION_ADMIN (دو نفر اگر locker جدا می‌خواهید)، COOP_ADMIN، COOP_OPERATOR، DRIVER، FLEET_OWNER، HOUSEHOLD.</div>
+      <div class="expect">هر کس فقط با همان موبایل می‌تواند login کند.</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۳</span><div class="text">
+      برای COOP_ADMIN و COOP_OPERATOR و DRIVER و HOUSEHOLD: هنگام ساخت، <strong>تعاونی ۱</strong> را انتخاب کنید.
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۴</span><div class="text">
+      <strong>راننده</strong> را ADMIN ساخت — حالا باید KYC راننده تأیید شود (در <a href="#phase3-kyc">فاز ۳ — KYC</a> یا قبل از فاز ۲).
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۵</span><div class="text">
+      (اختیاری) <strong>تنظیمات معدن</strong> — <code>/panel/admin/mine-settings</code> — مطمئن شوید معدن TAFTAN و dispatch دستی است.
+    </div></li>
+  </ul>
+
+  <div class="info">جدول موبایل هر نقش را اینجا پر کنید:</div>
+  <table>
+    <tr><th>نقش</th><th>موبایل من</th><th>یادداشت</th></tr>
+    <tr><td>ADMIN</td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>EMPLOYER</td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>OPERATION_ADMIN</td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>OPERATION_ADMIN (locker)</td><td class="fill"></td><td>مثلاً 09000000103</td></tr>
+    <tr><td>COOP_ADMIN</td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>COOP_OPERATOR</td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>DRIVER</td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>FLEET_OWNER</td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>HOUSEHOLD</td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>CONSULTANT</td><td class="fill"></td><td>فاز ۲</td></tr>
+    <tr><td>OPERATOR</td><td class="fill"></td><td>فاز ۲ · اپ community</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="phase2">
+  <h2><span class="phase">فاز ۲</span> اولین بار حمل — از اول تا آخر (همین را انجام دهید)</h2>
+  <div class="good">
+    <strong>این مهم‌ترین بخش UAT است.</strong> یک بار این ۱۵ قدم را پشت سر هم انجام دهید. بین هر قدم logout/login نقش بعدی. اگر همه OK شد، «قلب» برنامه سالم است.
+  </div>
+
+  <ul class="steps">
+    <li><input type="checkbox" /><span class="num">۱</span><div class="text">
+      <span class="who">کارفرما (EMPLOYER)</span> — وب · workspace عملیاتی
+      <div class="where">منو <strong>ثبت نیاز</strong> → wizard → حمل (نه ساعتی) → روستا، ماده (سنگ)، مثلاً <strong>۱۰ تن</strong> → ثبت</div>
+      <div class="expect">در <strong>پیگیری نیازها</strong> وضعیت «در انتظار» (PENDING) ببینید.</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۲</span><div class="text">
+      <span class="who">مدیر عملیات (OPERATION_ADMIN)</span> — وب · workspace عملیاتی
+      <div class="where">منو <strong>تخصیص بار</strong> یا <strong>پیگیری نیازها</strong> → روی نیاز → <strong>تخصیص / dispatch</strong> → راننده KYC-approved</div>
+      <div class="expect">مأموریت برای راننده ساخته شد — وضعیت ASSIGNED.</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۳</span><div class="text">
+      <span class="who">راننده (DRIVER)</span> — <strong>اپ راننده</strong> · workspace معدن
+      <div class="where">لیست مأموریت → باز کردن → قبول → ورود به معدن (GPS) → بارگیری → در راه → تحویل (GPS)</div>
+      <div class="expect">وضعیت نهایی DELIVERED. اگر «KYC در انتظار» دیدید → اول COOP_ADMIN راننده را تأیید کند.</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۴</span><div class="text">
+      <span class="who">اپرator باسکول (COOP_OPERATOR)</span> — <strong>وب</strong> · workspace عملیاتی
+      <div class="where">منو <strong>باسکول</strong> → تیکت مربوط به همان مأموریت → وزن خالی (kg) + وزن پر (kg) از نمایشگر → ثبت</div>
+      <div class="expect">وزن خالص خودکار. اگر اختلاف زیاد باشد → HOLD (عمداً بعداً تست کنید).</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۵</span><div class="text">
+      <span class="who">مدیر عملیات</span> — وب
+      <div class="where">تأیید باسکول / approve ticket</div>
+      <div class="expect">مأموریت VERIFIED · تقسیم ~۹۹٪ مالک · ~۱٪ پلتفرم · سهم تعاونی</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۶</span><div class="text">
+      <span class="who">مدیر عملیات</span> — منو <strong>تسویه</strong>
+      <div class="where">بستن ماه (monthly-close) — سال و ماه جاری</div>
+      <div class="expect">batch تسویه + صورت وضعیت دوره ساخته شد.</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۷</span><div class="text">
+      <span class="who">ADMIN</span> — <strong>صورت وضعیت دوره</strong>
+      <div class="where">submit-review (ارسال برای بررسی)</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۸</span><div class="text">
+      <span class="who">مدیر تعاونی (COOP_ADMIN)</span> — workspace تعاونی
+      <div class="where">صورت وضعیت → <strong>تأیید</strong></div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۹</span><div class="text">
+      <span class="who">مدیر عملیات</span> — صورت وضعیت → <strong>تأیید</strong> (تأیید دوم)</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۱۰</span><div class="text">
+      <span class="who">ADMIN</span> — صورت وضعیت → <strong>قفل (lock)</strong></div>
+      <div class="expect">وضعیت LOCKED</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۱۱</span><div class="text">
+      <span class="who">COOP_ADMIN + OPERATION_ADMIN</span> — تأیید batch تسویه (در صفحه تسویه)</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۱۲</span><div class="text">
+      <span class="who">کاربر locker</span> (OPERATION_ADMIN دوم) — تسویه → lock
+      <div class="expect">اگر پرداخت معدن ثبت نشده → خطا. این درست است.</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۱۳</span><div class="text">
+      <span class="who">ADMIN</span> — ثبت <strong>پرداخت معدن</strong> (شماره پیگیری)</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۱۴</span><div class="text">
+      <span class="who">locker</span> — دوباره lock تسویه
+      <div class="expect">این بار موفق</div>
+    </div></li>
+
+    <li><input type="checkbox" /><span class="num">۱۵</span><div class="text">
+      <span class="who">مالک ناوگان + خانوار</span>
+      <div class="where">وب کیف پول / اپ تعاونی — موجودی و تراکنش منطقی</div>
+      <div class="expect">ADMIN → سوابق تغییرات: اقدامات مهم ثبت شده</div>
+    </div></li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="phase3">
+  <h2><span class="phase">فاز ۳</span> بقیه بخش‌ها — جدا جدا تست کنید</h2>
+  <p>بعد از فاز ۲، این‌ها را برای پوشش کامل امتحان کنید.</p>
+
+  <h3 id="phase3-kyc">۳.۱ احراز هویت (KYC)</h3>
+  <ul class="steps">
+    <li><input type="checkbox" /><div class="text"><strong>خانوار:</strong> اپ تعاونی → ثبت‌نام چندمرحله‌ای → COOP_ADMIN در وب «تأیید هویت» → approve → wallet فعال</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>راننده:</strong> ADMIN ساخت → اپ «KYC در انتظار» → coop approve → مأموریت باز می‌شود</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>مالک ناوگان:</strong> درخواست KYC + خودرو → coop approve/reject</div></li>
+    <li><input type="checkbox" /><div class="text">رد درخواست / درخواست اصلاح / تعلیق — هر کدام را یک‌بار بزنید</div></li>
+  </ul>
+
+  <h3>۳.۲ ساخت کاربر با «درخواست» (نه مستقیم ADMIN)</h3>
+  <ul class="steps">
+    <li><input type="checkbox" /><div class="text"><strong>COOP_ADMIN</strong> → منو «ثبت کاربر جدید» → درخواست اپرator یا خانوار → <strong>ADMIN</strong> → «درخواست‌های کاربر» → تأیید → کاربر جدید login</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>OPERATION_ADMIN</strong> → همان مسیر → درخواست OPERATOR → ADMIN تأیید</div></li>
+    <li><input type="checkbox" /><div class="text">یک درخواست را ADMIN <strong>رد</strong> کند — دلیل نمایش داده شود</div></li>
+  </ul>
+
+  <h3>۳.۳ کارفرما — فقط نیاز</h3>
+  <ul class="steps">
+    <li><input type="checkbox" /><div class="text">ثبت نیاز جدید · مشاهده inbox · لغو نیاز PENDING</div></li>
+    <li><input type="checkbox" /><div class="text">نباید بتواند dispatch یا تسویه ببیند (منو نباشد / 404)</div></li>
+  </ul>
+
+  <h3>۳.۴ اپ راننده — جزئیات</h3>
+  <ul class="steps">
+    <li><input type="checkbox" /><div class="text">دکمه back در login → خروج از اپ (نه گیر کردن در splash)</div></li>
+    <li><input type="checkbox" /><div class="text">حالت آفلاین: یک مرحله بدون اینترنت → بعد sync</div></li>
+  </ul>
+
+  <h3>۳.۵ اپ تعاونی — خانوار</h3>
+  <ul class="steps">
+    <li><input type="checkbox" /><div class="text">تب‌ها: خانه · کیف پول · سهم · درخواست/اعتراض</div></li>
+    <li><input type="checkbox" /><div class="text">ثبت اعتراض · مشاهده وضعیت تسویه</div></li>
+  </ul>
+
+  <h3>۳.۶ کار ساعتی (فاز ۲ — اختیاری)</h3>
+  <ul class="steps">
+    <li><input type="checkbox" /><div class="text"><strong>EMPLOYER</strong> → ثبت نیاز → تب «ساعتی» (نه حمل)</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>OPERATOR</strong> (اپ community · workspace عملیاتی) → <code>/hourly/start</code> → START + GPS → <code>/hourly/end</code> → END</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>CONSULTANT</strong> (وب) → <code>/panel/consultant/hourly</code> → verify یا reject</div></li>
+    <li><input type="checkbox" /><div class="text">CONSULTANT → <code>/panel/payments</code> مستقیم → 404 (فقط inbox ساعتی)</div></li>
+  </ul>
+
+  <h3>۳.۷ سناریوهای خاص (پوشش باگ)</h3>
+  <ul class="steps">
+    <li><input type="checkbox" /><div class="text"><strong>HOLD باسکول:</strong> اختلاف وزن ≥۵٪ → PENDING_HOLD → مأموریت از تسویه حذف شود</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>نگهداری پرداخت:</strong> OPS → payments → hold/release روی mission_id</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>IBAN تکراری:</strong> دو خانوار با یک شبا → خطای validation</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>OTP unregistered:</strong> موبایل خارج از DB → «در سامانه ثبت نشده»</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>Community pool:</strong> OPS settlement → distribute روی pool SNAPSHOT_LOCKED (در صورت UI)</div></li>
+  </ul>
+
+  <h3>۳.۸ HOUSEHOLD روی وب (اختیاری)</h3>
+  <ul class="steps">
+    <li><input type="checkbox" /><div class="text">Login HOUSEHOLD → workspace COMMUNITY → <code>/panel/wallet</code></div></li>
+    <li><input type="checkbox" /><div class="text"><code>/panel/members</code> — لیست اعضا · ثبت <strong>اعتراض</strong> روی یک عضو</div></li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="phase4">
+  <h2><span class="phase">فاز ۴</span> قبل از رفتن به production</h2>
+  <ul class="steps">
+    <li><input type="checkbox" /><div class="text"><strong>فاز ۲</strong> (۱۵ قدم حمل) بدون blocker تمام شد</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>SMS واقعی:</strong> OTP با کاوه‌نگار روی یک موبایل واقعی تست شد (نه فقط دمو · <code>__dev/otp</code> در production خاموش است)</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>DNS + SSL:</strong> <code>hamsahman.ir</code> به سرور اشاره کند · HTTPS</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>APK production:</strong> base URL = <code>https://hamsahman.ir</code> (بدون <code>/api</code>)</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>کاربران واقعی</strong> با موبایل واقعی در ADMIN ساخته شدند (نه فقط 09000000*)</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>backup</strong> دیتابیس یک‌بار گرفته شد</div></li>
+    <li><input type="checkbox" /><div class="text"><strong>تست خودکار:</strong> <code>npm run test:infra-regression</code> · <code>test:pilot-taftan1</code> · <code>test:e2e -- uat-haul</code> (طبق <a href="uat-handover-checklist-fa.md">چک‌لیست تحویل</a>)</div></li>
+    <li><input type="checkbox" /><div class="text">چک‌لیست فنی: <a href="uat-handover-checklist-fa.md">uat-handover-checklist-fa.md</a></div></li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="dashboards">
+  <h2>راهنمای کامل داشبورد — همه نقش‌ها</h2>
+  <div class="info">
+    برای هر نقش: <strong>خروج</strong> → login با آن نقش → workspace درست → هر منو را باز کنید و checkboxها را بزنید.
+    منوی کناری حداکثر <strong>۵ آیتم</strong> نشان می‌دهد؛ بقیه زیر <strong>«بیشتر»</strong>.
+  </div>
+
+  <div class="role-block" id="dash-admin">
+    <h3>۱. ADMIN — ادمین پلتفرم</h3>
+    <p><strong>کجا:</strong> پنل وب · <strong>workspace:</strong> کار عملیاتی · معدن ۱</p>
+    <p><strong>بعد از login:</strong> <code>/panel/admin/finance</code></p>
+    <p><strong>منوی اصلی:</strong>
+      <span class="menu-tag">خانه</span><span class="menu-tag">داشبورد مالی</span><span class="menu-tag">مدیریت کاربران</span><span class="menu-tag">درخواست‌های کاربر</span><span class="menu-tag">داشبورد عملیاتی</span>
+      <span class="menu-tag menu-more">بیشتر: قوانین · تنظیمات معدن · ثبت معدن · تطبیق · سوابق · صورت وضعیت · مالی هر بار</span>
+    </p>
+    <p class="no-access"><strong>ندارد:</strong> باسکول · تخصیص · ثبت نیاز · صفحه تسویه · KYC</p>
+    <div class="page-card"><h4>داشبورد مالی — <code>/panel/admin/finance</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> Stat cards: خلاصه مالی</li>
+        <li><input type="checkbox" /> فیلتر معدن · تعاونی · بازه زمانی</li>
+        <li><input type="checkbox" /> «بروزرسانی»</li>
+        <li><input type="checkbox" /> «نمایش IBAN» — audit ثبت شود</li>
+        <li><input type="checkbox" /> Export Excel · Export PDF</li>
+      </ul></div>
+    <div class="page-card"><h4>مدیریت کاربران — <code>/panel/admin/users</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> «کاربر جدید» → موبایل (اجباری) + نقش + cooperative_id</li>
+        <li><input type="checkbox" /> نام · کد ملی (اختیاری) — شبا اینجا نیست</li>
+        <li><input type="checkbox" /> «ایجاد» → کاربر در لیست</li>
+        <li><input type="checkbox" /> ویرایش نقش · «ذخیره»</li>
+        <li><input type="checkbox" /> «حذف» → soft delete</li>
+        <li><input type="checkbox" /> فیلتر/جستجو لیست</li>
+      </ul></div>
+    <div class="page-card"><h4>درخواست‌های کاربر — <code>/panel/admin/user-requests</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> صف PENDING — جزئیات درخواست coop/ops</li>
+        <li><input type="checkbox" /> «تأیید» → کاربر ساخته می‌شود</li>
+        <li><input type="checkbox" /> «رد» + دلیل — در تب رد‌شده دیده شود</li>
+      </ul></div>
+    <div class="page-card"><h4>داشبورد عملیاتی — <code>/panel/ops</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> ۷ KPI · میانبرها · نمودار · آخرین مأموریت‌ها (مثل OPS)</li>
+      </ul></div>
+    <div class="page-card"><h4>صورت وضعیت — <code>/panel/admin/period-statement</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> submit-review</li>
+        <li><input type="checkbox" /> lock (بعد از dual approve)</li>
+        <li><input type="checkbox" /> register mine payment · export</li>
+      </ul></div>
+    <div class="page-card"><h4>قوانین — <code>/panel/admin/rules</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> مشاهده ruleها · ویرایش (در صورت UI)</li></ul></div>
+    <div class="page-card"><h4>تنظیمات معدن — <code>/panel/admin/mine-settings</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> TAFTAN · geofence · DISPATCH_MODE=manual</li></ul></div>
+    <div class="page-card"><h4>ثبت معدن — <code>/panel/admin/mine-onboard</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> wizard چندمرحله (smoke test)</li></ul></div>
+    <div class="page-card"><h4>تطبیق — <code>/panel/admin/reconciliation</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> گزارش reconciliation شبانه</li></ul></div>
+    <div class="page-card"><h4>سوابق — <code>/panel/admin/audit</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> فیلتر action · user · تاریخ · expand JSON diff</li></ul></div>
+    <div class="page-card"><h4>مالی هر بار — <code>/panel/admin/finance/by-load</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> جدول مالی per mission/load</li></ul></div>
+    <div class="page-card"><h4>پیگیری نیازها — <code>/panel/employer/inbox</code> (فقط مشاهده)</h4>
+      <ul class="steps"><li><input type="checkbox" /> لیست نیازها — بدون dispatch</li></ul></div>
+    <div class="page-card"><h4>خانه — <code>/panel</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> کارت‌های مالی · کاربران · درخواست‌ها · ops</li></ul></div>
+  </div>
+
+  <div class="role-block" id="dash-employer">
+    <h3>۲. EMPLOYER — کارفرما / معدن</h3>
+    <p><strong>workspace:</strong> عملیاتی · معدن ۱ · <strong>خانه:</strong> <code>/panel/employer/inbox</code></p>
+    <p><strong>منو:</strong> <span class="menu-tag">خانه</span> <span class="menu-tag">ثبت نیاز</span> <span class="menu-tag">پیگیری نیازها</span></p>
+    <p class="no-access"><strong>ندارد:</strong> تخصیص · تسویه · KYC · admin · باسکول · wallet</p>
+
+    <div class="page-card"><h4>ثبت نیاز — <code>/panel/employer</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> تب «حمل» (P0) — تب «ساعتی» (P2 اختیاری)</li>
+        <li><input type="checkbox" /> مرحله ۱ از ۳: نوع کار · روستای مقصد</li>
+        <li><input type="checkbox" /> مرحله ۲: نوع ماده (مثلاً ORE) · تناژ (مثلاً ۱۰)</li>
+        <li><input type="checkbox" /> مرحله ۳: خلاصه → «ثبت نیاز حمل»</li>
+        <li><input type="checkbox" /> پیام موفقیت + شماره نیاز</li>
+        <li><input type="checkbox" /> «مرحله قبل» در wizard کار کند</li>
+      </ul></div>
+
+    <div class="page-card"><h4>پیگیری — <code>/panel/employer/inbox</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> جدول/کارت نیازها: id · وضعیت · تناژ · تاریخ</li>
+        <li><input type="checkbox" /> وضعیت PENDING بعد از ثبت</li>
+        <li><input type="checkbox" /> بعد از dispatch: DISPATCHED / مأموریت</li>
+        <li><input type="checkbox" /> «لغو» روی نیاز PENDING</li>
+        <li><input type="checkbox" /> <strong>دکمه dispatch نباشد</strong></li>
+      </ul></div>
+
+    <div class="page-card"><h4>خانه — <code>/panel</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> کارت‌های ثبت نیاز · پیگیری · (بدون dispatch/settlement)</li>
+      </ul></div>
+
+    <div class="page-card"><h4>تست منفی — URL مستقیم</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> <code>/panel/dispatch-board</code> → 404</li>
+        <li><input type="checkbox" /> <code>/panel/settlement</code> → 404</li>
+        <li><input type="checkbox" /> <code>/panel/admin/users</code> → 404</li>
+        <li><input type="checkbox" /> <code>/panel/kyc</code> → 404</li>
+      </ul></div>
+  </div>
+
+  <div class="role-block" id="dash-ops">
+    <h3>۳. OPERATION_ADMIN — مدیر عملیات</h3>
+    <p><strong>workspace:</strong> عملیاتی · معدن ۱ · <strong>خانه:</strong> <code>/panel/ops</code></p>
+    <p><strong>منوی کناری (حداکثر ۵ + بیشتر):</strong></p>
+    <p>
+      <span class="menu-tag">خانه</span>
+      <span class="menu-tag">داشبورد عملیاتی</span>
+      <span class="menu-tag">ثبت کاربر جدید</span>
+      <span class="menu-tag">تسویه</span>
+      <span class="menu-tag">تخصیص بار</span>
+    </p>
+    <p><span class="menu-tag menu-more">منوی «بیشتر»:</span> پیگیری نیازها · صندوق تأییدها · بورد مأموریت · کارت نرخ · نگهداری پرداخت · کارهای پس‌زمینه · KPI · صورت وضعیت · باسکول</p>
+
+    <div class="page-card"><h4>داشبورد عملیاتی — <code>/panel/ops</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> «بروزرسانی» — KPI بارگذاری شود</li>
+        <li><input type="checkbox" /> کارت: مأموریت ایجاد/تأیید/در جریان امروز</li>
+        <li><input type="checkbox" /> کارت: تیکت معطل باسکول · سهم دوره · hold · نیاز معطل dispatch</li>
+        <li><input type="checkbox" /> میانبر باسکول (با شمارنده اگر معطل باشد)</li>
+        <li><input type="checkbox" /> میانبر inbox کارفرما · بورد مأموریت · صورت وضعیت</li>
+        <li><input type="checkbox" /> نمودار خطی ۷ روز (ایجاد vs تأیید)</li>
+        <li><input type="checkbox" /> جدول آخرین مأموریت‌ها — کلیک → جزئیات</li>
+      </ul></div>
+
+    <div class="page-card"><h4>تخصیص بار — <code>/panel/dispatch-board</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> «بروزرسانی» board</li>
+        <li><input type="checkbox" /> ستون «نیاز معطل» — کارت: شماره نیاز · تناژ · روستا</li>
+        <li><input type="checkbox" /> دکمه «اجرای تخصیص» روی نیاز</li>
+        <li><input type="checkbox" /> ستون «تخصیص‌شده» — مأموریت + نام راننده</li>
+        <li><input type="checkbox" /> خطا «ناوگان در دسترس نیست» اگر راننده/KYC نباشد</li>
+      </ul></div>
+
+    <div class="page-card"><h4>پیگیری نیازها — <code>/panel/employer/inbox</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> لیست همه نیازها (نه فقط مال یک کارفرما)</li>
+        <li><input type="checkbox" /> dispatch از همین صفحه (علاوه بر dispatch board)</li>
+      </ul></div>
+
+    <div class="page-card"><h4>باسکول — تأیید نهایی</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> بعد از ثبت وزن COOP_OPERATOR: approve ticket</li>
+        <li><input type="checkbox" /> مأموریت VERIFIED · split 99/1 + Community</li>
+        <li><input type="checkbox" /> release HOLD اگر anomaly بود</li>
+      </ul></div>
+
+    <div class="page-card"><h4>تسویه — <code>/panel/settlement</code></h4>
+      <p class="muted"><strong>تب «معدن»:</strong></p>
+      <ul class="steps">
+        <li><input type="checkbox" /> انتخاب سال/ماه · لیست صورت وضعیت</li>
+        <li><input type="checkbox" /> انتخاب statement LOCKED · ثبت payment_reference</li>
+        <li><input type="checkbox" /> export رسید پرداخت معدن</li>
+      </ul>
+      <p class="muted"><strong>تب «داخلی»:</strong></p>
+      <ul class="steps">
+        <li><input type="checkbox" /> monthly-close — poll job</li>
+        <li><input type="checkbox" /> انتخاب batch · lock · send-to-bank · export Excel</li>
+        <li><input type="checkbox" /> mark-paid داخلی (reference + receipt URL)</li>
+        <li><input type="checkbox" /> community pools · distribute</li>
+      </ul></div>
+
+    <div class="page-card"><h4>صندوق تأییدها — <code>/panel/approvals</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> تب صورت وضعیت · KYC · اعتراض</li>
+        <li><input type="checkbox" /> deep link به period / kyc / members</li>
+      </ul></div>
+
+    <div class="page-card"><h4>ثبت کاربر — <code>/panel/user-requests</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> واحد MINE_OPS → OPERATOR یا OPERATION_ADMIN</li>
+        <li><input type="checkbox" /> واحد PLATFORM_SUPPORT → CONSULTANT</li>
+        <li><input type="checkbox" /> ارسال → در صف ADMIN</li>
+      </ul></div>
+
+    <div class="page-card"><h4>نگهداری پرداخت — <code>/panel/payments</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> hold پرداخت مشکوک · release · reversal</li>
+      </ul></div>
+
+    <div class="page-card"><h4>کارت نرخ — <code>/panel/rate-cards</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> لیست rate card · ایجاد · ویرایش · فعال‌سازی</li>
+      </ul></div>
+
+    <div class="page-card"><h4>بورد مأموریت — <code>/panel/missions</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> جدول مأموریت‌ها · کلیک ردیف → <code>/panel/missions/:id</code></li>
+      </ul></div>
+
+    <div class="page-card"><h4>کارهای پس‌زمینه — <code>/panel/admin/jobs</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> لیست job (monthly-close و …) · وضعیت DONE/FAILED</li>
+      </ul></div>
+
+    <div class="page-card"><h4>شاخص KPI — <code>/panel/admin/kpi</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> صفحه KPI بدون خطا باز شود</li>
+      </ul></div>
+
+    <div class="page-card"><h4>صورت وضعیت — <code>/panel/admin/period-statement</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> dual approve (یکی از دو نقش coop+ops)</li>
+        <li><input type="checkbox" /> reject با دلیل</li>
+      </ul></div>
+
+    <div class="page-card"><h4>تست منفی</h4>
+      <ul class="steps"><li><input type="checkbox" /> <code>/panel/admin/users</code> → 404</li></ul></div>
+  </div>
+
+  <div class="role-block" id="dash-locker">
+    <h3>۴. OPERATION_LOCKER — قفل‌کننده تسویه</h3>
+    <p>کاربر جدا با نقش OPERATION_ADMIN (موبایل locker) — مسئولیت: maker/checker قفل نهایی</p>
+    <p><strong>منو:</strong> <span class="menu-tag">تسویه</span> <span class="menu-tag">صندوق تأییدها</span></p>
+
+    <div class="page-card"><h4>تسویه — <code>/panel/settlement</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> انتخاب batch تأیید‌شده</li>
+        <li><input type="checkbox" /> lock <strong>قبل</strong> از register mine payment → خطا 409</li>
+        <li><input type="checkbox" /> ADMIN پرداخت ثبت کرد → lock موفق</li>
+      </ul></div>
+
+    <div class="page-card"><h4>صندوق تأییدها</h4>
+      <ul class="steps"><li><input type="checkbox" /> موارد settlement معلق</li></ul></div>
+
+    <div class="page-card"><h4>ندارد</h4>
+      <ul class="steps"><li><input type="checkbox" /> dispatch · KYC · admin/users → 404</li></ul></div>
+  </div>
+
+  <div class="role-block" id="dash-coop-admin">
+    <h3>۵. COOP_ADMIN — مدیر تعاونی</h3>
+    <p><strong>workspace:</strong> عضویت تعاونی · معدن ۱ · <strong>وب + اپ community</strong></p>
+    <p><strong>منو وب:</strong>
+      <span class="menu-tag">خانه</span>
+      <span class="menu-tag">تأیید هویت</span>
+      <span class="menu-tag">ثبت کاربر جدید</span>
+      <span class="menu-tag">صورت وضعیت</span>
+      <span class="menu-tag">صندوق تأییدها</span>
+      <span class="menu-tag menu-more">بیشتر: درخواست‌های تعاونی · شفافیت اعضا · کارت نرخ · بورد مأموریت</span>
+    </p>
+
+    <div class="page-card"><h4>تأیید هویت — <code>/panel/kyc</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> تب «در انتظار» / «نیاز به اصلاح»</li>
+        <li><input type="checkbox" /> فیلتر نوع: خانوار · راننده · مالک · خودرو</li>
+        <li><input type="checkbox" /> فیلتر روستا · تاریخ</li>
+        <li><input type="checkbox" /> pagination · انتخاب چند ردیف</li>
+        <li><input type="checkbox" /> باز کردن ردیف → لینک مدارک (سند · گواهینامه · …)</li>
+        <li><input type="checkbox" /> دکمه تأیید · رد · تعلیق</li>
+        <li><input type="checkbox" /> «درخواست اصلاح» + متن دلیل</li>
+        <li><input type="checkbox" /> bulk approve (حداکثر ۲۰)</li>
+      </ul></div>
+
+    <div class="page-card"><h4>ثبت کاربر — <code>/panel/user-requests</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> فرم: موبایل · نقش (COOP_OPERATOR / HOUSEHOLD / COOP_ADMIN)</li>
+        <li><input type="checkbox" /> ارسال → ADMIN در <code>/panel/admin/user-requests</code> تأیید کند</li>
+      </ul></div>
+
+    <div class="page-card"><h4>درخواست‌های تعاونی — <code>/panel/coop</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> تب «پایه»: لیست rate card · لیست روستاها</li>
+        <li><input type="checkbox" /> تب bulk: آپلود CSV خانوار — preview → confirm</li>
+      </ul></div>
+
+    <div class="page-card"><h4>صورت وضعیت — <code>/panel/admin/period-statement</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> انتخاب دوره · مشاهده payable</li>
+        <li><input type="checkbox" /> approve (تأیید coop در dual workflow)</li>
+        <li><input type="checkbox" /> reject</li>
+      </ul></div>
+
+    <div class="page-card"><h4>صندوق تأییدها — <code>/panel/approvals</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> KYC · statement · objection معلق</li>
+      </ul></div>
+
+    <div class="page-card"><h4>شفافیت اعضا — <code>/panel/members</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> لیست اعضا · جزئیات عمومی</li>
+        <li><input type="checkbox" /> بررسی اعتراض · resolve · reject</li>
+      </ul></div>
+
+    <div class="page-card"><h4>سوابق — <code>/panel/admin/audit</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> COOP_ADMIN دسترسی audit:read دارد</li></ul></div>
+
+    <div class="page-card"><h4>کارت نرخ · بورد مأموریت</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> <code>/panel/rate-cards</code> — مشاهده/ویرایش نرخ coop</li>
+        <li><input type="checkbox" /> <code>/panel/missions</code> — مشاهده (read-only)</li>
+      </ul></div>
+
+    <div class="page-card"><h4>اپ community (همان login)</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> workspace COMMUNITY</li>
+        <li><input type="checkbox" /> تب «تعاونی» → KYC inbox · Members</li>
+        <li><input type="checkbox" /> تب «اعتراض‌ها» → resolve / reject</li>
+      </ul></div>
+
+    <div class="page-card"><h4>تست منفی</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> admin/users · admin/user-requests · dispatch · employer ثبت → 404</li>
+      </ul></div>
+  </div>
+
+  <div class="role-block" id="dash-coop-op">
+    <h3>۶. COOP_OPERATOR — اپرator باسکول</h3>
+    <div class="warn">صفحه <strong>باسکول</strong>: workspace <strong>عملیاتی</strong> · KYC در اپ: workspace <strong>تعاونی</strong></div>
+    <p><strong>منو وب:</strong> <span class="menu-tag">خانه</span> <span class="menu-tag">باسکول</span>
+    <span class="menu-tag menu-more">بیشتر: تأیید هویت (review) · شفافیت اعضا</span></p>
+
+    <div class="page-card"><h4>باسکول — <code>/panel/weighbridge</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> لیست/انتخاب تیکت مرتبط با مأموریت DELIVERED</li>
+        <li><input type="checkbox" /> نمایش: راننده · پلاک · وضعیت تیکت</li>
+        <li><input type="checkbox" /> فیلد وزن خالی (kg) · وزن پر (kg)</li>
+        <li><input type="checkbox" /> وزن خالص فقط خواندنی (خودکار)</li>
+        <li><input type="checkbox" /> «ثبت وزن» / submit</li>
+        <li><input type="checkbox" /> approve ticket · reject ticket</li>
+        <li><input type="checkbox" /> تست anomaly: اختلاف ≥۵٪ → PENDING_HOLD</li>
+      </ul></div>
+
+    <div class="page-card"><h4>KYC review — <code>/panel/kyc</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> مشاهده inbox · بررسی مدارک (approve نهایی با COOP_ADMIN)</li></ul></div>
+
+    <div class="page-card"><h4>Members — <code>/panel/members</code></h4>
+      <ul class="steps"><li><input type="checkbox" /> لیست اعضا (read)</li></ul></div>
+
+    <div class="page-card"><h4>بورد مأموریت — <code>/panel/missions</code> (read-only)</h4>
+      <ul class="steps"><li><input type="checkbox" /> لیست مأموریت‌ها — بدون dispatch</li></ul></div>
+
+    <div class="page-card"><h4>اپ community (COOP_OPERATOR)</h4>
+      <ul class="steps"><li><input type="checkbox" /> فقط <strong>یک تب «تعاونی»</strong> (بدون تب اعتراض‌ها — برخلاف COOP_ADMIN)</li></ul></div>
+  </div>
+
+  <div class="role-block" id="dash-driver">
+    <h3>۷. DRIVER — راننده (اپ موبایل)</h3>
+    <p><strong>اپ:</strong> driver_app · <strong>workspace:</strong> OPERATIONAL · <strong>وب ندارد</strong></p>
+
+    <div class="page-card"><h4>ورود و مسیر</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> Splash → Login (OTP / دمو / dev)</li>
+        <li><input type="checkbox" /> back از login → خروج از اپ</li>
+        <li><input type="checkbox" /> KYC pending → صفحه انتظار (تا coop approve)</li>
+        <li><input type="checkbox" /> Suspended → صفحه مسدود</li>
+        <li><input type="checkbox" /> Mine select → انتخاب معدن TAFTAN</li>
+        <li><input type="checkbox" /> Driver home — داشبورد راننده</li>
+      </ul></div>
+
+    <div class="page-card"><h4>مأموریت‌ها</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> لیست مأموریت‌ها (<code>/missions</code>)</li>
+        <li><input type="checkbox" /> جزئیات مأموریت — stepper وضعیت</li>
+        <li><input type="checkbox" /> ASSIGNED → ACCEPTED (قبول)</li>
+        <li><input type="checkbox" /> Mine entry + GPS → ARRIVED</li>
+        <li><input type="checkbox" /> Factory entry (در صورت geofence کارخانه)</li>
+        <li><input type="checkbox" /> LOADED → IN_TRANSIT</li>
+        <li><input type="checkbox" /> Unload confirm + GPS → DELIVERED</li>
+        <li><input type="checkbox" /> Weighbridge read / ticket status</li>
+      </ul></div>
+
+    <div class="page-card"><h4>آفلاین</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> airplane mode → یک step → آنلاین → sync</li>
+        <li><input type="checkbox" /> logout از اپ</li>
+      </ul></div>
+  </div>
+
+  <div class="role-block" id="dash-fleet">
+    <h3>۸. FLEET_OWNER — مالک ناوگان</h3>
+    <p><strong>workspace:</strong> عملیاتی · <strong>منو:</strong> <span class="menu-tag">مالک ناوگان</span> <span class="menu-tag">کیف پول</span></p>
+
+    <div class="page-card"><h4>داشبورد ناوگان — <code>/panel/fleet-owner</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> مأموریت‌های verified · تناژ · مبلغ</li>
+        <li><input type="checkbox" /> لیست خودروها (پلاک · وضعیت KYC)</li>
+        <li><input type="checkbox" /> مبالغ pending / paid</li>
+        <li><input type="checkbox" /> درخواست KYC ناوگان / خودرو (flow → coop approve)</li>
+      </ul></div>
+
+    <div class="page-card"><h4>کیف پول — <code>/panel/wallet</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> موجودی کل · بخش operational vs community</li>
+        <li><input type="checkbox" /> تاریخچه تراکنش‌ها</li>
+        <li><input type="checkbox" /> بعد از تسویه فاز ۲: ~۹۹٪ operational</li>
+      </ul></div>
+
+    <div class="page-card"><h4>تست منفی</h4>
+      <ul class="steps"><li><input type="checkbox" /> dispatch · settlement · admin → 404</li></ul></div>
+  </div>
+
+  <div class="role-block" id="dash-household">
+    <h3>۹. HOUSEHOLD — خانوار (اپ community)</h3>
+    <p><strong>workspace:</strong> COMMUNITY · cooperative 1</p>
+    <p><strong>Bottom navigation:</strong> خانه · کیف پول · سهم · درخواست</p>
+
+    <div class="page-card"><h4>ثبت‌نام — Register</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> چند مرحله: روستا · نام سرپرست · کد ملی · IBAN · مدارک</li>
+        <li><input type="checkbox" /> submit → وضعیت pending در KYC coop</li>
+      </ul></div>
+
+    <div class="page-card"><h4>خانه — Household hub</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> خلاصه وضعیت · لینk به wallet/share</li>
+      </ul></div>
+
+    <div class="page-card"><h4>کیف پول — Wallet</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> موجودی · لیست تراکنش</li>
+        <li><input type="checkbox" /> بدون متن قدیمی «۱۳٪ کرایه»</li>
+      </ul></div>
+
+    <div class="page-card"><h4>سهم ماهانه — Monthly share</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> pool status · breakdown سهم</li>
+      </ul></div>
+
+    <div class="page-card"><h4>اعتراض · Settlement status</h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> ثبت objection</li>
+        <li><input type="checkbox" /> مشاهده وضعیت دوره/تسویه</li>
+        <li><input type="checkbox" /> logout از app bar</li>
+      </ul></div>
+  </div>
+
+  <div class="role-block" id="dash-consultant">
+    <h3>۱۰. CONSULTANT — مشاور ساعتی (فاز ۲)</h3>
+    <p><strong>workspace:</strong> عملیاتی · <strong>منو: فقط یک آیتم</strong></p>
+
+    <div class="page-card"><h4>کارکرد ساعتی — <code>/panel/consultant/hourly</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> لیست hourly_work_logs با وضعیت ENDED</li>
+        <li><input type="checkbox" /> باز کردن ردیف → جزئیات ساعت · GPS · یادداشت operator</li>
+        <li><input type="checkbox" /> «تأیید» verify — ساعت تأیید + یادداشت</li>
+        <li><input type="checkbox" /> «رد» reject — دلیل حداقل ۱۰ کاراکتر</li>
+      </ul></div>
+
+    <div class="page-card"><h4>تست منفی</h4>
+      <ul class="steps"><li><input type="checkbox" /> settlement · wallet · dispatch · admin → 404 · منوی دیگر نباشد</li></ul></div>
+  </div>
+
+  <div class="role-block" id="dash-operator">
+    <h3>۱۱. OPERATOR — اپرator ساعتی (فاز ۲)</h3>
+    <p><strong>اپ:</strong> community_app · <strong>workspace:</strong> عملیاتی · بعد از login → مستقیم <code>/hourly/start</code> (بدون home shell)</p>
+    <p class="no-access"><strong>وب ندارد:</strong> <code>/panel/employer</code> → 404 (needs:create ندارد)</p>
+
+    <div class="page-card"><h4>شروع کار — <code>/hourly/start</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> انتخاب assignment فعال</li>
+        <li><input type="checkbox" /> دکمه START + ثبت GPS</li>
+        <li><input type="checkbox" /> وضعیت IN_PROGRESS</li>
+      </ul></div>
+
+    <div class="page-card"><h4>پایان کار — <code>/hourly/end</code></h4>
+      <ul class="steps">
+        <li><input type="checkbox" /> END + GPS · یادداشت (اختیاری)</li>
+        <li><input type="checkbox" /> airplane mode → END → sync آنلاین</li>
+        <li><input type="checkbox" /> logout از اپ</li>
+      </ul></div>
+  </div>
+
+  <div class="role-block" id="dash-household-web">
+    <h3>۱۲. HOUSEHOLD — پنل وب (اختیاری)</h3>
+    <ul class="steps">
+      <li><input type="checkbox" /> <code>/panel/wallet</code></li>
+      <li><input type="checkbox" /> <code>/panel/members</code> — ثبت اعتراض</li>
+    </ul>
+  </div>
+
+  <h3 id="routes-matrix">ماتریس کامل — همه مسیرهای <code>/panel/*</code> (۳۰ آیتم منو)</h3>
+  <p class="muted">✓ = باز شود · — = 404 · rv = فقط review · LCK = locker (OPERATION_ADMIN دوم)</p>
+  <table style="font-size:11px">
+    <tr><th>مسیر</th><th>ADM</th><th>EMP</th><th>OPS</th><th>LCK</th><th>COOP</th><th>COP</th><th>FLEET</th><th>HH</th><th>CON</th></tr>
+    <tr><td><code>/panel</code></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td><code>/panel/ops</code></td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/weighbridge</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/dispatch-board</code></td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/employer</code></td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/employer/inbox</code></td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/kyc</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>rv</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/settlement</code></td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/approvals</code></td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/finance</code></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/users</code></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/user-requests</code></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/user-requests</code></td><td>—</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/coop</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/missions</code></td><td>—</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/rate-cards</code></td><td>—</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/payments</code></td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/consultant/hourly</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td></tr>
+    <tr><td><code>/panel/members</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>—</td></tr>
+    <tr><td><code>/panel/wallet</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>—</td></tr>
+    <tr><td><code>/panel/fleet-owner</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/rules</code></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/mine-onboard</code></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/mine-settings</code></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/jobs</code></td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/reconciliation</code></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/audit</code></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/period-statement</code></td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/kpi</code></td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td><code>/panel/admin/finance/by-load</code></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+  </table>
+
+  <h3>اپ موبایل — مسیرها</h3>
+  <table style="font-size:12px">
+    <tr><th>اپ</th><th>مسیرها</th></tr>
+    <tr><td>driver_app</td><td>splash · login · kyc-pending · suspended · mine-select · home · missions · detail · mine-entry · factory-entry · in-transit · unload · ticket · offline</td></tr>
+    <tr><td>community HOUSEHOLD</td><td>register · home · wallet · share · objection · settlement · logout</td></tr>
+    <tr><td>community COOP_ADMIN</td><td>تب تعاونی + تب اعتراض‌ها</td></tr>
+    <tr><td>community COOP_OPERATOR</td><td>فقط تب تعاونی</td></tr>
+    <tr><td>community OPERATOR</td><td>hourly/start · hourly/end</td></tr>
+  </table>
+
+  <div class="warn"><strong>خارج UAT فاز ۱:</strong> Agent باسکول · redispatch UI · weekly fleet · COOP legacy (=COOP_ADMIN)</div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<section class="panel" id="bugs">
+  <h2>اگر باگ دیدید — اینجا بنویسید</h2>
+  <table>
+    <tr><th>#</th><th>کدام قدم فاز ۲؟</th><th>چه دیدید؟</th><th>انتظار چه بود؟</th></tr>
+    <tr><td>1</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>2</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>3</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>4</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+    <tr><td>5</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+  </table>
+  <table style="margin-top:16px">
+    <tr><th>تاریخ</th><th>نام</th><th>آیا برای production آماده‌ام؟</th></tr>
+    <tr><td class="fill"></td><td class="fill"></td><td>☐ بله · ☐ نه — دلیل:</td></tr>
+  </table>
+</section>
+
+<section class="panel prose">
+  <h2>خلاصه یک جمله</h2>
+  <p><strong>اول ADMIN کاربران را می‌سازد → فاز ۲ (۱۵ قدم حمل) → بخش «راهنمای کامل داشبورد» برای هر نقش → فاز ۴ production.</strong></p>
+  <p class="muted">مرجع فنی: <a href="mvp-flow-chat-master-report-fa-v4.html">گزارش v4</a> · <a href="demo-users-and-deploy-fa.md">deploy و APK</a> · <a href="uat-handover-checklist-fa.md">چک‌لیست تحویل</a></p>
+</section>
+
+<footer>
+  راهنمای UAT — هم‌سازمان / logestic · برای چاپ: Ctrl+P
+</footer>
+
+</div>
+</body>
+</html>

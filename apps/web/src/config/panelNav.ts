@@ -1,5 +1,3 @@
-import { roleHomeFor } from "../lib/roleHome";
-
 export type NavItem = {
   to: string;
   label: string;
@@ -7,8 +5,6 @@ export type NavItem = {
   permissions?: string[];
   end?: boolean;
 };
-
-const MAX_PRIMARY_NAV = 5;
 
 /** Catalog: item visible when user has any listed permission (or always if omitted). */
 export const PANEL_NAV: NavItem[] = [
@@ -66,52 +62,3 @@ export function navForRole(
   return allowed;
 }
 
-/** nav اصلی ≤۵ + بقیه در «بیشتر» — UX-WEB-SIMPLE-1 */
-export function splitNavForRole(
-  nav: NavItem[],
-  role: string | undefined,
-  can: (required: string | string[]) => boolean,
-): { primary: NavItem[]; more: NavItem[] } {
-  const allowed = navForRole(nav, role, can);
-  if (allowed.length <= MAX_PRIMARY_NAV) {
-    return { primary: allowed, more: [] };
-  }
-
-  const home = allowed.find((i) => i.to === "/panel");
-  const roleHome = roleHomeFor(role);
-  const priorityPaths: string[] = ["/panel"];
-  if (roleHome) {
-    priorityPaths.push(roleHome.defaultPath);
-    for (const a of roleHome.quickActions) {
-      if (!priorityPaths.includes(a.to)) priorityPaths.push(a.to);
-    }
-  }
-
-  const primary: NavItem[] = [];
-  const used = new Set<string>();
-
-  for (const path of priorityPaths) {
-    if (primary.length >= MAX_PRIMARY_NAV) break;
-    const item = allowed.find((i) => i.to === path);
-    if (item && !used.has(item.to)) {
-      primary.push(item);
-      used.add(item.to);
-    }
-  }
-
-  for (const item of allowed) {
-    if (primary.length >= MAX_PRIMARY_NAV) break;
-    if (!used.has(item.to)) {
-      primary.push(item);
-      used.add(item.to);
-    }
-  }
-
-  const more = allowed.filter((i) => !used.has(i.to));
-  if (home && !primary.some((i) => i.to === "/panel")) {
-    primary.unshift(home);
-    if (primary.length > MAX_PRIMARY_NAV) primary.pop();
-  }
-
-  return { primary, more };
-}

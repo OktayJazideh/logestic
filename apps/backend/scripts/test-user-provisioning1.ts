@@ -37,6 +37,10 @@ function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg);
 }
 
+const TEST_IBAN_A = "IR820540102680020817909002";
+const TEST_IBAN_B = "IR820540102680020817909099";
+const TEST_IBAN_C = "IR820540102680020817909196";
+
 async function main() {
   await initAppContext();
   assert(hasPermission("COOP_ADMIN", "users:request"), "COOP_ADMIN users:request");
@@ -52,7 +56,15 @@ async function main() {
       body: JSON.stringify({
         mobile_number: mobile,
         role,
-        ...(cooperative_id != null ? { cooperative_id } : {}),
+        ...(cooperative_id != null ? { cooperative_id, mine_id: 1 } : {}),
+        ...(role !== "OPERATION_ADMIN" && role !== "ADMIN"
+          ? {
+              national_id: nationalIdFromSeed(mobile.slice(-9)),
+              bank_iban: TEST_IBAN_A,
+              village_id: 1,
+              mine_id: 1,
+            }
+          : {}),
         is_active: true,
       }),
     });
@@ -75,6 +87,9 @@ async function main() {
       mobile_number: mobileNew,
       national_id: nationalNew,
       role: "OPERATOR",
+      mine_id: 1,
+      bank_iban: TEST_IBAN_B,
+      village_id: 1,
       full_name: "اپراتور تست",
       is_active: true,
     }),
@@ -87,11 +102,11 @@ async function main() {
     headers: { Authorization: `Bearer ${adminToken}` },
     body: JSON.stringify({
       mobile_number: mobileNoNat,
-      role: "CONSULTANT",
+      role: "OPERATION_ADMIN",
       is_active: true,
     }),
   });
-  assert(noNatRes.status === 201, `admin create without national_id: ${noNatRes.status}`);
+  assert(noNatRes.status === 201, `admin create global role without scoped fields: ${noNatRes.status}`);
   const noNatUserId = noNatRes.json?.data?.user?.id;
   await http(`/api/admin/users/${noNatUserId}`, {
     method: "DELETE",
@@ -118,6 +133,8 @@ async function main() {
     target_role: "COOP_OPERATOR",
     mobile_number: "09000000998",
     national_id: nationalIdFromSeed("998000001"),
+    bank_iban: TEST_IBAN_C,
+    village_id: 1,
     full_name: "اپراتور تعاونی",
     note: "test request",
   };

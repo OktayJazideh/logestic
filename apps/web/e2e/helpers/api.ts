@@ -82,7 +82,7 @@ export async function loginAsPanel(
   ).toBeVisible({ timeout: 15_000 });
 }
 
-/** Sidebar link — opens mobile / «بیشتر» menus when the item is collapsed. */
+/** Sidebar link — opens mobile drawer when needed. */
 export async function expectSidebarNavLink(page: Page, name: RegExp | string) {
   const sidebar = page.locator("#panel-sidebar");
   await expect(sidebar).toBeAttached({ timeout: 15_000 });
@@ -90,11 +90,6 @@ export async function expectSidebarNavLink(page: Page, name: RegExp | string) {
   const menuBtn = page.getByTestId("panel-menu-toggle");
   if (await menuBtn.isVisible()) {
     await menuBtn.click();
-  }
-
-  const more = page.getByTestId("panel-nav-more-toggle");
-  if (await more.isVisible()) {
-    await more.click();
   }
 
   await expect(sidebar.getByRole("link", { name })).toBeVisible({ timeout: 15_000 });

@@ -7,6 +7,8 @@ import { ApiError } from "../http/errors";
 import { success } from "../http/apiResponse";
 import { resolveAuthContext } from "../lib/authContext";
 import { resolveEffectiveMineId } from "../lib/mineScope";
+import { appContext } from "../appContext";
+import * as cooperativesRepo from "../repositories/cooperativesRepository";
 import * as mineSettingsService from "../services/mineSettingsService";
 import * as mineOnboardService from "../services/mineOnboardService";
 
@@ -140,6 +142,32 @@ function mapOnboardError(e: unknown, requestId?: string): ApiError | null {
   }
   return mapSettingsError(e, requestId);
 }
+
+router.get("/admin/mines", ...requireAdminOnly, async (req, res, next) => {
+  const requestId = (req as { requestId?: string }).requestId;
+  try {
+    const mines = appContext.mineData.listMines();
+    const rows = await Promise.all(
+      mines.map(async (m) => {
+        const cooperatives = await cooperativesRepo.listCooperativesByMine(m.id);
+        return {
+          id: m.id,
+          mine_code: m.mine_code,
+          name: m.name,
+          cooperatives: cooperatives.map((c) => ({ id: c.id, name: c.name, mine_id: c.mine_id })),
+          villages: appContext.mineData.listVillagesByMine(m.id).map((v) => ({
+            id: v.id,
+            name: v.name,
+            mine_id: m.id,
+          })),
+        };
+      }),
+    );
+    return res.json(success({ mines: rows }, requestId));
+  } catch (e) {
+    next(e);
+  }
+});
 
 router.post("/admin/mines/onboard", ...requireAdminOnly, async (req, res, next) => {
   const requestId = (req as { requestId?: string }).requestId;

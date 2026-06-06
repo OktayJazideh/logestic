@@ -1,5 +1,6 @@
 library mineral_api;
 
+export 'src/api_base_url_resolver.dart';
 export 'src/format_money.dart';
 export 'src/api_exception.dart';
 export 'src/auth_errors.dart';

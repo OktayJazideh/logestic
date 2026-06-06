@@ -13,9 +13,27 @@ const ROLE_LABELS: Record<string, string> = {
   COOP: "تعاونی (قدیمی)",
 };
 
+export const ADMIN_USER_ROLES = [
+  "ADMIN",
+  "OPERATION_ADMIN",
+  "COOP_ADMIN",
+  "COOP_OPERATOR",
+  "CONSULTANT",
+  "OPERATOR",
+  "DRIVER",
+  "FLEET_OWNER",
+  "HOUSEHOLD",
+  "COOP",
+  "EMPLOYER",
+] as const;
+
 export function roleLabelFa(role: string | undefined): string {
   if (!role) return "—";
   return ROLE_LABELS[role] ?? role;
+}
+
+export function roleOptionsFa(roles: readonly string[]) {
+  return roles.map((r) => ({ value: r, label: roleLabelFa(r) }));
 }
 
 const HOURLY_STATUS_LABELS: Record<string, string> = {

@@ -2,7 +2,7 @@
 
 # کاربران دمو (هر نقش) + استقرار Linux + APK
 
-**مرجع:** [گزارش v4](mvp-flow-chat-master-report-fa-v4.html) · [Runbook کامل](deploy-runbook-fa.md) · [UAT checklist](uat-handover-checklist-fa.md)
+**مرجع:** [گزارش v4](mvp-flow-chat-master-report-fa-v4.html) · [Runbook کامل](deploy-runbook-fa.md) · [UAT checklist](uat-handover-checklist-fa.md) · **[UAT User Journey (HTML)](uat-pilot-user-journey-fa.html)**
 
 ---
 
@@ -82,6 +82,8 @@ npm -w @app/backend run db:seed
 ```
 
 ### چک‌لیست نقش‌های UAT تفتان (لیست پایلوت شما)
+
+> **راهنمای ساده — از صفر تا تست کامل:** [uat-pilot-user-journey-fa.html](uat-pilot-user-journey-fa.html) — اول این را بخوانید (فلو + ۱۵ قدم حمل)
 
 از **پنل ADMIN → مدیریت کاربران** (`/panel/admin/users`) هر نقش را با موبایل واقعی بسازید. کد ملی و نام **اختیاری** در ایجاد حساب؛ شبا **فقط** در ثبت/KYC خانوار و ناوگان. هر موبایل/کد ملی/شبا باید **یکتا** باشد.
 

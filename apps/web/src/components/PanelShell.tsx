@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { setStoredToken } from "../api";
-import { PANEL_NAV, splitNavForRole, type NavItem } from "../config/panelNav";
+import { PANEL_NAV, navForRole, type NavItem } from "../config/panelNav";
 import { useAuthGuard } from "../hooks/useAuthGuard";
 import type { PanelOutletContext } from "../hooks/useAuthMe";
 import { useAuthMe } from "../hooks/useAuthMe";
@@ -18,7 +18,7 @@ export function PanelLayout() {
   const { ready: authReady, can, me } = useAuthMe();
 
   const ctx: PanelOutletContext = { tokenVersion: 0 };
-  const { primary, more } = splitNavForRole(PANEL_NAV, me?.role, can);
+  const navItems = navForRole(PANEL_NAV, me?.role, can);
 
   function handleLogout() {
     setStoredToken("");
@@ -54,15 +54,14 @@ export function PanelLayout() {
       }}
       dir="rtl"
     >
-      <PanelShellInner onLogout={handleLogout} primaryNav={primary} moreNav={more} ctx={ctx} />
+      <PanelShellInner onLogout={handleLogout} navItems={navItems} ctx={ctx} />
     </div>
   );
 }
 
 type InnerProps = {
   onLogout: () => void;
-  primaryNav: NavItem[];
-  moreNav: NavItem[];
+  navItems: NavItem[];
   ctx: PanelOutletContext;
 };
 
@@ -86,10 +85,9 @@ function NavLinks({ items, onNavigate }: { items: NavItem[]; onNavigate: () => v
   );
 }
 
-function PanelShellInner({ onLogout, primaryNav, moreNav, ctx }: InnerProps) {
+function PanelShellInner({ onLogout, navItems, ctx }: InnerProps) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
   const [isMobileNav, setIsMobileNav] = useState(() =>
     typeof window !== "undefined" ? window.matchMedia(MOBILE_NAV_MQ).matches : false,
   );
@@ -98,7 +96,6 @@ function PanelShellInner({ onLogout, primaryNav, moreNav, ctx }: InnerProps) {
 
   useEffect(() => {
     closeMenu();
-    setMoreOpen(false);
   }, [location.pathname, closeMenu]);
 
   useEffect(() => {
@@ -160,25 +157,8 @@ function PanelShellInner({ onLogout, primaryNav, moreNav, ctx }: InnerProps) {
         >
           <div className="panel-shell__sidebar-title">منوی اصلی</div>
           <nav aria-label="منوی اصلی">
-            <NavLinks items={primaryNav} onNavigate={closeMenu} />
+            <NavLinks items={navItems} onNavigate={closeMenu} />
           </nav>
-
-          {moreNav.length > 0 && (
-            <div className="panel-shell__more-nav">
-              <button
-                type="button"
-                className="panel-shell__more-toggle"
-                aria-expanded={moreOpen}
-                data-testid="panel-nav-more-toggle"
-                onClick={() => setMoreOpen((o) => !o)}
-              >
-                {moreOpen ? "▲ بستن بیشتر" : `▼ بیشتر (${moreNav.length})`}
-              </button>
-              <nav className="panel-shell__more-list" hidden={!moreOpen} aria-label="منوی بیشتر">
-                <NavLinks items={moreNav} onNavigate={closeMenu} />
-              </nav>
-            </div>
-          )}
         </aside>
 
         <main className="panel-shell__main">

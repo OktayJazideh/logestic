@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:http/http.dart' as http;
 
+import 'api_base_url_resolver.dart';
 import 'api_exception.dart';
 import 'models/auth_models.dart';
 import 'models/driver_models.dart';
@@ -12,13 +13,31 @@ import 'models/workspace_models.dart';
 
 /// Base HTTP client for Mineral Haul API (`{ success, data, error }` envelope).
 class MineralApiClient {
-  MineralApiClient({required String baseUrl, http.Client? httpClient})
-      : baseUrl = baseUrl.replaceAll(RegExp(r'/+$'), ''),
+  MineralApiClient({
+    required String baseUrl,
+    http.Client? httpClient,
+    List<String>? baseUrlCandidates,
+  })  : _candidates = baseUrlCandidates ?? ApiBaseUrlResolver.candidatesFrom(baseUrl),
         _http = httpClient ?? http.Client();
 
-  final String baseUrl;
+  final List<String> _candidates;
   final http.Client _http;
   static const _timeout = Duration(seconds: 15);
+
+  /// Last successful base URL (HTTPS preferred; falls back to HTTP when TLS fails).
+  String get baseUrl => ApiBaseUrlResolver.activeBaseUrl;
+
+  List<String> get _orderedCandidates {
+    if (ApiBaseUrlResolver.orderedCandidates().length > 1 &&
+        _candidates.length == ApiBaseUrlResolver.orderedCandidates().length) {
+      return ApiBaseUrlResolver.orderedCandidates();
+    }
+    final pinned = ApiBaseUrlResolver.activeBaseUrl;
+    if (_candidates.contains(pinned)) {
+      return [pinned, ..._candidates.where((u) => u != pinned)];
+    }
+    return _candidates;
+  }
 
   static String newIdempotencyKey() {
     final r = Random.secure();
@@ -73,6 +92,31 @@ class MineralApiClient {
   }
 
   Future<http.Response> send(Future<http.Response> request) async {
+    return _sendOnce(request);
+  }
+
+  Future<T> _withBaseFallback<T>(
+    Future<T> Function(String baseUrl) action,
+  ) async {
+    ApiException? lastNetworkError;
+    for (final candidate in _orderedCandidates) {
+      try {
+        final result = await action(candidate);
+        ApiBaseUrlResolver.pinBaseUrl(candidate);
+        return result;
+      } on ApiException catch (e) {
+        if (!e.isNetworkError) rethrow;
+        lastNetworkError = e;
+      }
+    }
+    throw lastNetworkError ??
+        const ApiException(
+          'ارتباط با سرور برقرار نشد.',
+          isNetworkError: true,
+        );
+  }
+
+  Future<http.Response> _sendOnce(Future<http.Response> request) async {
     try {
       return await request.timeout(_timeout);
     } on TimeoutException {
@@ -81,6 +125,16 @@ class MineralApiClient {
         isNetworkError: true,
       );
     } on SocketException {
+      throw const ApiException(
+        'ارتباط با سرور برقرار نشد.',
+        isNetworkError: true,
+      );
+    } on HandshakeException {
+      throw const ApiException(
+        'ارتباط با سرور برقرار نشد.',
+        isNetworkError: true,
+      );
+    } on TlsException {
       throw const ApiException(
         'ارتباط با سرور برقرار نشد.',
         isNetworkError: true,
@@ -99,13 +153,15 @@ class MineralApiClient {
   }
 
   Future<Map<String, dynamic>> getJson(String path, {required String token}) async {
-    final res = await send(
-      _http.get(
-        Uri.parse('$baseUrl$path'),
-        headers: authHeaders(token),
-      ),
-    );
-    return decodeResponse(res);
+    return _withBaseFallback((base) async {
+      final res = await _sendOnce(
+        _http.get(
+          Uri.parse('$base$path'),
+          headers: authHeaders(token),
+        ),
+      );
+      return decodeResponse(res);
+    });
   }
 
   Future<Map<String, dynamic>> postJson(
@@ -114,14 +170,16 @@ class MineralApiClient {
     Map<String, dynamic>? body,
     String? idempotencyKey,
   }) async {
-    final res = await send(
-      _http.post(
-        Uri.parse('$baseUrl$path'),
-        headers: postHeaders(token, idempotencyKey: idempotencyKey),
-        body: jsonEncode(body ?? {}),
-      ),
-    );
-    return decodeResponse(res);
+    return _withBaseFallback((base) async {
+      final res = await _sendOnce(
+        _http.post(
+          Uri.parse('$base$path'),
+          headers: postHeaders(token, idempotencyKey: idempotencyKey),
+          body: jsonEncode(body ?? {}),
+        ),
+      );
+      return decodeResponse(res);
+    });
   }
 
   Future<Map<String, dynamic>> patchJson(
@@ -130,82 +188,94 @@ class MineralApiClient {
     Map<String, dynamic>? body,
     String? idempotencyKey,
   }) async {
-    final res = await send(
-      _http.patch(
-        Uri.parse('$baseUrl$path'),
-        headers: postHeaders(token, idempotencyKey: idempotencyKey),
-        body: jsonEncode(body ?? {}),
-      ),
-    );
-    return decodeResponse(res);
+    return _withBaseFallback((base) async {
+      final res = await _sendOnce(
+        _http.patch(
+          Uri.parse('$base$path'),
+          headers: postHeaders(token, idempotencyKey: idempotencyKey),
+          body: jsonEncode(body ?? {}),
+        ),
+      );
+      return decodeResponse(res);
+    });
   }
 
   Future<OtpRequestResponse> requestOtp(String mobileNumber) async {
-    final res = await send(
-      _http.post(
-        Uri.parse('$baseUrl/api/auth/request-otp'),
-        headers: {'content-type': 'application/json'},
-        body: jsonEncode({'mobile_number': mobileNumber}),
-      ),
-    );
-    final body = await decodeResponse(res);
-    return OtpRequestResponse(
-      expiresInSeconds: (body['data']?['expires_in_seconds'] as num).toInt(),
-      requestId: body['requestId'] as String?,
-    );
+    return _withBaseFallback((base) async {
+      final res = await _sendOnce(
+        _http.post(
+          Uri.parse('$base/api/auth/request-otp'),
+          headers: {'content-type': 'application/json'},
+          body: jsonEncode({'mobile_number': mobileNumber}),
+        ),
+      );
+      final body = await decodeResponse(res);
+      return OtpRequestResponse(
+        expiresInSeconds: (body['data']?['expires_in_seconds'] as num).toInt(),
+        requestId: body['requestId'] as String?,
+      );
+    });
   }
 
   /// Dev/UAT only — one-click login (matches web demoLogin). 404 when NODE_ENV=production.
   Future<AuthVerifyResponse> devLogin(String mobileNumber) async {
-    final res = await send(
-      _http.post(
-        Uri.parse('$baseUrl/api/auth/__dev/login'),
-        headers: {'content-type': 'application/json'},
-        body: jsonEncode({'mobile_number': mobileNumber}),
-      ),
-    );
-    final body = await decodeResponse(res);
-    return AuthVerifyResponse(
-      accessToken: body['data']['access_token'] as String,
-      role: body['data']['role'] as String,
-      requestId: body['requestId'] as String?,
-    );
+    return _withBaseFallback((base) async {
+      final res = await _sendOnce(
+        _http.post(
+          Uri.parse('$base/api/auth/__dev/login'),
+          headers: {'content-type': 'application/json'},
+          body: jsonEncode({'mobile_number': mobileNumber}),
+        ),
+      );
+      final body = await decodeResponse(res);
+      return AuthVerifyResponse(
+        accessToken: body['data']['access_token'] as String,
+        role: body['data']['role'] as String,
+        requestId: body['requestId'] as String?,
+      );
+    });
   }
 
   /// Dev/UAT only — backend returns 404 when NODE_ENV=production.
   Future<String?> fetchDevOtp(String mobileNumber) async {
-    try {
-      final res = await send(
-        _http.get(
-          Uri.parse('$baseUrl/api/auth/__dev/otp?mobile_number=$mobileNumber'),
-          headers: {'content-type': 'application/json'},
-        ),
-      );
-      if (res.statusCode == 404) return null;
-      final body = await decodeResponse(res);
-      return body['data']?['otp'] as String?;
-    } on ApiException {
-      return null;
+    for (final base in _orderedCandidates) {
+      try {
+        final res = await _sendOnce(
+          _http.get(
+            Uri.parse('$base/api/auth/__dev/otp?mobile_number=$mobileNumber'),
+            headers: {'content-type': 'application/json'},
+          ),
+        );
+        if (res.statusCode == 404) return null;
+        final body = await decodeResponse(res);
+        ApiBaseUrlResolver.pinBaseUrl(base);
+        return body['data']?['otp'] as String?;
+      } on ApiException catch (e) {
+        if (!e.isNetworkError) return null;
+      }
     }
+    return null;
   }
 
   Future<AuthVerifyResponse> verifyOtp({
     required String mobileNumber,
     required String otpCode,
   }) async {
-    final res = await send(
-      _http.post(
-        Uri.parse('$baseUrl/api/auth/verify-otp'),
-        headers: {'content-type': 'application/json'},
-        body: jsonEncode({'mobile_number': mobileNumber, 'otp_code': otpCode}),
-      ),
-    );
-    final body = await decodeResponse(res);
-    return AuthVerifyResponse(
-      accessToken: body['data']['access_token'] as String,
-      role: body['data']['role'] as String,
-      requestId: body['requestId'] as String?,
-    );
+    return _withBaseFallback((base) async {
+      final res = await _sendOnce(
+        _http.post(
+          Uri.parse('$base/api/auth/verify-otp'),
+          headers: {'content-type': 'application/json'},
+          body: jsonEncode({'mobile_number': mobileNumber, 'otp_code': otpCode}),
+        ),
+      );
+      final body = await decodeResponse(res);
+      return AuthVerifyResponse(
+        accessToken: body['data']['access_token'] as String,
+        role: body['data']['role'] as String,
+        requestId: body['requestId'] as String?,
+      );
+    });
   }
 
   Future<AuthMe> getMe({required String token}) async {
