@@ -32,6 +32,12 @@ export function roleLabelFa(role: string | undefined): string {
   return ROLE_LABELS[role] ?? role;
 }
 
+/** عنوان بالای پنل وب — مشخص می‌کند این داشبورد متعلق به کدام نقش است. */
+export function dashboardBannerFa(role: string | undefined): string {
+  if (!role) return "داشبورد کاربری";
+  return `داشبورد ${roleLabelFa(role)}`;
+}
+
 export function roleOptionsFa(roles: readonly string[]) {
   return roles.map((r) => ({ value: r, label: roleLabelFa(r) }));
 }

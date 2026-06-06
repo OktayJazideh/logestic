@@ -6,6 +6,7 @@ import { useAuthGuard } from "../hooks/useAuthGuard";
 import type { PanelOutletContext } from "../hooks/useAuthMe";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { BrandLogo } from "./BrandLogo";
+import { dashboardBannerFa } from "../lib/roleLabels";
 import { Button } from "./ui";
 import { brand } from "../theme";
 
@@ -54,7 +55,12 @@ export function PanelLayout() {
       }}
       dir="rtl"
     >
-      <PanelShellInner onLogout={handleLogout} navItems={navItems} ctx={ctx} />
+      <PanelShellInner
+        onLogout={handleLogout}
+        navItems={navItems}
+        userRole={me?.role}
+        ctx={ctx}
+      />
     </div>
   );
 }
@@ -62,6 +68,7 @@ export function PanelLayout() {
 type InnerProps = {
   onLogout: () => void;
   navItems: NavItem[];
+  userRole?: string;
   ctx: PanelOutletContext;
 };
 
@@ -85,7 +92,7 @@ function NavLinks({ items, onNavigate }: { items: NavItem[]; onNavigate: () => v
   );
 }
 
-function PanelShellInner({ onLogout, navItems, ctx }: InnerProps) {
+function PanelShellInner({ onLogout, navItems, userRole, ctx }: InnerProps) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobileNav, setIsMobileNav] = useState(() =>
@@ -140,6 +147,10 @@ function PanelShellInner({ onLogout, navItems, ctx }: InnerProps) {
           خروج از حساب
         </Button>
       </header>
+
+      <div className="panel-shell__role-banner" data-testid="panel-role-banner">
+        {dashboardBannerFa(userRole)}
+      </div>
 
       <div className="panel-shell__body">
         <button
