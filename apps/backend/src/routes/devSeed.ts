@@ -37,9 +37,10 @@ async function closeActiveMissionsForDemo(params: {
 
 const requireAuth = authMiddleware(resolveAuthContext);
 
-/** Disabled in production (DEPLOY-SAHMAN-1). */
+/** Block /__dev/* only in production — must not intercept other /api routes (admin, employer, …). */
 router.use((req, res, next) => {
-  if (env.NODE_ENV === "production") {
+  const path = (req.path || req.url || "").split("?")[0] ?? "";
+  if (env.NODE_ENV === "production" && path.startsWith("/__dev")) {
     const requestId = (req as { requestId?: string }).requestId;
     return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
   }

@@ -73,7 +73,6 @@ export function createApp() {
   app.use("/api", mineRouter);
   app.use("/api", workspacesRouter);
   app.use("/api", driverRouter);
-  app.use("/api", devSeedRouter);
   app.use("/api", weighbridgeRouter);
   app.use("/api", walletRouter);
   app.use("/api", hourlyRouter);
@@ -92,6 +91,7 @@ export function createApp() {
   app.use("/api", auditRouter);
   app.use("/api", inboxRouter);
   app.use("/api", fleetOwnerRouter);
+  app.use("/api", devSeedRouter);
   app.use("/api/webhooks", webhooksRouter);
 
   app.use((_req, res) => {
