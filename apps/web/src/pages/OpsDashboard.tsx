@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { DataTable } from "../components/DataTable";
 import { SimplePageLayout } from "../components/simple/SimplePageLayout";
 import { ErrorBanner } from "../components/simple/ErrorBanner";
 import { StatusBadge } from "../components/simple/StatusBadge";
@@ -44,14 +45,6 @@ const kpiCard: React.CSSProperties = {
   minWidth: 140,
   marginBottom: 0,
 };
-
-const th: React.CSSProperties = {
-  border: `1px solid ${brand.border}`,
-  padding: "8px 10px",
-  fontWeight: 700,
-  background: brand.panelMuted,
-};
-const td: React.CSSProperties = { border: `1px solid ${brand.border}`, padding: "8px 10px" };
 
 const quickLink: React.CSSProperties = {
   display: "inline-block",
@@ -206,46 +199,38 @@ export default function OpsDashboard() {
 
           <div data-testid="ops-latest-missions">
             <div style={{ fontWeight: 700, marginBottom: 10, color: brand.text }}>آخرین مأموریت‌ها</div>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: 13,
-                border: `1px solid ${brand.border}`,
-                borderRadius: radius.lg,
-                overflow: "hidden",
-              }}
-            >
-              <thead>
-                <tr>
-                  <th style={th}>شناسه</th>
-                  <th style={th}>وضعیت</th>
-                  <th style={th}>راننده</th>
-                  <th style={th}>تناژ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dash.latest_missions.length === 0 && (
-                  <tr>
-                    <td colSpan={4} style={{ ...td, textAlign: "center", color: brand.textMuted }}>
-                      مأموریتی ثبت نشده است.
-                    </td>
-                  </tr>
-                )}
-                {dash.latest_missions.map((m) => (
-                  <tr key={m.id}>
-                    <td style={td}>
-                      <Link to={`/panel/missions/${m.id}`}>{m.id.toLocaleString("fa-IR")}</Link>
-                    </td>
-                    <td style={td}>
-                      <StatusBadge label={labelFa(MISSION_STATUS_FA, m.status)} tone="primary" />
-                    </td>
-                    <td style={td}>{m.driver_name}</td>
-                    <td style={td}>{formatTons(m.tons)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DataTable
+              testId="ops-latest-missions-table"
+              rows={dash.latest_missions}
+              rowKey={(m) => String(m.id)}
+              emptyMessage="مأموریتی ثبت نشده است."
+              cardActions={(m) => (
+                <Link
+                  to={`/panel/missions/${m.id}`}
+                  style={{ display: "block", textAlign: "center", padding: 10, color: brand.primary, fontWeight: 600 }}
+                >
+                  جزئیات مأموریت
+                </Link>
+              )}
+              columns={[
+                {
+                  key: "id",
+                  header: "شناسه",
+                  render: (m) => (
+                    <Link to={`/panel/missions/${m.id}`}>{m.id.toLocaleString("fa-IR")}</Link>
+                  ),
+                },
+                {
+                  key: "status",
+                  header: "وضعیت",
+                  render: (m) => (
+                    <StatusBadge label={labelFa(MISSION_STATUS_FA, m.status)} tone="primary" />
+                  ),
+                },
+                { key: "driver", header: "راننده", render: (m) => m.driver_name },
+                { key: "tons", header: "تناژ", render: (m) => formatTons(m.tons) },
+              ]}
+            />
           </div>
         </>
       )}

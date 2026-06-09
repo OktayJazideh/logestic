@@ -29,6 +29,20 @@
   min-width: 0;
 }
 
+.panel-shell__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.panel-shell__logout-btn {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+
 .panel-shell__role-banner {
   padding: 10px var(--space-lg);
   background: var(--brand-panel, #fff);

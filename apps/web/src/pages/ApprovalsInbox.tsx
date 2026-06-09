@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { DataTable } from "../components/DataTable";
 import { SimplePageLayout } from "../components/simple/SimplePageLayout";
 import { ErrorBanner } from "../components/simple/ErrorBanner";
 import { StatusBadge } from "../components/simple/StatusBadge";
@@ -31,16 +32,6 @@ const detailPath: Record<TabKey, string> = {
   period_statement: "/panel/admin/period-statement",
   kyc: "/panel/kyc",
   objection: "/panel/members",
-};
-
-const th: React.CSSProperties = {
-  padding: "10px 12px",
-  borderBottom: "1px solid #E5E7EB",
-  fontWeight: 600,
-};
-const td: React.CSSProperties = {
-  padding: "10px 12px",
-  borderBottom: "1px solid #F3F4F6",
 };
 
 function formatWaitingSince(iso: string): string {
@@ -138,54 +129,49 @@ export default function ApprovalsInbox() {
       )}
 
       {visible.length > 0 && (
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-              <th style={th}>عنوان</th>
-              <th style={th}>وضعیت</th>
-              <th style={th}>منتظر از</th>
-              <th style={th}>نقش‌های لازم</th>
-              <th style={th}>جزئیات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((item) => (
-              <tr key={`${item.type}-${item.id}-${item.entity_kind ?? ""}`}>
-                <td style={td}>{item.title}</td>
-                <td style={td}>
-                  <StatusBadge label={item.status} tone="warn" />
-                </td>
-                <td style={td}>{formatWaitingSince(item.waiting_since)}</td>
-                <td style={td}>
-                  {item.required_roles.map((r) => (
-                    <span
-                      key={r}
-                      style={{
-                        display: "inline-block",
-                        marginLeft: 4,
-                        padding: "2px 6px",
-                        borderRadius: 4,
-                        background: "#E0E7FF",
-                        color: "#3730A3",
-                        fontSize: 11,
-                      }}
-                    >
-                      {r}
-                    </span>
-                  ))}
-                </td>
-                <td style={td}>
-                  <Link
-                    to={detailPath[item.type]}
-                    style={{ color: "#1B5E20", fontWeight: 600, textDecoration: "none" }}
-                  >
-                    باز کردن ←
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <DataTable
+          testId="approvals-inbox-table"
+          rows={visible}
+          rowKey={(item) => `${item.type}-${item.id}-${item.entity_kind ?? ""}`}
+          emptyMessage="موردی در صف نیست."
+          cardActions={(item) => (
+            <Link
+              to={detailPath[item.type]}
+              style={{ color: "#1B5E20", fontWeight: 600, textDecoration: "none", display: "block", textAlign: "center", padding: 10 }}
+            >
+              باز کردن
+            </Link>
+          )}
+          columns={[
+            { key: "title", header: "عنوان", render: (item) => item.title },
+            {
+              key: "status",
+              header: "وضعیت",
+              render: (item) => <StatusBadge label={item.status} tone="warn" />,
+            },
+            {
+              key: "waiting",
+              header: "منتظر از",
+              render: (item) => formatWaitingSince(item.waiting_since),
+            },
+            {
+              key: "roles",
+              header: "نقش‌های لازم",
+              cardVisible: false,
+              render: (item) => item.required_roles.join("، "),
+            },
+            {
+              key: "open",
+              header: "جزئیات",
+              cardVisible: false,
+              render: (item) => (
+                <Link to={detailPath[item.type]} style={{ color: "#1B5E20", fontWeight: 600, textDecoration: "none" }}>
+                  باز کردن
+                </Link>
+              ),
+            },
+          ]}
+        />
       )}
     </SimplePageLayout>
   );

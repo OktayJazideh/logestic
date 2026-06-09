@@ -301,11 +301,11 @@ export default function WeighbridgePage() {
         <ErrorBanner message={err} actionHint="«بروزرسانی لیست» را بزنید." onRetry={() => void loadTickets()} />
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 1fr) minmax(300px, 1fr)", gap: 16 }}>
+      <div className="weighbridge-layout">
         <section>
           <h3 style={h3}>تیکت‌ها</h3>
           {tickets && tickets.length > 0 && (
-            <div style={{ overflowX: "auto" }}>
+            <div className="table-scroll-hint">
               <table style={tableStyle}>
                 <thead>
                   <tr style={{ background: brand.surfaceTableHead, textAlign: "right" as const }}>

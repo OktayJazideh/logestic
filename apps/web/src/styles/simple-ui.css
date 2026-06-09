@@ -120,7 +120,29 @@
   display: none;
 }
 
-@media (max-width: 720px) {
+/* Horizontal scroll hint for wide tables */
+.table-scroll-hint {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-lg, 14px);
+}
+
+.table-scroll-hint::after {
+  content: "";
+  display: block;
+  height: 0;
+}
+
+@media (max-width: 900px) {
+  .filter-bar--stack .filter-field,
+  .filter-bar--stack > * {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
   .data-table-wrap .data-table-table {
     display: none;
   }
@@ -197,4 +219,37 @@
 .finance-load-row__amount {
   font-size: 17px;
   font-weight: 700;
+}
+
+.weighbridge-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(300px, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .weighbridge-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .weighbridge-layout .table-scroll-hint,
+  .weighbridge-layout table {
+    display: block;
+    width: 100%;
+  }
+
+  .rate-cards-page label,
+  .rate-cards-page .filter-field,
+  .rate-cards-page input,
+  .rate-cards-page select,
+  .rate-cards-page button {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .rate-cards-page form,
+  .rate-cards-page section > div {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
 }

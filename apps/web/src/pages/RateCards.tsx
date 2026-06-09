@@ -346,6 +346,7 @@ export default function RateCards() {
         </p>
       }
     >
+      <div className="rate-cards-page">
       {err && <div style={errAlert}>{err}</div>}
       {msg && <div style={okStyle}>{msg}</div>}
 
@@ -650,6 +651,7 @@ export default function RateCards() {
           </button>
         </form>
       </section>
+      </div>
     </PageFrame>
   );
 }

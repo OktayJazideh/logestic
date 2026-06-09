@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { MobileSheet } from "../components/MobileSheet";
 import { PageFrame } from "../components/PageFrame";
 import { FormField } from "../components/FormField";
 import { apiDeleteData, apiGetData, apiPatchData, apiPostData } from "../api";
+import { useAuthMe } from "../hooks/useAuthMe";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { apiErrorMessageFa } from "../lib/apiErrorsFa";
 import {
   iranIban,
@@ -14,7 +17,7 @@ import {
   runValidators,
 } from "../lib/validation";
 import { ADMIN_CREATE_HINT_FA } from "../lib/identityFieldRules";
-import { ADMIN_USER_ROLES, roleOptionsFa } from "../lib/roleLabels";
+import { ADMIN_USER_ROLES, roleLabelFa, roleOptionsFa } from "../lib/roleLabels";
 import { Alert, Button, Card, FormRow, FilterField, Input, Select } from "../components/ui";
 
 type AdminUser = {
@@ -80,11 +83,15 @@ function buildUsersQuery(filters: {
 }
 
 export default function AdminUsers() {
+  const { me } = useAuthMe();
+  const isMobile = useMediaQuery("(max-width: 900px)");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [mines, setMines] = useState<MineCatalogRow[]>([]);
+  const [minesLoaded, setMinesLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [editUserId, setEditUserId] = useState<number | null>(null);
 
   const [filterMine, setFilterMine] = useState("");
   const [filterCoop, setFilterCoop] = useState("");
@@ -111,10 +118,14 @@ export default function AdminUsers() {
 
   const loadMines = useCallback(async () => {
     const res = await apiGetData<{ mines: MineCatalogRow[] }>("/admin/mines");
-    if (res.ok) {
-      setMines(res.data.mines);
-      setNewMine((prev) => prev || (res.data.mines[0] ? String(res.data.mines[0].id) : ""));
+    if (!res.ok) {
+      setError(apiErrorMessageFa(res.code, res.message));
+      setMinesLoaded(true);
+      return;
     }
+    setMines(res.data.mines);
+    setNewMine((prev) => prev || (res.data.mines[0] ? String(res.data.mines[0].id) : ""));
+    setMinesLoaded(true);
   }, []);
 
   const cooperativesForMine = useCallback(
@@ -175,11 +186,11 @@ export default function AdminUsers() {
 
   useEffect(() => {
     void loadMines();
-  }, [loadMines]);
+  }, [loadMines, me?.mine_id]);
 
   useEffect(() => {
-    if (mines.length > 0) void load();
-  }, [load, mines]);
+    void load();
+  }, [load, me?.mine_id]);
 
   const newCoops = useMemo(() => cooperativesForMine(newMine), [cooperativesForMine, newMine]);
   const newVillages = useMemo(() => villagesForMine(newMine), [villagesForMine, newMine]);
@@ -427,6 +438,13 @@ export default function AdminUsers() {
         </FormRow>
       </Card>
 
+      {minesLoaded && mines.length === 0 && (
+        <Alert variant="warn">
+          هنوز معدنی ثبت نشده. از{" "}
+          <Link to="/panel/admin/mine-onboard">ثبت معدن جدید</Link> شروع کنید، سپس کاربر اضافه کنید.
+        </Alert>
+      )}
+
       {error && <Alert variant="danger">{error}</Alert>}
 
       {showCreate && (
@@ -526,7 +544,40 @@ export default function AdminUsers() {
         </Card>
       )}
 
-      <div style={{ overflowX: "auto" }}>
+      {isMobile ? (
+        <div className="admin-users-mobile">
+          {users.length === 0 ? (
+            <p style={{ color: "#6B7280", fontSize: 14 }}>کاربری یافت نشد.</p>
+          ) : (
+            users.map((u) => {
+              const role = draftRoles[u.id] ?? u.role;
+              return (
+                <div
+                  key={u.id}
+                  style={{
+                    border: "1px solid #E5E7EB",
+                    borderRadius: 12,
+                    padding: 14,
+                    marginBottom: 10,
+                    background: "#fff",
+                  }}
+                >
+                  <div style={{ fontWeight: 700, marginBottom: 4 }}>{u.mobile_number}</div>
+                  <div style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>
+                    <div>{roleLabelFa(role)}</div>
+                    <div>{u.full_name ?? "—"}</div>
+                    <div>{u.mine_name ?? "—"}</div>
+                  </div>
+                  <Button type="button" style={{ marginTop: 10, width: "100%" }} onClick={() => setEditUserId(u.id)}>
+                    ویرایش
+                  </Button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : (
+      <div className="table-scroll-hint admin-users-desktop">
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ background: "#F3F4F6", textAlign: "right" }}>
@@ -649,6 +700,98 @@ export default function AdminUsers() {
           </tbody>
         </table>
       </div>
+      )}
+
+      {editUserId != null && (() => {
+        const u = users.find((x) => x.id === editUserId);
+        if (!u) return null;
+        const role = draftRoles[u.id] ?? u.role;
+        const rowCoops = cooperativesForMine(draftMines[u.id] ?? "");
+        const rowVillages = villagesForMine(draftMines[u.id] ?? "");
+        const scoped = needsScopedProfile(role);
+        return (
+          <MobileSheet
+            title={`ویرایش ${u.mobile_number}`}
+            open
+            onClose={() => setEditUserId(null)}
+            footer={
+              <>
+                <Button type="button" disabled={busy === u.id} onClick={() => void save(u.id).then(() => setEditUserId(null))}>
+                  {busy === u.id ? "…" : "ذخیره"}
+                </Button>
+                <Button type="button" variant="secondary" disabled={busy === u.id} onClick={() => void remove(u.id)}>
+                  حذف
+                </Button>
+              </>
+            }
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <FormField label="نقش">
+                <Select value={role} onChange={(e) => setDraftRoles((d) => ({ ...d, [u.id]: e.target.value }))}>
+                  {ROLE_OPTIONS.map((r) => (
+                    <option key={r.value} value={r.value}>
+                      {r.label}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
+              <FormField label="کد ملی">
+                <Input value={draftNat[u.id] ?? ""} onChange={(e) => setDraftNat((d) => ({ ...d, [u.id]: e.target.value }))} />
+              </FormField>
+              {scoped && (
+                <>
+                  <FormField label="شبا">
+                    <Input value={draftIban[u.id] ?? ""} onChange={(e) => setDraftIban((d) => ({ ...d, [u.id]: e.target.value }))} />
+                  </FormField>
+                  <FormField label="روستا">
+                    <Select value={draftVillages[u.id] ?? ""} onChange={(e) => setDraftVillages((d) => ({ ...d, [u.id]: e.target.value }))}>
+                      <option value="">—</option>
+                      {rowVillages.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormField>
+                </>
+              )}
+              {needsMine(role) && (
+                <>
+                  <FormField label="معدن">
+                    <Select value={draftMines[u.id] ?? ""} onChange={(e) => setDraftMines((d) => ({ ...d, [u.id]: e.target.value }))}>
+                      {mines.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormField>
+                  {needsCooperative(role) && (
+                    <FormField label="تعاونی">
+                      <Select value={draftCoops[u.id] ?? ""} onChange={(e) => setDraftCoops((d) => ({ ...d, [u.id]: e.target.value }))}>
+                        <option value="">—</option>
+                        {rowCoops.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </Select>
+                    </FormField>
+                  )}
+                </>
+              )}
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+                <input
+                  type="checkbox"
+                  checked={draftActive[u.id] ?? u.is_active}
+                  onChange={(e) => setDraftActive((d) => ({ ...d, [u.id]: e.target.checked }))}
+                />
+                فعال
+              </label>
+            </div>
+          </MobileSheet>
+        );
+      })()}
     </PageFrame>
   );
 }

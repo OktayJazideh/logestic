@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { apiGetData, getStoredToken, setStoredToken } from "../api";
+import { usePanelSession } from "../context/PanelSessionContext";
 import { hasAnyPermission } from "../lib/permissions";
 import { permissionsForRole } from "../lib/rolePermissions";
 
@@ -9,6 +10,7 @@ export type AuthMe = {
   mobile_number: string;
   role: string;
   is_active: boolean;
+  mine_id?: number | null;
 };
 
 export type MyPermissions = {
@@ -21,8 +23,9 @@ export type PanelOutletContext = {
 };
 
 export function useAuthMe() {
-  const ctx = useOutletContext<PanelOutletContext | null>();
-  const tokenVersion = ctx?.tokenVersion ?? 0;
+  const outletCtx = useOutletContext<PanelOutletContext | null>();
+  const panelSession = usePanelSession();
+  const tokenVersion = panelSession.tokenVersion || outletCtx?.tokenVersion || 0;
   const [me, setMe] = useState<AuthMe | null>(null);
   const [myPermissions, setMyPermissions] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);

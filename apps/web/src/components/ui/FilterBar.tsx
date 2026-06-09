@@ -8,9 +8,10 @@ type Props = {
 };
 
 /** نوار فیلتر/ابزار — همه کنترل‌ها روی baseline پایین هم‌تراز */
-export function FilterBar({ children, style }: Props) {
+export function FilterBar({ children, style, className }: Props) {
   return (
     <div
+      className={className ? `filter-bar--stack ${className}` : "filter-bar--stack"}
       style={{
         display: "flex",
         flexWrap: "wrap",
@@ -36,6 +37,7 @@ export function FilterField({
 }) {
   return (
     <div
+      className="filter-field"
       style={{
         display: "flex",
         flexDirection: "column",

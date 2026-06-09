@@ -1,11 +1,13 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { setStoredToken } from "../api";
 import { PANEL_NAV, navForRole, type NavItem } from "../config/panelNav";
+import { PanelSessionProvider, usePanelSession } from "../context/PanelSessionContext";
 import { useAuthGuard } from "../hooks/useAuthGuard";
 import type { PanelOutletContext } from "../hooks/useAuthMe";
 import { useAuthMe } from "../hooks/useAuthMe";
 import { BrandLogo } from "./BrandLogo";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { dashboardBannerFa } from "../lib/roleLabels";
 import { Button } from "./ui";
 import { brand } from "../theme";
@@ -14,11 +16,20 @@ const MOBILE_NAV_MQ = "(max-width: 900px)";
 
 /** Layout wrapper با Outlet برای مسیرهای تو در تو */
 export function PanelLayout() {
+  return (
+    <PanelSessionProvider>
+      <PanelLayoutInner />
+    </PanelSessionProvider>
+  );
+}
+
+function PanelLayoutInner() {
   const navigate = useNavigate();
   const { ready: guardReady } = useAuthGuard();
   const { ready: authReady, can, me } = useAuthMe();
+  const { tokenVersion, bumpSession } = usePanelSession();
 
-  const ctx: PanelOutletContext = { tokenVersion: 0 };
+  const ctx: PanelOutletContext = useMemo(() => ({ tokenVersion }), [tokenVersion]);
   const navItems = navForRole(PANEL_NAV, me?.role, can);
 
   function handleLogout() {
@@ -59,6 +70,9 @@ export function PanelLayout() {
         onLogout={handleLogout}
         navItems={navItems}
         userRole={me?.role}
+        activeMineId={me?.mine_id}
+        tokenVersion={tokenVersion}
+        onWorkspaceChanged={bumpSession}
         ctx={ctx}
       />
     </div>
@@ -69,6 +83,9 @@ type InnerProps = {
   onLogout: () => void;
   navItems: NavItem[];
   userRole?: string;
+  activeMineId?: number | null;
+  tokenVersion: number;
+  onWorkspaceChanged: () => void;
   ctx: PanelOutletContext;
 };
 
@@ -92,7 +109,15 @@ function NavLinks({ items, onNavigate }: { items: NavItem[]; onNavigate: () => v
   );
 }
 
-function PanelShellInner({ onLogout, navItems, userRole, ctx }: InnerProps) {
+function PanelShellInner({
+  onLogout,
+  navItems,
+  userRole,
+  activeMineId,
+  tokenVersion,
+  onWorkspaceChanged,
+  ctx,
+}: InnerProps) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobileNav, setIsMobileNav] = useState(() =>
@@ -139,13 +164,23 @@ function PanelShellInner({ onLogout, navItems, userRole, ctx }: InnerProps) {
           </button>
           <BrandLogo variant="full" size={40} onDark />
         </div>
-        <Button
-          variant="secondary"
-          onClick={onLogout}
-          style={{ background: brand.panel, borderColor: brand.border }}
-        >
-          خروج از حساب
-        </Button>
+        <div className="panel-shell__header-actions">
+          <WorkspaceSwitcher
+            userRole={userRole}
+            activeMineId={activeMineId}
+            tokenVersion={tokenVersion}
+            onWorkspaceChanged={onWorkspaceChanged}
+            compact={isMobileNav}
+          />
+          <Button
+            variant="secondary"
+            onClick={onLogout}
+            className="panel-shell__logout-btn"
+            style={{ background: brand.panel, borderColor: brand.border }}
+          >
+            {isMobileNav ? "خروج" : "خروج از حساب"}
+          </Button>
+        </div>
       </header>
 
       <div className="panel-shell__role-banner" data-testid="panel-role-banner">

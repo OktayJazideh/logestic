@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { DataTable } from "../components/DataTable";
 import { PageFrame } from "../components/PageFrame";
 import {
   FinanceLoadDetailModal,
@@ -273,55 +274,67 @@ export default function AdminFinance() {
 
           <section style={{ marginBottom: 24 }}>
             <h2 style={{ fontSize: 16, color: brand.primaryDark }}>۷. جدول IBAN</h2>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr>
-                    <th style={th}>نوع</th>
-                    <th style={th}>نام</th>
-                    <th style={th}>IBAN</th>
-                    <th style={th}>چک‌سام</th>
-                    <th style={th}>عملیات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {summary.iban_rows.map((row) => {
+            <DataTable
+              testId="admin-finance-iban-table"
+              rows={summary.iban_rows}
+              rowKey={(row) => `${row.entity_type}:${row.entity_id}`}
+              emptyMessage="ردیفی برای IBAN نیست."
+              cardActions={(row) => {
+                const key = `${row.entity_type}:${row.entity_id}`;
+                const full = revealed[key];
+                if (full || row.iban_masked === "—") return null;
+                return (
+                  <IbanRevealRow
+                    reason={reasonDraft[key] ?? ""}
+                    onReasonChange={(v: string) => setReasonDraft((d) => ({ ...d, [key]: v }))}
+                    onReveal={() => void revealIban(row)}
+                    disabled={busy}
+                  />
+                );
+              }}
+              columns={[
+                { key: "type", header: "نوع", render: (row) => entityLabel(row.entity_type) },
+                { key: "name", header: "نام", render: (row) => row.name },
+                {
+                  key: "iban",
+                  header: "IBAN",
+                  render: (row) => {
+                    const key = `${row.entity_type}:${row.entity_id}`;
+                    return <span dir="ltr">{revealed[key] ?? row.iban_masked}</span>;
+                  },
+                },
+                {
+                  key: "valid",
+                  header: "چک‌سام",
+                  render: (row) =>
+                    row.iban_valid === null ? (
+                      <span style={{ color: brand.textMuted }}>—</span>
+                    ) : row.iban_valid ? (
+                      <span style={{ color: brand.success }}>معتبر</span>
+                    ) : (
+                      <span style={{ color: brand.danger }}>نامعتبر</span>
+                    ),
+                },
+                {
+                  key: "actions",
+                  header: "عملیات",
+                  cardVisible: false,
+                  render: (row) => {
                     const key = `${row.entity_type}:${row.entity_id}`;
                     const full = revealed[key];
+                    if (full || row.iban_masked === "—") return null;
                     return (
-                      <tr key={key}>
-                        <td style={td}>{entityLabel(row.entity_type)}</td>
-                        <td style={td}>{row.name}</td>
-                        <td style={td} dir="ltr">
-                          {full ?? row.iban_masked}
-                        </td>
-                        <td style={td}>
-                          {row.iban_valid === null ? (
-                            <span style={{ color: brand.textMuted }}>—</span>
-                          ) : row.iban_valid ? (
-                            <span style={{ color: brand.success }}>معتبر</span>
-                          ) : (
-                            <span style={{ color: brand.danger }}>نامعتبر</span>
-                          )}
-                        </td>
-                        <td style={td}>
-                          {!full && row.iban_masked !== "—" && (
-                            <IbanRevealRow
-                              reason={reasonDraft[key] ?? ""}
-                              onReasonChange={(v: string) =>
-                                setReasonDraft((d) => ({ ...d, [key]: v }))
-                              }
-                              onReveal={() => void revealIban(row)}
-                              disabled={busy}
-                            />
-                          )}
-                        </td>
-                      </tr>
+                      <IbanRevealRow
+                        reason={reasonDraft[key] ?? ""}
+                        onReasonChange={(v: string) => setReasonDraft((d) => ({ ...d, [key]: v }))}
+                        onReveal={() => void revealIban(row)}
+                        disabled={busy}
+                      />
                     );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                  },
+                },
+              ]}
+            />
           </section>
 
           <section>
@@ -448,44 +461,46 @@ function MissionsTable({
     return <p style={{ color: brand.textMuted, fontSize: 13 }}>ماموریت VERIFIED در این دوره یافت نشد.</p>;
   }
   return (
-    <div style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-        <thead>
-          <tr>
-            <th style={th}>کد بار</th>
-            <th style={th}>ماموریت</th>
-            <th style={th}>{labels.operational_settlement.fa} (تومان)</th>
-            <th style={th} title="مستقل از کرایه عملیاتی">
-              {labels.restricted_community_fund.fa} (تومان) / تن
-            </th>
-            <th style={th}>جزئیات</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.mission_id}>
-              <td style={td} dir="ltr">
-                {row.load_tracking_code}
-              </td>
-              <td style={td}>#{row.mission_id}</td>
-              <td style={td}>{formatMoney(row.operational_total_rial)}</td>
-              <td style={td} title="مستقل از کرایه عملیاتی">
-                {formatMoney(row.community_contribution_rial)}
-                <span style={{ color: brand.textMuted, fontSize: 12 }}>
-                  {" "}
-                  / {formatTons(row.verified_net_tons)} تن
-                </span>
-              </td>
-              <td style={td}>
-                <button type="button" style={{ ...btn, fontSize: 12 }} onClick={() => onDetail(row)}>
-                  نمایش
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      testId="admin-finance-missions-table"
+      rows={rows}
+      rowKey={(row) => String(row.mission_id)}
+      emptyMessage="ماموریت VERIFIED در این دوره یافت نشد."
+      cardActions={(row) => (
+        <button type="button" style={{ ...btn, fontSize: 13, width: "100%" }} onClick={() => onDetail(row)}>
+          نمایش جزئیات
+        </button>
+      )}
+      columns={[
+        { key: "load", header: "کد بار", render: (row) => <span dir="ltr">{row.load_tracking_code}</span> },
+        { key: "mission", header: "ماموریت", render: (row) => `#${row.mission_id}` },
+        {
+          key: "operational",
+          header: `${labels.operational_settlement.fa} (تومان)`,
+          render: (row) => formatMoney(row.operational_total_rial),
+        },
+        {
+          key: "community",
+          header: `${labels.restricted_community_fund.fa}`,
+          render: (row) => (
+            <>
+              {formatMoney(row.community_contribution_rial)}
+              <span style={{ color: brand.textMuted, fontSize: 12 }}> / {formatTons(row.verified_net_tons)} تن</span>
+            </>
+          ),
+        },
+        {
+          key: "detail",
+          header: "جزئیات",
+          cardVisible: false,
+          render: (row) => (
+            <button type="button" style={{ ...btn, fontSize: 12 }} onClick={() => onDetail(row)}>
+              نمایش
+            </button>
+          ),
+        },
+      ]}
+    />
   );
 }
 

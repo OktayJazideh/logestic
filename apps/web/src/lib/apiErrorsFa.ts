@@ -17,8 +17,9 @@ const CODE_FA: Record<string, string> = {
   internal_error:
     "خطای داخلی سرور. روی VPS حتماً بعد از migrate این را اجرا کنید: npx prisma generate && npm run build && systemctl restart logestic-api",
   workspace_access_denied: "دسترسی به فضای کاری این معدن برای شما مجاز نیست.",
-  endpoint_not_found:
-    "نسخه API روی سرور قدیمی است. در VPS: git pull && cd apps/backend && npm run build && systemctl restart logestic-api",
+  endpoint_not_found: "سرور به‌روز نیست. deploy را دوباره اجرا کنید یا با پشتیبانی تماس بگیرید.",
+  mine_not_found: "معدن یافت نشد. از «تغییر معدن» یا ثبت معدن جدید استفاده کنید.",
+  mine_not_selected: "ابتدا معدن را از بالای صفحه انتخاب کنید.",
   invalid_response: "پاسخ نامعتبر از سرور — احتمالاً API به‌روز نشده است.",
   forbidden: "دسترسی به این عملیات ندارید.",
   mine_code_exists: "کد معدن قبلاً ثبت شده است — کد دیگری انتخاب کنید (مثلاً SANGAN به‌جای TAFTAN).",

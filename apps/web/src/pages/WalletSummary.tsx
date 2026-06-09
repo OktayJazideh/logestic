@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { DataTable } from "../components/DataTable";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, getStoredToken } from "../api";
 import { useAuthMe } from "../hooks/useAuthMe";
@@ -101,30 +102,18 @@ function WalletSection({
             موجودی کل: <strong>{formatMoney(payload.balance)}</strong> — کیف{" "}
             <strong>{payload.wallet.id}</strong> ({payload.wallet.wallet_type})
           </div>
-          {payload.transactions.length > 0 ? (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-              <thead>
-                <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-                  <th style={th}>نوع</th>
-                  <th style={th}>مبلغ</th>
-                  <th style={th}>ماموریت</th>
-                  <th style={th}>شرح</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payload.transactions.map((tx) => (
-                  <tr key={tx.id}>
-                    <td style={td}>{tx.type}</td>
-                    <td style={td}>{formatMoney(tx.amount)}</td>
-                    <td style={td}>{tx.mission_id ?? "—"}</td>
-                    <td style={td}>{tx.description ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div style={{ color: "#6B7280", fontSize: 14 }}>تراکنشی ثبت نشده.</div>
-          )}
+          <DataTable
+            testId="wallet-transactions-table"
+            rows={payload.transactions}
+            rowKey={(tx) => String(tx.id)}
+            emptyMessage="تراکنشی ثبت نشده."
+            columns={[
+              { key: "type", header: "نوع", render: (tx) => tx.type },
+              { key: "amount", header: "مبلغ", render: (tx) => formatMoney(tx.amount) },
+              { key: "mission", header: "ماموریت", render: (tx) => tx.mission_id ?? "—" },
+              { key: "desc", header: "شرح", render: (tx) => tx.description ?? "—" },
+            ]}
+          />
         </>
       )}
     </section>
@@ -231,10 +220,3 @@ const dualCardCommunity: React.CSSProperties = {
   border: "1px solid #93C5FD",
   background: "#F3F1EB",
 };
-
-const th: React.CSSProperties = {
-  border: "1px solid #E5E7EB",
-  padding: "8px 10px",
-  fontWeight: 700,
-};
-const td: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px" };
