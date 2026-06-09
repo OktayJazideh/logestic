@@ -1,0 +1,23 @@
+# systemd unit — hamsahman.ir production
+# Install on VPS:
+#   sudo cp /opt/logestic/logestic/deploy/config/logestic-api.service /etc/systemd/system/logestic-api.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl restart logestic-api
+
+[Unit]
+Description=Logestic Backend API (hamsahman.ir)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/logestic/logestic/apps/backend
+EnvironmentFile=/etc/logestic/backend.env
+ExecStart=/usr/bin/node dist/index.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

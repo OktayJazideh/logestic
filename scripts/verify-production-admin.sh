@@ -4,6 +4,19 @@ set -euo pipefail
 
 API="${API_BASE:-http://127.0.0.1:4000/api}"
 TOKEN="${ADMIN_TOKEN:-}"
+REPO="${REPO:-/opt/logestic/logestic}"
+
+echo "==> systemd path"
+WD="$(systemctl show logestic-api -p WorkingDirectory --value 2>/dev/null || true)"
+echo "    WorkingDirectory: ${WD:-<unknown>}"
+if [ -n "${WD}" ] && [ -f "${WD}/dist/routes/adminMines.js" ]; then
+  echo "    OK adminMines.js in running dist"
+elif [ -f "${REPO}/apps/backend/dist/routes/adminMines.js" ]; then
+  echo "    WARN admin routes in ${REPO} but NOT in ${WD:-running path}"
+  echo "    Run: bash ${REPO}/scripts/fix-vps-api-path.sh"
+else
+  echo "    FAIL no adminMines.js — deploy dist from Windows first"
+fi
 
 echo "==> health"
 curl -sf "${API}/health" | head -c 200
