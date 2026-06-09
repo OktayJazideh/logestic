@@ -20,6 +20,18 @@ export class MineDataStore {
     return this.mines.slice();
   }
 
+  /** Prefer DB-backed lookup when in-memory cache may be stale after direct DB changes. */
+  async getMineFresh(mineId: number): Promise<Mine | null> {
+    const cached = this.getMine(mineId);
+    if (cached) return cached;
+    const fromDb = await minesRepo.getMine(mineId);
+    if (!fromDb) return null;
+    const idx = this.mines.findIndex((m) => m.id === fromDb.id);
+    if (idx >= 0) this.mines[idx] = fromDb;
+    else this.mines.push(fromDb);
+    return fromDb;
+  }
+
   getMine(mineId: number) {
     return this.mines.find((m) => m.id === mineId) ?? null;
   }

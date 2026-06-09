@@ -10,7 +10,17 @@ curl -sf "${API}/health" | head -c 200
 echo ""
 
 echo "==> admin routes (no auth — expect 401, not 404)"
-for path in /admin/mines /admin/users; do
+ADMIN_PATHS=(
+  /admin/mines
+  /admin/users
+  /admin/ops-dashboard
+  /admin/rules
+  /admin/reconciliation/issues
+  /admin/user-provisioning/requests
+  /audit
+  /employer/needs
+)
+for path in "${ADMIN_PATHS[@]}"; do
   code=$(curl -s -o /dev/null -w "%{http_code}" "${API}${path}")
   if [ "$code" = "404" ]; then
     echo "FAIL ${path} → 404 (backend dist stale — rebuild + restart logestic-api)"

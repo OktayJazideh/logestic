@@ -7,6 +7,7 @@ import { success } from "../http/apiResponse";
 import { resolveAuthContext } from "../lib/authContext";
 import * as workspaceRepo from "../repositories/workspaceMembershipsRepository";
 import * as cooperativesRepo from "../repositories/cooperativesRepository";
+import * as minesRepo from "../repositories/minesRepository";
 
 const router = Router();
 const requireAuth = authMiddleware(resolveAuthContext);
@@ -48,7 +49,7 @@ router.post("/workspaces/select", requireAuth, async (req, res, next) => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const auth = (req as any).auth as AuthContext;
-    const mine = await appContext.mineData.getMine(body.data.mine_id);
+    const mine = await minesRepo.getMine(body.data.mine_id);
     if (!mine) {
       return next(
         new ApiError({

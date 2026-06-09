@@ -1,4 +1,5 @@
 import { newIdempotencyKey } from "./lib/idempotencyKey";
+import { apiErrorMessageFa } from "./lib/apiErrorsFa";
 
 export { newIdempotencyKey };
 
@@ -69,10 +70,12 @@ export type ApiResult<T> =
 function parseApiJson<T>(j: unknown, status: number): ApiResult<T> {
   if (j && typeof j === "object" && "success" in j && (j as { success: boolean }).success === false) {
     const e = (j as { error?: { message?: string; code?: string; details?: unknown } }).error;
+    const code = e?.code;
+    const rawMessage = e?.message ?? "خطا";
     return {
       ok: false,
-      message: e?.message ?? "خطا",
-      code: e?.code,
+      message: apiErrorMessageFa(code, rawMessage),
+      code,
       status,
       details: e?.details,
     };
@@ -83,21 +86,27 @@ function parseApiJson<T>(j: unknown, status: number): ApiResult<T> {
   if (status === 404) {
     return {
       ok: false,
-      message: "مسیر API روی سرور یافت نشد — backend را build و restart کنید.",
+      message: apiErrorMessageFa("endpoint_not_found"),
       code: "endpoint_not_found",
       status,
     };
   }
   if (j && typeof j === "object" && "error" in j) {
     const legacy = (j as { error?: string }).error;
+    const code = legacy === "not_found" ? "endpoint_not_found" : "api_error";
     return {
       ok: false,
-      message: legacy === "not_found" ? "مسیر API روی سرور یافت نشد." : String(legacy ?? "خطا"),
-      code: legacy === "not_found" ? "endpoint_not_found" : "api_error",
+      message: apiErrorMessageFa(code, legacy === "not_found" ? "Not found" : String(legacy ?? "خطا")),
+      code,
       status,
     };
   }
-  return { ok: false, message: "پاسخ نامعتبر از سرور", code: "invalid_response", status };
+  return {
+    ok: false,
+    message: apiErrorMessageFa("invalid_response"),
+    code: "invalid_response",
+    status,
+  };
 }
 
 export async function apiGetData<T>(path: string): Promise<ApiResult<T>> {

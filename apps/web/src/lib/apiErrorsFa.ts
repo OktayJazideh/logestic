@@ -31,9 +31,24 @@ const CODE_FA: Record<string, string> = {
   invalid_platform_fee: "کارمزد پلتفرم باید بین ۰ و ۱۰۰ درصد باشد.",
   invalid_geofence: "مختصات ژئوفنس نامعتبر است.",
   invalid_community_rate: "مبلغ مشارکت اجتماعی نامعتبر است.",
+  not_found: "منبع درخواستی یافت نشد — معدن را از بالا انتخاب کنید یا داده را ثبت کنید.",
+  unauthorized: "نشست منقضی شده — دوباره وارد شوید.",
+  invalid_request: "درخواست نامعتبر است — فیلترها را بررسی کنید.",
+  invalid_role: "نقش انتخاب‌شده معتبر نیست.",
+  user_not_found: "کاربر یافت نشد.",
+  mission_not_found: "مأموریت یافت نشد.",
+  need_not_found: "نیاز عملیاتی یافت نشد.",
+  issue_not_found: "مورد تطبیق یافت نشد.",
+  mine_mismatch: "معدن انتخاب‌شده با درخواست هم‌خوان نیست.",
+  cooperative_inactive: "تعاونی غیرفعال است — با پشتیبانی تماس بگیرید.",
+  cooperative_mine_mismatch: "تعاونی متعلق به این معدن نیست.",
+  api_error: "خطای سرور — دوباره تلاش کنید.",
 };
 
 export function apiErrorMessageFa(code?: string, fallback?: string): string {
   if (code && CODE_FA[code]) return CODE_FA[code];
+  if (fallback?.toLowerCase() === "not found" || fallback?.toLowerCase() === "mine not found") {
+    return CODE_FA.not_found;
+  }
   return fallback ?? "خطایی رخ داد.";
 }

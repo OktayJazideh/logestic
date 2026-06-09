@@ -9,6 +9,7 @@ import { resolveAuthContext } from "../lib/authContext";
 import { resolveEffectiveMineId } from "../lib/mineScope";
 import { appContext } from "../appContext";
 import * as cooperativesRepo from "../repositories/cooperativesRepository";
+import * as minesRepo from "../repositories/minesRepository";
 import * as mineSettingsService from "../services/mineSettingsService";
 import * as mineOnboardService from "../services/mineOnboardService";
 
@@ -146,16 +147,17 @@ function mapOnboardError(e: unknown, requestId?: string): ApiError | null {
 router.get("/admin/mines", ...requireAdminOnly, async (req, res, next) => {
   const requestId = (req as { requestId?: string }).requestId;
   try {
-    const mines = appContext.mineData.listMines();
+    const mines = await minesRepo.listMines();
     const rows = await Promise.all(
       mines.map(async (m) => {
         const cooperatives = await cooperativesRepo.listCooperativesByMine(m.id);
+        const villages = await minesRepo.listVillagesByMine(m.id);
         return {
           id: m.id,
           mine_code: m.mine_code,
           name: m.name,
           cooperatives: cooperatives.map((c) => ({ id: c.id, name: c.name, mine_id: c.mine_id })),
-          villages: appContext.mineData.listVillagesByMine(m.id).map((v) => ({
+          villages: villages.map((v) => ({
             id: v.id,
             name: v.name,
             mine_id: m.id,
