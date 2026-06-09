@@ -38,9 +38,35 @@ elif [ -n "${WD}" ] && ! has_admin_routes "${WD}"; then
   rsync -a "${BACKEND}/prisma/" "${WD}/prisma/"
 fi
 
+EXEC_START="$(systemctl show logestic-api -p ExecStart --value 2>/dev/null || true)"
+if echo "${EXEC_START}" | grep -q '/opt/logestic/apps/backend'; then
+  echo "==> WRONG ExecStart (old /opt/logestic/apps/backend) — fixing systemd unit"
+fi
 if [ -f "${REPO}/deploy/config/logestic-api.service" ]; then
-  echo "==> install systemd unit (WorkingDirectory=${EXPECTED_WD})"
+  echo "==> install systemd unit (WorkingDirectory=${EXPECTED_WD}, ExecStart=node dist/index.js)"
   cp "${REPO}/deploy/config/logestic-api.service" "${UNIT_FILE}"
+  systemctl daemon-reload
+else
+  echo "==> write systemd unit inline"
+  cat > "${UNIT_FILE}" <<EOF
+[Unit]
+Description=Logestic Backend API (hamsahman.ir)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=${EXPECTED_WD}
+EnvironmentFile=/etc/logestic/backend.env
+ExecStart=/usr/bin/node dist/index.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
   systemctl daemon-reload
 fi
 
@@ -49,8 +75,16 @@ cd "${BACKEND}"
 npx prisma generate
 npx prisma migrate deploy
 
-echo "==> restart logestic-api"
-systemctl restart logestic-api
+echo "==> hard restart (stop + free port 4000)"
+systemctl stop logestic-api || true
+sleep 1
+if command -v fuser >/dev/null 2>&1; then
+  fuser -k 4000/tcp 2>/dev/null || true
+elif command -v lsof >/dev/null 2>&1; then
+  lsof -ti:4000 | xargs -r kill -9 2>/dev/null || true
+fi
+sleep 1
+systemctl start logestic-api
 sleep 2
 systemctl is-active --quiet logestic-api || {
   echo "FAIL logestic-api not active — journalctl -u logestic-api -n 40"

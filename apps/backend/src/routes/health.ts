@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { Router } from "express";
 import { prisma } from "../db/prisma";
 import { jobQueue, getQueueBackendLabel } from "../queues/jobQueue";
@@ -45,6 +47,25 @@ export async function buildHealthPayload() {
 
 healthRouter.get("/", async (_req, res) => {
   res.json({ ok: true });
+});
+
+/** Deploy debug: confirms running process cwd + whether admin.js mounts adminMines. */
+healthRouter.get("/build", (_req, res) => {
+  const adminPath = path.join(__dirname, "admin.js");
+  let adminMountsMines = false;
+  try {
+    adminMountsMines = fs.readFileSync(adminPath, "utf8").includes("adminMines");
+  } catch {
+    adminMountsMines = false;
+  }
+  res.json({
+    ok: true,
+    pid: process.pid,
+    cwd: process.cwd(),
+    admin_js: adminPath,
+    admin_mounts_mines: adminMountsMines,
+    uptime_seconds: Math.floor((Date.now() - startedAt) / 1000),
+  });
 });
 
 /** KPI-1: detailed liveness/readiness for observability. */
