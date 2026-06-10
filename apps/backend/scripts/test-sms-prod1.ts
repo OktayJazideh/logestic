@@ -7,7 +7,13 @@
  */
 import fs from "node:fs";
 import "dotenv/config";
-import { getSmsApiKey, getSmsSenderLine, isProduction, resolveSmsProvider } from "../src/config/env";
+import {
+  getSmsApiKey,
+  getSmsOtpTemplate,
+  getSmsSenderLine,
+  isProduction,
+  resolveSmsProvider,
+} from "../src/config/env";
 import {
   MockSmsProvider,
   createSmsProvider,
@@ -110,10 +116,18 @@ async function testLiveKavenegar(receptor: string) {
     return;
   }
   const sender = getSmsSenderLine();
+  const template = getSmsOtpTemplate();
   assert(sender.length > 0, "SMS_SENDER_LINE required for live test");
+  if (!template) {
+    console.warn(
+      "[test:sms-prod1] SMS_OTP_TEMPLATE not set — using sms/send (shared/international lines need lookup template)",
+    );
+  }
   resetSmsProviderForTests();
   const code = String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0");
-  console.log(`[test:sms-prod1] live send to ${receptor} sender=${sender} (code not logged in prod)`);
+  console.log(
+    `[test:sms-prod1] live ${template ? `lookup template=${template}` : `send sender=${sender}`} to ${receptor}`,
+  );
   if (!isProduction()) {
     console.log(`[test:sms-prod1] dev-only code=${code}`);
   }

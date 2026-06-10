@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { PageFrame } from "../components/PageFrame";
 import { JalaliDatePicker } from "../components/JalaliDatePicker";
 import { labelFa, ENTITY_TYPE_FA, AUDIT_ACTION_FA } from "../lib/uiLabels";
@@ -28,9 +29,6 @@ const btnStyle: React.CSSProperties = {
   fontWeight: 600,
   cursor: "pointer",
 };
-
-const th: React.CSSProperties = { padding: "8px 10px", textAlign: "right", fontSize: 12 };
-const td: React.CSSProperties = { padding: "8px 10px", verticalAlign: "top", fontSize: 12 };
 
 const ENTITY_TYPES = [
   "",
@@ -114,6 +112,46 @@ export default function AuditViewer() {
     setFilterErr(null);
     setOffset(0);
   }
+
+  function renderDiffToggle(log: AuditLogItem) {
+    const open = expandedId === log.id;
+    return (
+      <div>
+        <button type="button" style={btnStyle} onClick={() => setExpandedId(open ? null : log.id)}>
+          {open ? "بستن" : "نمایش تفاوت"}
+        </button>
+        {open ? (
+          <div style={{ marginTop: 10, padding: 12, background: "#FAFAFA", borderRadius: 8 }}>
+            <div style={{ fontWeight: 600, marginBottom: 6, fontSize: 12, color: "#374151" }}>
+              before / after (رنگ: قرمز=حذف، سبز=افزودن، خاکستری=بدون تغییر)
+            </div>
+            <JsonDiffView before={log.before_value} after={log.after_value} />
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  const columns = useMemo<DataTableColumn<AuditLogItem>[]>(
+    () => [
+      { key: "time", header: "زمان", render: (log) => formatJalaliDateTime(log.created_at) },
+      {
+        key: "entity",
+        header: "موجودیت",
+        render: (log) => `${labelFa(ENTITY_TYPE_FA, log.entity_type)} / ${log.entity_id}`,
+      },
+      { key: "action", header: "عمل", render: (log) => labelFa(AUDIT_ACTION_FA, log.action) },
+      { key: "user", header: "کاربر", render: (log) => log.performed_by_user_id ?? "—" },
+      { key: "reason", header: "دلیل", render: (log) => log.reason ?? "—", cardVisible: false },
+      {
+        key: "diff",
+        header: "تفاوت",
+        cardVisible: false,
+        render: (log) => renderDiffToggle(log),
+      },
+    ],
+    [expandedId],
+  );
 
   return (
     <PageFrame
@@ -205,61 +243,14 @@ export default function AuditViewer() {
         </span>
       </form>
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: "#F3F4F6", borderBottom: "1px solid #E5E7EB" }}>
-              <th style={th}>زمان</th>
-              <th style={th}>موجودیت</th>
-              <th style={th}>عمل</th>
-              <th style={th}>کاربر</th>
-              <th style={th}>دلیل</th>
-              <th style={th}>تفاوت</th>
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map((log) => (
-              <React.Fragment key={log.id}>
-                <tr style={{ borderBottom: "1px solid #F3F4F6" }}>
-                  <td style={td}>{formatJalaliDateTime(log.created_at)}</td>
-                  <td style={td}>
-                    {labelFa(ENTITY_TYPE_FA, log.entity_type)} / {log.entity_id}
-                  </td>
-                  <td style={td}>{labelFa(AUDIT_ACTION_FA, log.action)}</td>
-                  <td style={td}>{log.performed_by_user_id ?? "—"}</td>
-                  <td style={td}>{log.reason ?? "—"}</td>
-                  <td style={td}>
-                    <button
-                      type="button"
-                      style={btnStyle}
-                      onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
-                    >
-                      {expandedId === log.id ? "بستن" : "نمایش تفاوت"}
-                    </button>
-                  </td>
-                </tr>
-                {expandedId === log.id && (
-                  <tr>
-                    <td colSpan={6} style={{ padding: 12, background: "#FAFAFA" }}>
-                      <div style={{ fontWeight: 600, marginBottom: 6, fontSize: 12, color: "#374151" }}>
-                        before / after (رنگ: قرمز=حذف، سبز=افزودن، خاکستری=بدون تغییر)
-                      </div>
-                      <JsonDiffView before={log.before_value} after={log.after_value} />
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-            {logs.length === 0 && (
-              <tr>
-                <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#6B7280" }}>
-                  رکوردی یافت نشد.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        testId="audit-viewer-table"
+        rows={logs}
+        rowKey={(log) => String(log.id)}
+        columns={columns}
+        emptyMessage="رکوردی یافت نشد."
+        cardActions={(log) => renderDiffToggle(log)}
+      />
 
       <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>
         <button

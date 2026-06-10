@@ -224,6 +224,8 @@ router.post(
 function mapAdminUser(u: {
   id: number;
   mobile_number: string;
+  username?: string;
+  has_password?: boolean;
   national_id?: string;
   bank_iban?: string;
   village_id?: number;
@@ -241,6 +243,8 @@ function mapAdminUser(u: {
   return {
     id: u.id,
     mobile_number: u.mobile_number,
+    username: u.username,
+    has_password: u.has_password ?? false,
     national_id: u.national_id,
     bank_iban: u.bank_iban,
     village_id: u.village_id,
@@ -310,6 +314,8 @@ router.post("/admin/users", requireAuth, requirePermission("users:manage"), asyn
       mine_id: z.number().int().positive().nullable().optional(),
       full_name: optionalPersianNameSchema,
       is_active: z.boolean().optional(),
+      username: z.string().trim().min(3).max(32).nullable().optional(),
+      password: z.string().min(6).nullable().optional(),
     })
     .safeParse(req.body);
   if (!body.success) {
@@ -321,6 +327,8 @@ router.post("/admin/users", requireAuth, requirePermission("users:manage"), asyn
   try {
     const user = await provisioningService.createUserDirect({
       mobile_number: body.data.mobile_number,
+      username: body.data.username,
+      password: body.data.password,
       national_id: body.data.national_id,
       bank_iban: body.data.bank_iban,
       village_id: body.data.village_id,
@@ -362,6 +370,8 @@ router.patch(
         is_active: z.boolean().optional(),
         full_name: optionalPersianNameSchema.nullable().optional(),
         national_id: optionalNationalIdSchema.nullable().optional(),
+        username: z.string().trim().min(3).max(32).nullable().optional(),
+        password: z.string().min(6).nullable().optional(),
       })
       .safeParse(req.body);
     if (!userId.success || !body.success) {
@@ -382,6 +392,8 @@ router.patch(
           is_active: body.data.is_active,
           full_name: body.data.full_name,
           national_id: body.data.national_id,
+          username: body.data.username,
+          password: body.data.password,
         },
         requestId,
       );

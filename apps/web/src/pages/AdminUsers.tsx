@@ -23,6 +23,8 @@ import { Alert, Button, Card, FormRow, FilterField, Input, Select } from "../com
 type AdminUser = {
   id: number;
   mobile_number: string;
+  username?: string;
+  has_password?: boolean;
   national_id?: string;
   bank_iban?: string;
   village_id?: number;
@@ -106,8 +108,12 @@ export default function AdminUsers() {
   const [draftNat, setDraftNat] = useState<Record<number, string>>({});
   const [draftIban, setDraftIban] = useState<Record<number, string>>({});
   const [draftActive, setDraftActive] = useState<Record<number, boolean>>({});
+  const [draftUsernames, setDraftUsernames] = useState<Record<number, string>>({});
+  const [draftPasswords, setDraftPasswords] = useState<Record<number, string>>({});
 
   const [newMobile, setNewMobile] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [newNationalId, setNewNationalId] = useState("");
   const [newIban, setNewIban] = useState("");
   const [newRole, setNewRole] = useState("EMPLOYER");
@@ -166,8 +172,12 @@ export default function AdminUsers() {
     const nat: Record<number, string> = {};
     const iban: Record<number, string> = {};
     const active: Record<number, boolean> = {};
+    const usernames: Record<number, string> = {};
+    const passwords: Record<number, string> = {};
     for (const u of res.data.users) {
       roles[u.id] = u.role;
+      usernames[u.id] = u.username ?? "";
+      passwords[u.id] = "";
       coops[u.id] = u.cooperative_id != null ? String(u.cooperative_id) : "";
       mineDraft[u.id] = u.mine_id != null ? String(u.mine_id) : mines[0] ? String(mines[0].id) : "";
       villages[u.id] = u.village_id != null ? String(u.village_id) : "";
@@ -182,6 +192,8 @@ export default function AdminUsers() {
     setDraftNat(nat);
     setDraftIban(iban);
     setDraftActive(active);
+    setDraftUsernames(usernames);
+    setDraftPasswords(passwords);
   }, [filterMine, filterCoop, filterVillage, filterRole, filterQ, mines]);
 
   useEffect(() => {
@@ -265,7 +277,10 @@ export default function AdminUsers() {
       role,
       is_active: draftActive[userId],
       national_id: draftNat[userId]?.trim() || null,
+      username: draftUsernames[userId]?.trim() || null,
     };
+    const newPwd = draftPasswords[userId]?.trim();
+    if (newPwd) body.password = newPwd;
 
     if (needsMine(role)) {
       body.mine_id = Number(mineId);
@@ -307,6 +322,8 @@ export default function AdminUsers() {
       full_name: newName.trim() || undefined,
       is_active: true,
     };
+    if (newUsername.trim()) body.username = newUsername.trim();
+    if (newPassword.trim()) body.password = newPassword.trim();
     if (needsScopedProfile(newRole)) {
       body.national_id = newNationalId.trim();
       body.bank_iban = newIban.trim();
@@ -333,6 +350,8 @@ export default function AdminUsers() {
     setNewName("");
     setNewCoop("");
     setNewVillage("");
+    setNewUsername("");
+    setNewPassword("");
     await load();
   }
 
@@ -425,7 +444,7 @@ export default function AdminUsers() {
           </FilterField>
           <FilterField minWidth={160}>
             <FormField label="جستجو">
-              <Input value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="موبایل، کد ملی، شبا…" />
+              <Input value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="موبایل، نام کاربری، کد ملی…" />
             </FormField>
           </FilterField>
           <FilterField minWidth={80}>
@@ -540,6 +559,16 @@ export default function AdminUsers() {
                 <Input value={newName} onChange={(e) => setNewName(e.target.value)} />
               </FormField>
             </FilterField>
+            <FilterField minWidth={120}>
+              <FormField label="نام کاربری (اختیاری)">
+                <Input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="latin" dir="ltr" />
+              </FormField>
+            </FilterField>
+            <FilterField minWidth={120}>
+              <FormField label="رمز ورود (اختیاری)">
+                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+              </FormField>
+            </FilterField>
           </FormRow>
         </Card>
       )}
@@ -582,6 +611,8 @@ export default function AdminUsers() {
           <thead>
             <tr style={{ background: "#F3F4F6", textAlign: "right" }}>
               <th style={th}>موبایل</th>
+              <th style={th}>نام کاربری</th>
+              <th style={th}>رمز جدید</th>
               <th style={th}>کد ملی</th>
               <th style={th}>شبا</th>
               <th style={th}>نام</th>
@@ -602,6 +633,22 @@ export default function AdminUsers() {
               return (
                 <tr key={u.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
                   <td style={td}>{u.mobile_number}</td>
+                  <td style={td}>
+                    <Input
+                      value={draftUsernames[u.id] ?? ""}
+                      onChange={(e) => setDraftUsernames((d) => ({ ...d, [u.id]: e.target.value }))}
+                      placeholder={u.has_password ? u.username : "—"}
+                      dir="ltr"
+                    />
+                  </td>
+                  <td style={td}>
+                    <Input
+                      type="password"
+                      value={draftPasswords[u.id] ?? ""}
+                      onChange={(e) => setDraftPasswords((d) => ({ ...d, [u.id]: e.target.value }))}
+                      placeholder="خالی = بدون تغییر"
+                    />
+                  </td>
                   <td style={td}>
                     <Input
                       value={draftNat[u.id] ?? ""}
@@ -734,6 +781,20 @@ export default function AdminUsers() {
                     </option>
                   ))}
                 </Select>
+              </FormField>
+              <FormField label="نام کاربری">
+                <Input
+                  value={draftUsernames[u.id] ?? ""}
+                  onChange={(e) => setDraftUsernames((d) => ({ ...d, [u.id]: e.target.value }))}
+                  dir="ltr"
+                />
+              </FormField>
+              <FormField label="رمز جدید" hint="خالی = بدون تغییر">
+                <Input
+                  type="password"
+                  value={draftPasswords[u.id] ?? ""}
+                  onChange={(e) => setDraftPasswords((d) => ({ ...d, [u.id]: e.target.value }))}
+                />
               </FormField>
               <FormField label="کد ملی">
                 <Input value={draftNat[u.id] ?? ""} onChange={(e) => setDraftNat((d) => ({ ...d, [u.id]: e.target.value }))} />

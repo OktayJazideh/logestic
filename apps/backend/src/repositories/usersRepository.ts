@@ -1,12 +1,14 @@
 import type { UserRole } from "../types/userRole";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../db/prisma";
+import { normalizeUsername, userHasPassword } from "../lib/passwordHash";
 import { runWithSoftDeleteBypass } from "../lib/softDelete";
 import { toBig, toNum } from "./id";
 
 export type UserRow = {
   id: number;
   mobile_number: string;
+  username?: string;
   national_id?: string;
   bank_iban?: string;
   village_id?: number;
@@ -20,6 +22,7 @@ export type UserRow = {
 };
 
 export type AdminUserListRow = UserRow & {
+  has_password: boolean;
   mine_id?: number;
   mine_code?: string;
   mine_name?: string;
@@ -27,9 +30,12 @@ export type AdminUserListRow = UserRow & {
   village_name?: string;
 };
 
+export type UserAuthRow = UserRow & { password_hash: string };
+
 function mapUser(row: {
   id: bigint;
   mobile_number: string;
+  username?: string | null;
   national_id: string | null;
   bank_iban: string | null;
   village_id: bigint | null;
@@ -44,6 +50,7 @@ function mapUser(row: {
   return {
     id: toNum(row.id),
     mobile_number: row.mobile_number,
+    username: row.username ?? undefined,
     national_id: row.national_id ?? undefined,
     bank_iban: row.bank_iban ?? undefined,
     village_id: row.village_id != null ? toNum(row.village_id) : undefined,
@@ -67,8 +74,33 @@ export async function findUserById(id: number): Promise<UserRow | null> {
   return row ? mapUser(row) : null;
 }
 
+export async function findUserByUsername(username: string): Promise<UserAuthRow | null> {
+  const normalized = normalizeUsername(username);
+  const row = await prisma.users.findFirst({
+    where: { username: { equals: normalized, mode: "insensitive" } },
+  });
+  if (!row) return null;
+  return { ...mapUser(row), password_hash: row.password_hash };
+}
+
+export async function findUserByUsernameExcluding(
+  username: string,
+  excludeUserId: number,
+): Promise<UserRow | null> {
+  const normalized = normalizeUsername(username);
+  const row = await prisma.users.findFirst({
+    where: {
+      username: { equals: normalized, mode: "insensitive" },
+      id: { not: toBig(excludeUserId) },
+    },
+  });
+  return row ? mapUser(row) : null;
+}
+
 export async function createUser(input: {
   mobile_number: string;
+  username?: string | null;
+  password_hash?: string;
   national_id?: string | null;
   bank_iban?: string | null;
   village_id?: number | null;
@@ -81,12 +113,13 @@ export async function createUser(input: {
   const row = await prisma.users.create({
     data: {
       mobile_number: input.mobile_number,
+      username: input.username ?? null,
+      password_hash: input.password_hash ?? "",
       national_id: input.national_id ?? null,
       bank_iban: input.bank_iban ?? null,
       village_id: input.village_id != null ? toBig(input.village_id) : null,
       full_name: input.full_name ?? null,
       role: input.role,
-      password_hash: "",
       is_active: input.is_active ?? true,
       is_weighbridge_operator: input.is_weighbridge_operator ?? false,
       cooperative_id: input.cooperative_id != null ? toBig(input.cooperative_id) : null,
@@ -165,6 +198,7 @@ export async function listUsersForAdmin(opts?: {
     and.push({
       OR: [
         { mobile_number: { contains: q } },
+        { username: { contains: q, mode: "insensitive" } },
         { national_id: { contains: q } },
         { full_name: { contains: q } },
         { bank_iban: { contains: q.toUpperCase() } },
@@ -198,6 +232,7 @@ export async function listUsersForAdmin(opts?: {
     const mine = membershipMine ?? coopMine;
     return {
       ...base,
+      has_password: userHasPassword(row.password_hash),
       mine_id: mine ? toNum(mine.id) : undefined,
       mine_code: mine?.mine_code,
       mine_name: mine?.name,
@@ -252,6 +287,24 @@ export async function updateUserRole(
   cooperative_id?: number | null,
 ): Promise<UserRow | null> {
   return updateUser(userId, { role, cooperative_id });
+}
+
+export async function updateUserCredentials(
+  userId: number,
+  data: { username?: string | null; password_hash?: string },
+): Promise<UserRow | null> {
+  try {
+    const row = await prisma.users.update({
+      where: { id: toBig(userId) },
+      data: {
+        ...(data.username !== undefined ? { username: data.username } : {}),
+        ...(data.password_hash !== undefined ? { password_hash: data.password_hash } : {}),
+      },
+    });
+    return mapUser(row);
+  } catch {
+    return null;
+  }
 }
 
 export async function restoreUser(

@@ -1,4 +1,11 @@
-import { env, getSmsApiKey, getSmsSenderLine, isProduction, resolveSmsProvider } from "../config/env";
+import {
+  env,
+  getSmsApiKey,
+  getSmsOtpTemplate,
+  getSmsSenderLine,
+  isProduction,
+  resolveSmsProvider,
+} from "../config/env";
 
 export interface SmsProvider {
   sendOtp(mobile: string, code: string): Promise<void>;
@@ -21,13 +28,26 @@ export class MockSmsProvider implements SmsProvider {
   }
 }
 
+type KavenegarResponse = {
+  return?: { status?: number; message?: string };
+};
+
 export class KavenegarProvider implements SmsProvider {
   constructor(
     private apiKey: string,
     private sender: string,
+    private otpTemplate: string,
   ) {}
 
-  /** REST client — encodes API key (may end with `=`) unlike legacy kavenegar npm path. */
+  private parseResponse(json: KavenegarResponse, resStatus: number, fallback: string): void {
+    const status = json.return?.status;
+    const message = json.return?.message;
+    if (status !== 200) {
+      throw new Error(`kavenegar_${status ?? resStatus}_${message ?? fallback}`);
+    }
+  }
+
+  /** Simple send — dedicated lines; not for shared/international OTP. */
   private async send(data: { message: string; sender: string; receptor: string }): Promise<void> {
     const url = `https://api.kavenegar.com/v1/${encodeURIComponent(this.apiKey)}/sms/send.json`;
     const body = new URLSearchParams({
@@ -40,17 +60,40 @@ export class KavenegarProvider implements SmsProvider {
       headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
       body: body.toString(),
     });
-    const json = (await res.json()) as {
-      return?: { status?: number; message?: string };
-    };
-    const status = json.return?.status;
-    const message = json.return?.message;
-    if (status !== 200) {
-      throw new Error(`kavenegar_${status ?? res.status}_${message ?? "send_failed"}`);
-    }
+    const json = (await res.json()) as KavenegarResponse;
+    this.parseResponse(json, res.status, "send_failed");
+  }
+
+  /**
+   * Verify lookup — required for shared/international lines and OTP templates.
+   * @see https://kavenegar.com/rest.html#lookup
+   */
+  private async lookup(data: { receptor: string; token: string; template: string }): Promise<void> {
+    const url = `https://api.kavenegar.com/v1/${encodeURIComponent(this.apiKey)}/verify/lookup.json`;
+    const body = new URLSearchParams({
+      receptor: data.receptor,
+      token: data.token,
+      template: data.template,
+      type: "sms",
+    });
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+      body: body.toString(),
+    });
+    const json = (await res.json()) as KavenegarResponse;
+    this.parseResponse(json, res.status, "lookup_failed");
   }
 
   async sendOtp(mobile: string, code: string): Promise<void> {
+    if (this.otpTemplate) {
+      await this.lookup({
+        receptor: mobile,
+        token: code,
+        template: this.otpTemplate,
+      });
+      return;
+    }
     const brand = env.PLATFORM_NAME.trim() || "همسهمان";
     await this.send({
       message: `کد ورود ${brand}: ${code}`,
@@ -104,7 +147,9 @@ export function createSmsProvider(): SmsProvider {
   const sender = getSmsSenderLine();
   if (!apiKey) return new MockSmsProvider();
 
-  if (provider === "kavenegar") return new KavenegarProvider(apiKey, sender);
+  if (provider === "kavenegar") {
+    return new KavenegarProvider(apiKey, sender, getSmsOtpTemplate());
+  }
   if (provider === "faraz") return new FarazSmsProvider(apiKey, sender);
 
   return new MockSmsProvider();

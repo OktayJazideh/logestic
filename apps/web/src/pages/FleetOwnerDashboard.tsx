@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, getStoredToken } from "../api";
 import { formatMoney } from "../lib/formatMoney";
@@ -56,9 +57,6 @@ const kpiCard: React.CSSProperties = {
   background: "#F0FDF4",
 };
 
-const th: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px", fontWeight: 700 };
-const td: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px" };
-
 export default function FleetOwnerDashboard() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [vehicles, setVehicles] = useState<VehicleRow[]>([]);
@@ -92,6 +90,61 @@ export default function FleetOwnerDashboard() {
   }, []);
 
   const emptyMissions = missions.length === 0;
+
+  const vehicleColumns = useMemo<DataTableColumn<VehicleRow>[]>(
+    () => [
+      { key: "plate", header: "پلاک", render: (v) => v.plate },
+      {
+        key: "status",
+        header: "وضعیت",
+        render: (v) => (
+          <span
+            style={{
+              display: "inline-block",
+              padding: "2px 8px",
+              borderRadius: 6,
+              fontSize: 12,
+              ...(statusBadge[v.status] ?? statusBadge.PENDING),
+            }}
+          >
+            {v.status}
+          </span>
+        ),
+      },
+      { key: "driver", header: "راننده (آخرین مأموریت)", render: (v) => v.driver_name ?? "—" },
+      { key: "capacity", header: "ظرفیت (تن)", render: (v) => formatTons(v.capacity_tons) },
+      {
+        key: "last",
+        header: "آخرین مأموریت",
+        render: (v) => (v.last_mission_at ? formatDate(v.last_mission_at) : "—"),
+      },
+    ],
+    [],
+  );
+
+  const missionColumns = useMemo<DataTableColumn<MissionRow>[]>(
+    () => [
+      {
+        key: "id",
+        header: "شناسه",
+        render: (m) => (
+          <Link
+            to={`/panel/missions/${m.mission_id}`}
+            style={{ color: "#1B5E20", fontWeight: 600, textDecoration: "none" }}
+          >
+            #{m.mission_id}
+          </Link>
+        ),
+      },
+      { key: "status", header: "وضعیت", render: (m) => m.status },
+      { key: "tons", header: "تن خالص", render: (m) => formatTons(m.verified_net_tons) },
+      { key: "fare", header: "کرایه عملیاتی", render: (m) => formatMoney(m.operational_fare_rial) },
+      { key: "owner", header: "سهم مالک", render: (m) => formatMoney(m.owner_amount_rial) },
+      { key: "paid", header: "پرداخت", render: (m) => (m.paid ? "✓" : "—") },
+      { key: "date", header: "تاریخ", render: (m) => formatDate(m.created_at) },
+    ],
+    [],
+  );
 
   return (
     <PageFrame
@@ -137,40 +190,13 @@ export default function FleetOwnerDashboard() {
         {vehicles.length === 0 ? (
           <div style={{ color: "#6B7280", fontSize: 14 }}>وسیله‌ای ثبت نشده.</div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-                <th style={th}>پلاک</th>
-                <th style={th}>وضعیت</th>
-                <th style={th}>راننده (آخرین مأموریت)</th>
-                <th style={th}>ظرفیت (تن)</th>
-                <th style={th}>آخرین مأموریت</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vehicles.map((v) => (
-                <tr key={v.id}>
-                  <td style={td}>{v.plate}</td>
-                  <td style={td}>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        padding: "2px 8px",
-                        borderRadius: 6,
-                        fontSize: 12,
-                        ...(statusBadge[v.status] ?? statusBadge.PENDING),
-                      }}
-                    >
-                      {v.status}
-                    </span>
-                  </td>
-                  <td style={td}>{v.driver_name ?? "—"}</td>
-                  <td style={td}>{formatTons(v.capacity_tons)}</td>
-                  <td style={td}>{v.last_mission_at ? formatDate(v.last_mission_at) : "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <DataTable
+            testId="fleet-owner-vehicles-table"
+            rows={vehicles}
+            rowKey={(v) => String(v.id)}
+            columns={vehicleColumns}
+            emptyMessage="وسیله‌ای ثبت نشده."
+          />
         )}
       </section>
 
@@ -179,39 +205,28 @@ export default function FleetOwnerDashboard() {
         {emptyMissions ? (
           <div style={{ color: "#6B7280", fontSize: 14 }}>هنوز مأموریتی ثبت نشده</div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-                <th style={th}>شناسه</th>
-                <th style={th}>وضعیت</th>
-                <th style={th}>تن خالص</th>
-                <th style={th}>کرایه عملیاتی</th>
-                <th style={th}>سهم مالک</th>
-                <th style={th}>پرداخت</th>
-                <th style={th}>تاریخ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {missions.map((m) => (
-                <tr key={m.mission_id}>
-                  <td style={td}>
-                    <Link
-                      to={`/panel/missions/${m.mission_id}`}
-                      style={{ color: "#1B5E20", fontWeight: 600, textDecoration: "none" }}
-                    >
-                      #{m.mission_id}
-                    </Link>
-                  </td>
-                  <td style={td}>{m.status}</td>
-                  <td style={td}>{formatTons(m.verified_net_tons)}</td>
-                  <td style={td}>{formatMoney(m.operational_fare_rial)}</td>
-                  <td style={td}>{formatMoney(m.owner_amount_rial)}</td>
-                  <td style={td}>{m.paid ? "✓" : "—"}</td>
-                  <td style={td}>{formatDate(m.created_at)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <DataTable
+            testId="fleet-owner-missions-table"
+            rows={missions}
+            rowKey={(m) => String(m.mission_id)}
+            columns={missionColumns}
+            emptyMessage="هنوز مأموریتی ثبت نشده"
+            cardActions={(m) => (
+              <Link
+                to={`/panel/missions/${m.mission_id}`}
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  padding: 10,
+                  color: "#1B5E20",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
+                جزئیات مأموریت
+              </Link>
+            )}
+          />
         )}
       </section>
     </PageFrame>

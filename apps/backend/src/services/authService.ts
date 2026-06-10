@@ -1,3 +1,4 @@
+import { userHasPassword, verifyPassword } from "../lib/passwordHash";
 import { OtpStore, type OtpRequestResult } from "../stores/otpStore";
 import { SessionStore, type Session } from "../stores/sessionStore";
 import { UserStore, type User } from "../stores/userStore";
@@ -14,7 +15,9 @@ export type AuthVerifyFailureReason =
   | "locked"
   | "invalid"
   | "not_registered"
-  | "inactive";
+  | "inactive"
+  | "invalid_credentials"
+  | "password_login_disabled";
 
 export class AuthService {
   constructor(
@@ -51,6 +54,28 @@ export class AuthService {
       return { ok: false as const, reason: gate.reason as AuthVerifyFailureReason };
     }
     const user = gate.user;
+    const session = await this.sessionStore.createSession({
+      userId: user.id,
+      mobile_number: user.mobile_number,
+      role: user.role,
+      is_active: user.is_active,
+    });
+    return { ok: true as const, session };
+  }
+
+  async loginWithPassword(username: string, password: string) {
+    const user = await this.userStore.getByUsername(username);
+    if (!user || !user.is_active) {
+      return { ok: false as const, reason: "invalid_credentials" as const };
+    }
+    if (!userHasPassword(user.password_hash)) {
+      return { ok: false as const, reason: "invalid_credentials" as const };
+    }
+    const valid = await verifyPassword(password, user.password_hash);
+    if (!valid) {
+      return { ok: false as const, reason: "invalid_credentials" as const };
+    }
+
     const session = await this.sessionStore.createSession({
       userId: user.id,
       mobile_number: user.mobile_number,

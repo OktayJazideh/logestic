@@ -32,8 +32,11 @@ const EnvSchema = z.object({
   /** Unified SMS credentials (preferred). Provider-specific vars remain as fallback. */
   SMS_API_KEY: z.string().optional(),
   SMS_SENDER_LINE: z.string().optional(),
+  /** Kavenegar lookup template name for OTP (required for shared/international lines). */
+  SMS_OTP_TEMPLATE: z.string().optional(),
   KAVENEGAR_API_KEY: z.string().optional(),
   KAVENEGAR_SENDER: z.string().optional(),
+  KAVENEGAR_OTP_TEMPLATE: z.string().optional(),
   FARAZSMS_API_KEY: z.string().optional(),
   FARAZSMS_SENDER: z.string().optional(),
   FCM_SERVER_KEY: z.string().optional(),
@@ -142,8 +145,10 @@ export const env: Env = EnvSchema.parse({
   SMS_PROVIDER: process.env.SMS_PROVIDER,
   SMS_API_KEY: process.env.SMS_API_KEY,
   SMS_SENDER_LINE: process.env.SMS_SENDER_LINE,
+  SMS_OTP_TEMPLATE: process.env.SMS_OTP_TEMPLATE,
   KAVENEGAR_API_KEY: process.env.KAVENEGAR_API_KEY,
   KAVENEGAR_SENDER: process.env.KAVENEGAR_SENDER,
+  KAVENEGAR_OTP_TEMPLATE: process.env.KAVENEGAR_OTP_TEMPLATE,
   FARAZSMS_API_KEY: process.env.FARAZSMS_API_KEY,
   FARAZSMS_SENDER: process.env.FARAZSMS_SENDER,
   FCM_SERVER_KEY: process.env.FCM_SERVER_KEY,
@@ -214,6 +219,16 @@ export function getSmsSenderLine(): string {
   }
   if (provider === "faraz") {
     return (process.env.FARAZSMS_SENDER ?? env.FARAZSMS_SENDER)?.trim() ?? "";
+  }
+  return "";
+}
+
+/** Kavenegar verify/lookup template — required for shared/international OTP lines. */
+export function getSmsOtpTemplate(): string {
+  const unified = (process.env.SMS_OTP_TEMPLATE ?? env.SMS_OTP_TEMPLATE)?.trim();
+  if (unified) return unified;
+  if (resolveSmsProvider() === "kavenegar") {
+    return (process.env.KAVENEGAR_OTP_TEMPLATE ?? env.KAVENEGAR_OTP_TEMPLATE)?.trim() ?? "";
   }
   return "";
 }

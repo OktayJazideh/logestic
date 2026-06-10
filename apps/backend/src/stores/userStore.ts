@@ -18,6 +18,10 @@ export class UserStore {
     return usersRepo.findUserByMobile(mobile_number);
   }
 
+  async getByUsername(username: string) {
+    return usersRepo.findUserByUsername(username);
+  }
+
   async getById(id: number) {
     return usersRepo.findUserById(id);
   }
@@ -36,6 +40,10 @@ export class UserStore {
 
   async updateUser(userId: number, data: Parameters<typeof usersRepo.updateUser>[1]) {
     return usersRepo.updateUser(userId, data);
+  }
+
+  async updateUserCredentials(userId: number, data: Parameters<typeof usersRepo.updateUserCredentials>[1]) {
+    return usersRepo.updateUserCredentials(userId, data);
   }
 
   async deactivateAndSoftDeleteUser(userId: number) {

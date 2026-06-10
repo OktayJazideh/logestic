@@ -14,7 +14,8 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
+  padding: max(var(--space-md), var(--safe-top)) max(var(--space-lg), var(--safe-right)) var(--space-md)
+    max(var(--space-lg), var(--safe-left));
   background: var(--brand-primary-dark);
   box-shadow: var(--shadow-md);
   position: sticky;
@@ -44,7 +45,7 @@
 }
 
 .panel-shell__role-banner {
-  padding: 10px var(--space-lg);
+  padding: 10px max(var(--space-lg), var(--safe-right)) 10px max(var(--space-lg), var(--safe-left));
   background: var(--brand-panel, #fff);
   border-bottom: 1px solid var(--brand-border, #e4e7ec);
   color: var(--brand-primary-dark, #152921);
@@ -107,9 +108,8 @@
   flex: 1;
   min-width: 0;
   width: 100%;
-  padding: var(--space-lg);
-  padding-top: var(--space-lg);
-  padding-bottom: var(--space-lg);
+  padding: var(--space-lg) max(var(--space-lg), var(--safe-right)) max(var(--space-lg), var(--safe-bottom))
+    max(var(--space-lg), var(--safe-left));
   background: var(--brand-bg);
 }
 
@@ -159,7 +159,9 @@
     bottom: 0;
     width: min(280px, 88vw);
     z-index: 200;
-    padding-top: calc(var(--space-md) + 56px);
+    padding-top: calc(var(--space-md) + 56px + var(--safe-top));
+    padding-right: max(var(--space-md), var(--safe-right));
+    padding-left: max(var(--space-md), var(--safe-left));
     box-shadow: -8px 0 24px rgba(21, 41, 33, 0.2);
     transform: translateX(100%);
     transition: transform 0.22s ease;
@@ -188,16 +190,24 @@
   }
 
   .panel-shell__main {
-    padding: var(--space-md);
+    padding: var(--space-md) max(var(--space-md), var(--safe-right)) max(var(--space-md), var(--safe-bottom))
+      max(var(--space-md), var(--safe-left));
   }
 
   .panel-shell__header {
-    padding: var(--space-sm) var(--space-md);
+    padding: max(var(--space-sm), var(--safe-top)) max(var(--space-md), var(--safe-right)) var(--space-sm)
+      max(var(--space-md), var(--safe-left));
+  }
+
+  .panel-page h1,
+  .simple-page h1 {
+    font-size: 21px;
   }
 }
 
 @media (max-width: 480px) {
   .panel-shell__main {
-    padding: var(--space-sm) 12px;
+    padding: var(--space-md) max(var(--space-md), var(--safe-right)) max(var(--space-md), var(--safe-bottom))
+      max(var(--space-md), var(--safe-left));
   }
 }

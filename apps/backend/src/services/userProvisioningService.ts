@@ -4,6 +4,12 @@ import { assertNationalIdFreeForUserAccount } from "../lib/nationalIdEnforcement
 import { normalizeNationalId } from "../lib/nationalId";
 import { normalizeOptionalNationalId } from "../lib/identityPolicy";
 import { assertUserIbanAvailable } from "../lib/ibanEnforcement";
+import {
+  hashPassword,
+  normalizeUsername,
+  validatePassword,
+  validateUsername,
+} from "../lib/passwordHash";
 import { optionalPersianName } from "../lib/persianText";
 import { isCoopScopedRole, normalizeRole, type UserRole } from "../types/userRole";
 import { prisma } from "../db/prisma";
@@ -19,10 +25,72 @@ import {
 
 export const MOBILE_REGEX = /^09\d{9}$/;
 
-/** Roles that see every mine without an explicit workspace membership row. */
+type CredentialInput = { username?: string | null; password?: string | null };
+
+async function assertUsernameAvailable(
+  username: string,
+  excludeUserId?: number,
+  requestId?: string,
+): Promise<string> {
+  const normalized = normalizeUsername(username);
+  const formatErr = validateUsername(normalized);
+  if (formatErr) {
+    throw new ApiError({ statusCode: 400, code: "invalid_username", message: formatErr, requestId });
+  }
+  const taken = excludeUserId
+    ? await usersRepo.findUserByUsernameExcluding(normalized, excludeUserId)
+    : await usersRepo.findUserByUsername(normalized);
+  if (taken) {
+    throw new ApiError({
+      statusCode: 409,
+      code: "username_taken",
+      message: "Username is already taken",
+      requestId,
+    });
+  }
+  return normalized;
+}
+
+async function resolveCredentialPatch(
+  input: CredentialInput,
+  opts?: { excludeUserId?: number; existingUsername?: string | null; requestId?: string },
+): Promise<{ username?: string | null; password_hash?: string }> {
+  const patch: { username?: string | null; password_hash?: string } = {};
+  const requestId = opts?.requestId;
+
+  if (input.username !== undefined) {
+    if (input.username === null || input.username.trim() === "") {
+      patch.username = null;
+    } else {
+      patch.username = await assertUsernameAvailable(input.username, opts?.excludeUserId, requestId);
+    }
+  }
+
+  const password = input.password?.trim();
+  if (password) {
+    const pwdErr = validatePassword(password);
+    if (pwdErr) {
+      throw new ApiError({ statusCode: 400, code: "invalid_password", message: pwdErr, requestId });
+    }
+    const effectiveUsername =
+      patch.username !== undefined ? patch.username : (opts?.existingUsername ?? null);
+    if (!effectiveUsername) {
+      throw new ApiError({
+        statusCode: 400,
+        code: "username_required",
+        message: "username is required when setting a password",
+        requestId,
+      });
+    }
+    patch.password_hash = await hashPassword(password);
+  }
+
+  return patch;
+}
+
+/** Platform ADMIN sees every mine without an explicit workspace membership row. */
 export function isGlobalWorkspaceRole(role: UserRole): boolean {
-  const n = normalizeRole(role);
-  return n === "ADMIN" || n === "OPERATION_ADMIN";
+  return normalizeRole(role) === "ADMIN";
 }
 
 function roleInWorkspaceForMembership(role: UserRole): UserRole {
@@ -494,6 +562,8 @@ export async function createProvisioningRequest(input: {
 
 export async function createUserDirect(input: {
   mobile_number: string;
+  username?: string | null;
+  password?: string | null;
   national_id?: string | null;
   bank_iban?: string | null;
   village_id?: number | null;
@@ -534,6 +604,10 @@ export async function createUserDirect(input: {
   });
 
   const full_name = optionalPersianName(input.full_name, input.requestId);
+  const credentialPatch = await resolveCredentialPatch(
+    { username: input.username, password: input.password },
+    { requestId: input.requestId },
+  );
 
   const existing = await provisioningRepo.findUserByMobileIncludingDeleted(identity.mobile);
   if (existing) {
@@ -563,6 +637,10 @@ export async function createUserDirect(input: {
         cooperativeId: input.cooperative_id,
         requestId: input.requestId,
       });
+      if (credentialPatch.username !== undefined || credentialPatch.password_hash !== undefined) {
+        const withCreds = await usersRepo.updateUserCredentials(restored.id, credentialPatch);
+        return withCreds ?? restored;
+      }
       return restored;
     }
     throw new ApiError({
@@ -575,6 +653,8 @@ export async function createUserDirect(input: {
 
   const user = await usersRepo.createUser({
     mobile_number: identity.mobile,
+    username: credentialPatch.username ?? null,
+    password_hash: credentialPatch.password_hash,
     national_id: profile.national_id,
     bank_iban: profile.bank_iban,
     village_id: profile.village_id,
@@ -660,6 +740,8 @@ export async function updateUserAdmin(
     full_name?: string | null;
     national_id?: string | null;
     mobile_number?: string;
+    username?: string | null;
+    password?: string | null;
   },
   httpRequestId?: string,
 ) {
@@ -741,6 +823,11 @@ export async function updateUserAdmin(
     if (patch.village_id !== undefined) village_id = null;
   }
 
+  const credentialPatch = await resolveCredentialPatch(
+    { username: patch.username, password: patch.password },
+    { excludeUserId: userId, existingUsername: existing.username, requestId: httpRequestId },
+  );
+
   const updated = await usersRepo.updateUser(userId, {
     role: patch.role,
     cooperative_id,
@@ -759,16 +846,49 @@ export async function updateUserAdmin(
     });
   }
 
-  if (patch.mine_id != null || patch.role != null || patch.cooperative_id !== undefined) {
-    await syncWorkspaceMembershipForUser({
-      userId,
-      role: updated.role,
-      mineId: patch.mine_id,
-      cooperativeId: updated.cooperative_id,
-      requestId: httpRequestId,
-    });
+  let result = updated;
+  if (credentialPatch.username !== undefined || credentialPatch.password_hash !== undefined) {
+    const withCreds = await usersRepo.updateUserCredentials(userId, credentialPatch);
+    if (withCreds) result = withCreds;
   }
 
+  if (patch.mine_id != null || patch.role != null || patch.cooperative_id !== undefined) {
+    if (!isGlobalWorkspaceRole(updated.role)) {
+      await syncWorkspaceMembershipForUser({
+        userId,
+        role: updated.role,
+        mineId: patch.mine_id ?? undefined,
+        cooperativeId: updated.cooperative_id,
+        requestId: httpRequestId,
+      });
+    }
+  }
+
+  return result;
+}
+
+/** One-off: set username/password for an existing user by mobile (no role changes). */
+export async function setUserCredentialsByMobile(input: {
+  mobile_number: string;
+  username: string;
+  password: string;
+}) {
+  const user = await usersRepo.findUserByMobile(input.mobile_number);
+  if (!user) {
+    throw new ApiError({
+      statusCode: 404,
+      code: "user_not_found",
+      message: `User not found: ${input.mobile_number}`,
+    });
+  }
+  const credentialPatch = await resolveCredentialPatch(
+    { username: input.username, password: input.password },
+    { excludeUserId: user.id },
+  );
+  const updated = await usersRepo.updateUserCredentials(user.id, credentialPatch);
+  if (!updated) {
+    throw new ApiError({ statusCode: 500, code: "update_failed", message: "Failed to update credentials" });
+  }
   return updated;
 }
 

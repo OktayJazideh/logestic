@@ -17,6 +17,9 @@ const CODE_FA: Record<string, string> = {
   internal_error:
     "خطای داخلی سرور. روی VPS حتماً بعد از migrate این را اجرا کنید: npx prisma generate && npm run build && systemctl restart logestic-api",
   workspace_access_denied: "دسترسی به فضای کاری این معدن برای شما مجاز نیست.",
+  invalid_credentials: "نام کاربری یا رمز عبور نادرست است.",
+  password_login_disabled: "ورود با رمز برای این حساب فعال نیست. از پیامک یا با ادمین تماس بگیرید.",
+  username_taken: "این نام کاربری قبلاً استفاده شده است.",
   endpoint_not_found: "سرور به‌روز نیست. deploy را دوباره اجرا کنید یا با پشتیبانی تماس بگیرید.",
   mine_not_found: "معدن یافت نشد. از «تغییر معدن» یا ثبت معدن جدید استفاده کنید.",
   mine_not_selected: "ابتدا معدن را از بالای صفحه انتخاب کنید.",

@@ -6,11 +6,13 @@ import { apiGetData, apiPostPublic, getRememberMePreference, getStoredToken, set
 import { mobileNumber, otpCode, required, runValidators } from "../lib/validation";
 import { BrandLogo } from "../components/BrandLogo";
 import { DemoLoginPanel } from "../components/DemoLoginPanel";
+import { apiErrorMessageFa } from "../lib/apiErrorsFa";
 import { loginErrorMessage } from "../lib/authMessages";
 import { brandNames } from "../brand";
 import { ErrorBanner } from "../components/simple/ErrorBanner";
 import { Button, Input } from "../components/ui";
 import { simpleLabel } from "../lib/uiLabels";
+import { resolvePostAuthNavigation } from "../lib/workspaceFlow";
 import { brand, cardStyle, inputStyle, radius, shadow, space } from "../theme";
 
 const MOBILE_DOWNLOADS = [
@@ -44,14 +46,8 @@ function otpErrorMessage(details: VerifyDetails | undefined, fallback: string): 
 }
 
 const pageStyle: React.CSSProperties = {
-  minHeight: "100vh",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: 16,
   background: brand.bg,
   fontFamily: brand.fontFamily,
-  boxSizing: "border-box",
 };
 
 const loginCardStyle: React.CSSProperties = {
@@ -66,9 +62,11 @@ const loginCardStyle: React.CSSProperties = {
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | "password">(1);
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resendSec, setResendSec] = useState(0);
@@ -89,17 +87,10 @@ export default function LoginPage() {
       return;
     }
     let cancelled = false;
-    apiGetData<{ id: number; mine_id: number | null }>("/auth/me").then((r) => {
+    resolvePostAuthNavigation(navigate, { replace: true }).then((handled) => {
       if (cancelled) return;
-      if (r.ok) {
-        if (r.data.mine_id == null) {
-          navigate("/workspace-select", { replace: true });
-        } else {
-          navigate("/panel", { replace: true });
-        }
-        return;
-      }
-      if (r.status === 401) setStoredToken("");
+      if (handled) return;
+      setStoredToken("");
       setCheckingSession(false);
     });
     return () => {
@@ -162,12 +153,34 @@ export default function LoginPage() {
     setBusy(false);
     if (r.ok) {
       setStoredToken(r.data.access_token, rememberMe);
-      navigate("/workspace-select", { replace: true });
+      await resolvePostAuthNavigation(navigate, { replace: true });
       return;
     }
     const details = r.details as VerifyDetails | undefined;
     setError(otpErrorMessage(details, loginErrorMessage(r.code, r.message)));
   }, [mobile, otp, navigate, validateAll, otpValidators, rememberMe]);
+
+  const loginWithPassword = useCallback(async () => {
+    const u = username.trim();
+    const p = password;
+    if (!u || p.length < 6) {
+      setError("نام کاربری و رمز عبور (حداقل ۶ کاراکتر) را وارد کنید.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const r = await apiPostPublic<{ access_token: string; role: string }>("/auth/login-password", {
+      username: u,
+      password: p,
+    });
+    setBusy(false);
+    if (r.ok) {
+      setStoredToken(r.data.access_token, rememberMe);
+      await resolvePostAuthNavigation(navigate, { replace: true });
+      return;
+    }
+    setError(apiErrorMessageFa(r.code, r.message));
+  }, [username, password, navigate, rememberMe]);
 
   if (checkingSession) {
     return (
@@ -195,7 +208,11 @@ export default function LoginPage() {
           {brandNames.tagline}
         </p>
         <p style={{ margin: "0 0 20px", fontSize: 15, color: brand.textMuted, lineHeight: 1.55, textAlign: "center" }}>
-          {step === 1 ? "شماره موبایل ثبت‌شده را وارد کنید." : "کد ۶ رقمی پیامک‌شده را وارد کنید."}
+          {step === 1
+            ? "شماره موبایل ثبت‌شده را وارد کنید."
+            : step === 2
+              ? "کد ۶ رقمی پیامک‌شده را وارد کنید."
+              : "نام کاربری و رمز عبور خود را وارد کنید."}
         </p>
         {step === 2 && (
           <p
@@ -292,10 +309,25 @@ export default function LoginPage() {
             >
               {busy ? "در حال ارسال…" : "دریافت کد ورود"}
             </Button>
+            <Button
+              data-testid="login-password-mode"
+              type="button"
+              variant="secondary"
+              fullWidth
+              disabled={busy}
+              style={{ marginTop: 10 }}
+              onClick={() => {
+                setStep("password");
+                setError(null);
+                clearErrors();
+              }}
+            >
+              ورود با نام کاربری و رمز
+            </Button>
             <DemoLoginPanel app="web" />
             <MobileDownloadLinks />
           </form>
-        ) : (
+        ) : step === 2 ? (
           <form
             noValidate
             onSubmit={(e) => {
@@ -355,6 +387,80 @@ export default function LoginPage() {
               </Button>
             </div>
           </form>
+        ) : (
+          <form
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              void loginWithPassword();
+            }}
+          >
+            <FormField label="نام کاربری" required htmlFor="login-username">
+              <Input
+                id="login-username"
+                data-testid="login-username"
+                type="text"
+                autoComplete="username"
+                placeholder="oktay"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={busy}
+                style={inputStyle}
+              />
+            </FormField>
+            <FormField label="رمز عبور" required htmlFor="login-password">
+              <Input
+                id="login-password"
+                data-testid="login-password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={busy}
+                style={inputStyle}
+              />
+            </FormField>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 16,
+                fontSize: 13,
+                color: brand.textMuted,
+                cursor: "pointer",
+                userSelect: "none",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => {
+                  setRememberMe(e.target.checked);
+                  setRememberMePreference(e.target.checked);
+                }}
+                disabled={busy}
+              />
+              مرا به خاطر بسپار
+            </label>
+            <Button data-testid="login-password-submit" type="submit" fullWidth disabled={busy}>
+              {busy ? "در حال ورود…" : "ورود"}
+            </Button>
+            <Button
+              variant="ghost"
+              type="button"
+              fullWidth
+              disabled={busy}
+              style={{ marginTop: 10 }}
+              onClick={() => {
+                setStep(1);
+                setPassword("");
+                setError(null);
+              }}
+            >
+              بازگشت به ورود با پیامک
+            </Button>
+          </form>
         )}
         {import.meta.env.VITE_BUILD_SHA ? (
           <p style={{ margin: "16px 0 0", fontSize: 10, color: brand.textSoft, textAlign: "center" }}>
@@ -368,7 +474,7 @@ export default function LoginPage() {
 
 function LoginShell({ children }: { children: React.ReactNode }) {
   return (
-    <div style={pageStyle} dir="rtl">
+    <div className="auth-page" style={pageStyle} dir="rtl">
       {children}
     </div>
   );

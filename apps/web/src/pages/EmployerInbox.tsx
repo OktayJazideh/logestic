@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { PageFrame } from "../components/PageFrame";
 import { formatJalaliDateTime } from "../lib/jalaliDate";
 import { apiGetData, apiPostData } from "../api";
@@ -52,9 +53,6 @@ const alertStyle: React.CSSProperties = {
   borderRadius: 8,
   fontSize: 14,
 };
-
-const th: React.CSSProperties = { padding: "10px 8px", fontWeight: 700 };
-const td: React.CSSProperties = { padding: "10px 8px", verticalAlign: "top" };
 
 const missionLinkStyle: React.CSSProperties = {
   color: "#1B5E20",
@@ -155,6 +153,119 @@ export default function EmployerInbox() {
     await load();
   }
 
+  const columns = useMemo<DataTableColumn<NeedRow>[]>(() => {
+    const cols: DataTableColumn<NeedRow>[] = [
+      { key: "id", header: "شناسه", render: (n) => n.id },
+      { key: "mine", header: "معدن", render: (n) => n.mine_id },
+      { key: "village", header: "روستا", render: (n) => n.village_id },
+      { key: "material", header: "ماده", render: (n) => n.material_type },
+      { key: "tons", header: "تن", render: (n) => n.quantity_tons },
+      {
+        key: "status",
+        header: "وضعیت",
+        render: (n) => (
+          <>
+            <span
+              data-testid={`employer-need-status-${n.id}`}
+              style={{
+                display: "inline-block",
+                padding: n.status === "DISPATCHED" ? "2px 8px" : undefined,
+                borderRadius: n.status === "DISPATCHED" ? 6 : undefined,
+                background: n.status === "DISPATCHED" ? "#DCFCE7" : undefined,
+                color: statusColor[n.status],
+                fontWeight: 700,
+              }}
+            >
+              {statusLabel[n.status]}
+            </span>
+            {n.status === "DISPATCHED" && n.mission_ids?.length ? (
+              <MissionLinks missionIds={n.mission_ids} />
+            ) : null}
+          </>
+        ),
+      },
+      { key: "date", header: "تاریخ", render: (n) => formatJalaliDateTime(n.created_at) },
+      { key: "note", header: "یادداشت", render: (n) => n.note ?? "—", cardVisible: false },
+    ];
+    if (canDispatch) {
+      cols.push({
+        key: "dispatch",
+        header: "عملیات",
+        cardVisible: false,
+        render: (n) =>
+          n.status === "PENDING" ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 120 }}>
+              <button
+                type="button"
+                data-testid={`employer-dispatch-${n.id}`}
+                disabled={busy === n.id}
+                onClick={() => autoDispatch(n.id)}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: 6,
+                  border: "none",
+                  background: busy === n.id ? "#9CA3AF" : "#1B5E20",
+                  color: "#fff",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: busy === n.id ? "not-allowed" : "pointer",
+                }}
+              >
+                {busy === n.id ? "…" : "تخصیص خودکار"}
+              </button>
+              {dispatchErrors[n.id] ? (
+                <span
+                  data-testid={`employer-dispatch-error-${n.id}`}
+                  style={{ color: "#B91C1C", fontSize: 11, fontWeight: 600 }}
+                >
+                  {dispatchErrors[n.id]}
+                </span>
+              ) : null}
+            </div>
+          ) : (
+            "—"
+          ),
+      });
+    }
+    cols.push({
+      key: "cancel",
+      header: "لغو (در انتظار)",
+      cardVisible: false,
+      render: (n) =>
+        n.status === "PENDING" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 140 }}>
+            <input
+              type="text"
+              placeholder="دلیل لغو"
+              value={reasons[n.id] ?? ""}
+              onChange={(e) => setReasons((prev) => ({ ...prev, [n.id]: e.target.value }))}
+              style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #E5E7EB", fontSize: 12 }}
+            />
+            <button
+              type="button"
+              disabled={busy === n.id}
+              onClick={() => cancelNeed(n.id)}
+              style={{
+                padding: "6px 10px",
+                borderRadius: 6,
+                border: "none",
+                background: busy === n.id ? "#9CA3AF" : "#B45309",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: busy === n.id ? "not-allowed" : "pointer",
+              }}
+            >
+              {busy === n.id ? "…" : "لغو"}
+            </button>
+          </div>
+        ) : (
+          "—"
+        ),
+    });
+    return cols;
+  }, [canDispatch, busy, dispatchErrors, reasons]);
+
   return (
     <PageFrame
       title="دفترچه نیازهای کارفرما"
@@ -201,121 +312,78 @@ export default function EmployerInbox() {
       )}
 
       {needs.length > 0 && (
-        <table data-testid="employer-inbox-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-              <th style={th}>شناسه</th>
-              <th style={th}>معدن</th>
-              <th style={th}>روستا</th>
-              <th style={th}>ماده</th>
-              <th style={th}>تن</th>
-              <th style={th}>وضعیت</th>
-              <th style={th}>تاریخ</th>
-              <th style={th}>یادداشت</th>
-              {canDispatch && <th style={th}>عملیات</th>}
-              <th style={th}>لغو (در انتظار)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {needs.map((n) => (
-              <tr data-testid={`employer-need-row-${n.id}`} key={n.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <td style={td}>{n.id}</td>
-                <td style={td}>{n.mine_id}</td>
-                <td style={td}>{n.village_id}</td>
-                <td style={td}>{n.material_type}</td>
-                <td style={td}>{n.quantity_tons}</td>
-                <td style={td}>
-                  <span
-                    data-testid={`employer-need-status-${n.id}`}
-                    style={{
-                      display: "inline-block",
-                      padding: n.status === "DISPATCHED" ? "2px 8px" : undefined,
-                      borderRadius: n.status === "DISPATCHED" ? 6 : undefined,
-                      background: n.status === "DISPATCHED" ? "#DCFCE7" : undefined,
-                      color: statusColor[n.status],
-                      fontWeight: 700,
-                    }}
-                  >
-                    {statusLabel[n.status]}
-                  </span>
-                  {n.status === "DISPATCHED" && n.mission_ids?.length ? (
-                    <MissionLinks missionIds={n.mission_ids} />
-                  ) : null}
-                </td>
-                <td style={td}>{formatJalaliDateTime(n.created_at)}</td>
-                <td style={td}>{n.note ?? "—"}</td>
-                {canDispatch && (
-                  <td style={td}>
-                    {n.status === "PENDING" ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 120 }}>
-                        <button
-                          type="button"
-                          data-testid={`employer-dispatch-${n.id}`}
-                          disabled={busy === n.id}
-                          onClick={() => autoDispatch(n.id)}
-                          style={{
-                            padding: "6px 10px",
-                            borderRadius: 6,
-                            border: "none",
-                            background: busy === n.id ? "#9CA3AF" : "#1B5E20",
-                            color: "#fff",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: busy === n.id ? "not-allowed" : "pointer",
-                          }}
-                        >
-                          {busy === n.id ? "…" : "تخصیص خودکار"}
-                        </button>
-                        {dispatchErrors[n.id] ? (
-                          <span
-                            data-testid={`employer-dispatch-error-${n.id}`}
-                            style={{ color: "#B91C1C", fontSize: 11, fontWeight: 600 }}
-                          >
-                            {dispatchErrors[n.id]}
-                          </span>
-                        ) : null}
-                      </div>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                )}
-                <td style={td}>
-                  {n.status === "PENDING" ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 140 }}>
-                      <input
-                        type="text"
-                        placeholder="دلیل لغو"
-                        value={reasons[n.id] ?? ""}
-                        onChange={(e) => setReasons((prev) => ({ ...prev, [n.id]: e.target.value }))}
-                        style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #E5E7EB", fontSize: 12 }}
-                      />
-                      <button
-                        type="button"
-                        disabled={busy === n.id}
-                        onClick={() => cancelNeed(n.id)}
-                        style={{
-                          padding: "6px 10px",
-                          borderRadius: 6,
-                          border: "none",
-                          background: busy === n.id ? "#9CA3AF" : "#B45309",
-                          color: "#fff",
-                          fontSize: 12,
-                          fontWeight: 600,
-                          cursor: busy === n.id ? "not-allowed" : "pointer",
-                        }}
-                      >
-                        {busy === n.id ? "…" : "لغو"}
-                      </button>
-                    </div>
-                  ) : (
-                    "—"
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <DataTable
+          testId="employer-inbox-table"
+          rows={needs}
+          rowKey={(n) => String(n.id)}
+          columns={columns}
+          rowTitle={(n) => `نیاز #${n.id}`}
+          emptyMessage="هنوز نیازی ثبت نشده است."
+          cardActions={(n) =>
+            n.status === "PENDING" ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {canDispatch ? (
+                  <>
+                    <button
+                      type="button"
+                      data-testid={`employer-dispatch-${n.id}`}
+                      disabled={busy === n.id}
+                      onClick={() => autoDispatch(n.id)}
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: busy === n.id ? "#9CA3AF" : "#1B5E20",
+                        color: "#fff",
+                        fontSize: 14,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {busy === n.id ? "…" : "تخصیص خودکار"}
+                    </button>
+                    {dispatchErrors[n.id] ? (
+                      <span style={{ color: "#B91C1C", fontSize: 12, fontWeight: 600 }}>
+                        {dispatchErrors[n.id]}
+                      </span>
+                    ) : null}
+                  </>
+                ) : null}
+                <input
+                  type="text"
+                  placeholder="دلیل لغو"
+                  value={reasons[n.id] ?? ""}
+                  onChange={(e) => setReasons((prev) => ({ ...prev, [n.id]: e.target.value }))}
+                  style={{
+                    width: "100%",
+                    padding: "8px 10px",
+                    borderRadius: 8,
+                    border: "1px solid #E5E7EB",
+                    fontSize: 14,
+                    boxSizing: "border-box",
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={busy === n.id}
+                  onClick={() => cancelNeed(n.id)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: busy === n.id ? "#9CA3AF" : "#B45309",
+                    color: "#fff",
+                    fontSize: 14,
+                    fontWeight: 600,
+                  }}
+                >
+                  {busy === n.id ? "…" : "لغو"}
+                </button>
+              </div>
+            ) : null
+          }
+        />
       )}
     </PageFrame>
   );

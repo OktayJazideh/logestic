@@ -7,16 +7,22 @@ import { appContext } from "../appContext";
 import { resolveAuthContext } from "../lib/authContext";
 import { AUTH_SMS_SEND_FAILED_MESSAGE, AUTH_USER_INACTIVE_MESSAGE, AUTH_USER_NOT_REGISTERED_MESSAGE } from "../lib/authMessages";
 import { isSmsDeliveryError } from "../lib/smsDeliveryError";
+import { env, isDevAuthEnabled } from "../config/env";
 
 function smsFailureMessage(err: unknown): string {
   const cause = err instanceof Error ? err.cause : undefined;
   const detail = cause instanceof Error ? cause.message : String(cause ?? (err instanceof Error ? err.message : ""));
   if (/kavenegar_427_/.test(detail)) {
-    return "خط ارسال پیامک در پنل کاوه‌نگار برای API فعال نیست. از «حساب من → خطوط» سطح دسترسی وب‌سرویس خط 2000660110 را فعال کنید.";
+    return "خط ارسال پیامک در پنل کاوه‌نگار برای API فعال نیست. از «حساب من → خطوط» سطح دسترسی وب‌سرویس را فعال کنید.";
+  }
+  if (/lookup_failed|الگو|template/i.test(detail)) {
+    return "قالب OTP در کاوه‌نگار یافت نشد یا تأیید نشده. SMS_OTP_TEMPLATE را با نام دقیق قالب lookup در پنل تنظیم کنید.";
+  }
+  if (/kavenegar_/.test(detail) && !(process.env.SMS_OTP_TEMPLATE ?? "").trim()) {
+    return `${AUTH_SMS_SEND_FAILED_MESSAGE} برای خط اشتراکی بین‌المللی، SMS_OTP_TEMPLATE را در env تنظیم کنید (API lookup، نه send).`;
   }
   return AUTH_SMS_SEND_FAILED_MESSAGE;
 }
-import { env, isDevAuthEnabled } from "../config/env";
 
 const router = Router();
 
@@ -166,6 +172,68 @@ router.post("/verify-otp", async (req, res, next) => {
     entity_id: mobile_number,
     action: "AUTH_OTP_VERIFIED",
     performed_by_user_id: undefined,
+    reason: undefined,
+    requestId,
+    before_value: undefined,
+    after_value: { role: result.session.role },
+  });
+
+  return res.json(
+    success(
+      {
+        access_token: result.session.token,
+        role: result.session.role,
+      },
+      requestId,
+    ),
+  );
+});
+
+const UsernameSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(32)
+  .regex(/^[a-zA-Z][a-zA-Z0-9._-]*$/, { message: "invalid username" });
+
+router.post("/login-password", async (req, res, next) => {
+  const requestId = (req as any).requestId as string | undefined;
+  const body = z
+    .object({
+      username: UsernameSchema,
+      password: z.string().min(1),
+    })
+    .safeParse(req.body);
+
+  if (!body.success) {
+    return next(
+      new ApiError({
+        statusCode: 400,
+        code: "invalid_request",
+        message: "Invalid input",
+        details: body.error.flatten(),
+        requestId,
+      }),
+    );
+  }
+
+  const result = await appContext.authService.loginWithPassword(body.data.username, body.data.password);
+  if (!result.ok) {
+    return next(
+      new ApiError({
+        statusCode: 401,
+        code: "invalid_credentials",
+        message: "Invalid username or password.",
+        requestId,
+      }),
+    );
+  }
+
+  appContext.auditStore.record({
+    entity_type: "AUTH",
+    entity_id: body.data.username.toLowerCase(),
+    action: "AUTH_PASSWORD_LOGIN",
+    performed_by_user_id: result.session.userId,
     reason: undefined,
     requestId,
     before_value: undefined,

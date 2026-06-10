@@ -9,6 +9,8 @@ import '../../core/community_api_client.dart';
 import '../../core/community_roles.dart';
 import '../../core/operator_gate.dart';
 
+enum _LoginMode { mobile, otp, password }
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
     super.key,
@@ -27,9 +29,11 @@ class _LoginScreenState extends State<LoginScreen> {
   static const _resendSeconds = 60;
 
   final _mobileController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _otpKey = GlobalKey<OtpPinInputState>();
 
-  bool _otpRequested = false;
+  _LoginMode _mode = _LoginMode.mobile;
   bool _loading = false;
   String? _errorText;
   String _otpValue = '';
@@ -39,6 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _mobileController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
     _resendTimer?.cancel();
     super.dispose();
   }
@@ -73,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await widget.api.requestOtp(mobile);
       setState(() {
-        _otpRequested = true;
+        _mode = _LoginMode.otp;
         _otpValue = '';
       });
       _otpKey.currentState?.clear();
@@ -125,10 +131,46 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _loginWithPassword() async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+    if (username.isEmpty || password.length < 6) {
+      setState(() => _errorText = 'نام کاربری و رمز عبور (حداقل ۶ کاراکتر) را وارد کنید.');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _errorText = null;
+    });
+    try {
+      final v = await widget.api.loginWithPassword(username: username, password: password);
+      if (!isCommunityRole(v.role)) {
+        setState(() => _errorText = 'این اپ مخصوص خانوار، تعاونی و اپراتور ساعتی است.');
+        return;
+      }
+      await widget.sessionStore.saveSession(
+        AuthSession(accessToken: v.accessToken, role: v.role),
+      );
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(
+        context,
+        '/workspace-select',
+        arguments: {
+          'token': v.accessToken,
+          'role': normalizeCommunityRole(v.role),
+        },
+      );
+    } catch (e) {
+      setState(() => _errorText = authErrorMessage(e));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   void _backToMobile() {
     _resendTimer?.cancel();
     setState(() {
-      _otpRequested = false;
+      _mode = _LoginMode.mobile;
       _otpValue = '';
       _errorText = null;
       _resendCountdown = 0;
@@ -199,14 +241,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _otpRequested
+                      _mode == _LoginMode.otp
                           ? 'کد ارسال‌شده به ${_mobileController.text.trim()} را وارد کنید'
-                          : 'شماره موبایل خود را وارد کنید',
+                          : _mode == _LoginMode.password
+                              ? 'نام کاربری و رمز عبور خود را وارد کنید'
+                              : 'شماره موبایل خود را وارد کنید',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(color: MineralTheme.muted),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
-                    if (!_otpRequested) ...[
+                    if (_mode == _LoginMode.mobile) ...[
                       TextField(
                         controller: _mobileController,
                         keyboardType: TextInputType.phone,
@@ -221,7 +265,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           prefixIcon: Icon(Icons.phone_android_outlined),
                         ),
                       ),
-                    ] else ...[
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: _loading ? null : () => setState(() => _mode = _LoginMode.password),
+                        child: const Text('ورود با نام کاربری و رمز'),
+                      ),
+                    ] else if (_mode == _LoginMode.otp) ...[
                       OtpPinInput(
                         key: _otpKey,
                         enabled: !_loading,
@@ -244,6 +293,30 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _loading ? null : _backToMobile,
                         child: const Text('تغییر شماره موبایل'),
                       ),
+                    ] else ...[
+                      TextField(
+                        controller: _usernameController,
+                        enabled: !_loading,
+                        decoration: const InputDecoration(
+                          labelText: 'نام کاربری',
+                          prefixIcon: Icon(Icons.person_outline),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _passwordController,
+                        enabled: !_loading,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'رمز عبور',
+                          prefixIcon: Icon(Icons.lock_outline),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: _loading ? null : _backToMobile,
+                        child: const Text('بازگشت به ورود با پیامک'),
+                      ),
                     ],
                     if (_errorText != null) ...[
                       const SizedBox(height: 16),
@@ -265,7 +338,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: MineralTheme.buttonHeight,
                       child: ElevatedButton(
-                        onPressed: _loading ? null : (_otpRequested ? _verifyOtp : _requestOtp),
+                        onPressed: _loading
+                            ? null
+                            : (_mode == _LoginMode.password
+                                ? _loginWithPassword
+                                : _mode == _LoginMode.otp
+                                    ? _verifyOtp
+                                    : _requestOtp),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: MineralTheme.primary,
                           foregroundColor: Colors.white,
@@ -281,14 +360,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
                               )
-                            : Text(_otpRequested ? 'ورود' : 'دریافت کد'),
+                            : Text(_mode == _LoginMode.mobile ? 'دریافت کد' : 'ورود'),
                       ),
                     ),
-                    DemoLoginPanel(
+                    if (_mode == _LoginMode.mobile)
+                      DemoLoginPanel(
                       app: 'community',
                       busy: _loading,
-                      onDemoLogin: _demoLogin,
-                    ),
+                        onDemoLogin: _demoLogin,
+                      ),
                   ],
                 ),
               ),

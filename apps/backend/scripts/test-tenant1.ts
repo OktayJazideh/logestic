@@ -106,6 +106,30 @@ async function runOnce(run: number) {
   });
   assert(missionsMine1.status === 200, `run ${run}: driver missions with mine 1 context failed`);
 
+  const opAdminUser = await appContext.userStore.upsertUserByMobile("09000000099", "OPERATION_ADMIN", {
+    is_active: true,
+    mine_id: 1,
+  });
+  await workspaceRepo.upsertMembership({
+    user_id: opAdminUser.id,
+    mine_id: 1,
+    cooperative_id: 1,
+    role_in_workspace: "OPERATION_ADMIN",
+    status: "ACTIVE",
+  });
+  const opAdminToken = await loginAs("09000000099");
+  const opWorkspaces = await http("/api/workspaces", {
+    headers: { Authorization: `Bearer ${opAdminToken}` },
+  });
+  assert(opWorkspaces.status === 200 && opWorkspaces.json.success, `run ${run}: op admin workspaces list failed`);
+  const opWs = opWorkspaces.json.data.workspaces as { mine_id: number }[];
+  assert(opWs.length === 1 && opWs[0]!.mine_id === 1, `run ${run}: op admin must see only mine 1`);
+  const opDenyMine2 = await selectWorkspace(opAdminToken, 2);
+  assert(
+    opDenyMine2.status === 403 && opDenyMine2.json?.error?.code === "workspace_access_denied",
+    `run ${run}: operation admin must not select mine 2`,
+  );
+
   const employerToken = await loginAs("09000000007");
   await selectWorkspace(employerToken, 1);
 

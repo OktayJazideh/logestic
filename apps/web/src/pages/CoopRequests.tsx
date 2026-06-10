@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { PageFrame } from "../components/PageFrame";
 import { formatJalaliDate } from "../lib/jalaliDate";
 import { MineScope } from "../components/MineScope";
@@ -36,6 +37,19 @@ type ImportResult = {
 
 type TabId = "base" | "bulk";
 
+const rateColumns: DataTableColumn<RateCardRow>[] = [
+  { key: "material", header: "ماده", render: (row) => row.material_type },
+  { key: "unit", header: "واحد", render: (row) => row.unit_type },
+  { key: "rate", header: "نرخ", render: (row) => row.rate.toLocaleString("fa-IR") },
+  { key: "from", header: "از تاریخ", render: (row) => formatJalaliDate(row.effectiveFrom) },
+];
+
+const villageColumns: DataTableColumn<VillageRow>[] = [
+  { key: "name", header: "نام", render: (v) => v.name },
+  { key: "district", header: "ناحیه", render: (v) => v.district ?? "—" },
+  { key: "id", header: "شناسه", render: (v) => v.id },
+];
+
 export default function CoopRequests() {
   const [tab, setTab] = useState<TabId>("base");
   const [rates, setRates] = useState<RateCardRow[] | null>(null);
@@ -48,6 +62,36 @@ export default function CoopRequests() {
   const [preview, setPreview] = useState<PreviewRow[] | null>(null);
   const [previewStats, setPreviewStats] = useState<{ valid: number; invalid: number } | null>(null);
   const [bulkErr, setBulkErr] = useState<string | null>(null);
+
+  const previewColumns = useMemo<DataTableColumn<PreviewRow>[]>(
+    () => [
+      { key: "line", header: "ردیف", render: (row) => row.line },
+      { key: "national_id", header: "کد ملی", render: (row) => <span dir="ltr">{row.national_id}</span> },
+      { key: "name", header: "نام", render: (row) => row.full_name },
+      {
+        key: "village",
+        header: "روستا",
+        render: (row) => row.village_id ?? row.village_code ?? "—",
+      },
+      {
+        key: "mobile",
+        header: "موبایل",
+        render: (row) => <span dir="ltr">{row.mobile ?? "—"}</span>,
+        cardVisible: false,
+      },
+      {
+        key: "status",
+        header: "وضعیت",
+        render: (row) =>
+          row.valid ? (
+            <span style={{ color: "#059669" }}>OK</span>
+          ) : (
+            <span style={{ color: "#B91C1C" }}>{row.errors.join("؛ ")}</span>
+          ),
+      },
+    ],
+    [],
+  );
   const [bulkBusy, setBulkBusy] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
@@ -172,26 +216,13 @@ export default function CoopRequests() {
             <div style={{ fontWeight: 700, marginBottom: 8, color: "#111827" }}>نرخ‌های فعال</div>
             {rateErr && <div style={{ color: "#B45309", fontSize: 14 }}>{rateErr}</div>}
             {rates && rates.length > 0 && (
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-                    <th style={th}>ماده</th>
-                    <th style={th}>واحد</th>
-                    <th style={th}>نرخ</th>
-                    <th style={th}>از تاریخ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rates.map((row) => (
-                    <tr key={`${row.material_type}-${row.effectiveFrom}`}>
-                      <td style={td}>{row.material_type}</td>
-                      <td style={td}>{row.unit_type}</td>
-                      <td style={td}>{row.rate.toLocaleString("fa-IR")}</td>
-                      <td style={td}>{formatJalaliDate(row.effectiveFrom)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <DataTable
+                testId="coop-rates-table"
+                rows={rates}
+                rowKey={(row) => `${row.material_type}-${row.effectiveFrom}`}
+                columns={rateColumns}
+                emptyMessage="نرخی ثبت نشده."
+              />
             )}
             {rates && rates.length === 0 && <div style={{ color: "#6B7280" }}>نرخی ثبت نشده.</div>}
           </div>
@@ -203,24 +234,13 @@ export default function CoopRequests() {
             </p>
             {vilErr && <div style={{ color: "#B45309", fontSize: 14 }}>{vilErr}</div>}
             {villages && villages.length > 0 && (
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-                    <th style={th}>نام</th>
-                    <th style={th}>ناحیه</th>
-                    <th style={th}>شناسه</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {villages.map((v) => (
-                    <tr key={v.id}>
-                      <td style={td}>{v.name}</td>
-                      <td style={td}>{v.district ?? "—"}</td>
-                      <td style={td}>{v.id}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <DataTable
+                testId="coop-villages-table"
+                rows={villages}
+                rowKey={(v) => String(v.id)}
+                columns={villageColumns}
+                emptyMessage="هنوز روستایی برای این معدن نیست."
+              />
             )}
             {villages && villages.length === 0 && (
               <div style={{ color: "#6B7280", fontSize: 14 }}>هنوز روستایی برای این معدن نیست یا معدن انتخاب نشده.</div>
@@ -272,41 +292,15 @@ export default function CoopRequests() {
           )}
 
           {preview && preview.length > 0 && (
-            <div style={{ overflowX: "auto", marginBottom: 16 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                <thead>
-                  <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-                    <th style={th}>ردیف</th>
-                    <th style={th}>کد ملی</th>
-                    <th style={th}>نام</th>
-                    <th style={th}>روستا</th>
-                    <th style={th}>موبایل</th>
-                    <th style={th}>وضعیت</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {preview.map((row) => (
-                    <tr key={row.line} style={{ background: row.valid ? "#fff" : "#FEF2F2" }}>
-                      <td style={td}>{row.line}</td>
-                      <td style={td} dir="ltr">
-                        {row.national_id}
-                      </td>
-                      <td style={td}>{row.full_name}</td>
-                      <td style={td}>{row.village_id ?? row.village_code ?? "—"}</td>
-                      <td style={td} dir="ltr">
-                        {row.mobile ?? "—"}
-                      </td>
-                      <td style={td}>
-                        {row.valid ? (
-                          <span style={{ color: "#059669" }}>OK</span>
-                        ) : (
-                          <span style={{ color: "#B91C1C" }}>{row.errors.join("؛ ")}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div style={{ marginBottom: 16 }}>
+              <DataTable
+                testId="coop-bulk-preview-table"
+                rows={preview}
+                rowKey={(row) => String(row.line)}
+                columns={previewColumns}
+                rowStyle={(row) => (row.valid ? undefined : { background: "#FEF2F2" })}
+                emptyMessage="ردیفی برای پیش‌نمایش نیست."
+              />
             </div>
           )}
 
@@ -342,12 +336,6 @@ export default function CoopRequests() {
   );
 }
 
-const th: React.CSSProperties = {
-  border: "1px solid #E5E7EB",
-  padding: "8px 10px",
-  fontWeight: 700,
-};
-const td: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px" };
 const tabBtn: React.CSSProperties = {
   border: "1px solid #D1D5DB",
   background: "#fff",

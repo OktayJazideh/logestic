@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPostData } from "../api";
 
@@ -25,9 +26,6 @@ const btnStyle: React.CSSProperties = {
   fontWeight: 600,
   cursor: "pointer",
 };
-
-const th: React.CSSProperties = { padding: "8px 10px", textAlign: "right" };
-const td: React.CSSProperties = { padding: "8px 10px", verticalAlign: "top" };
 
 export default function ReconciliationPage() {
   const [issues, setIssues] = useState<ReconciliationIssue[]>([]);
@@ -76,6 +74,84 @@ export default function ReconciliationPage() {
     await load();
   }
 
+  const columns = useMemo<DataTableColumn<ReconciliationIssue>[]>(
+    () => [
+      {
+        key: "code",
+        header: "کد",
+        render: (i) => <code style={{ fontSize: 11 }}>{i.code}</code>,
+      },
+      {
+        key: "entity",
+        header: "موجودیت",
+        render: (i) => `${i.entity_type} / ${i.entity_id}`,
+      },
+      { key: "message", header: "پیام", render: (i) => i.message },
+      {
+        key: "run_id",
+        header: "run_id",
+        cardVisible: false,
+        render: (i) => <code style={{ fontSize: 10 }}>{i.run_id}</code>,
+      },
+      {
+        key: "status",
+        header: "وضعیت",
+        render: (i) => (
+          <>
+            <span
+              style={{
+                padding: "2px 8px",
+                borderRadius: 6,
+                fontSize: 11,
+                fontWeight: 600,
+                background: i.status === "OPEN" ? "#FEF3C7" : "#D1FAE5",
+                color: i.status === "OPEN" ? "#92400E" : "#065F46",
+              }}
+            >
+              {i.status}
+            </span>
+            {i.resolve_reason ? (
+              <div style={{ fontSize: 11, color: "#6B7280", marginTop: 4 }}>{i.resolve_reason}</div>
+            ) : null}
+          </>
+        ),
+      },
+      {
+        key: "resolve",
+        header: "Resolve",
+        cardVisible: false,
+        render: (i) =>
+          i.status === "OPEN" ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 180 }}>
+              <input
+                type="text"
+                placeholder="دلیل Resolve"
+                value={reasonDraft[i.id] ?? ""}
+                onChange={(e) => setReasonDraft((d) => ({ ...d, [i.id]: e.target.value }))}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius: 8,
+                  border: "1px solid #E5E7EB",
+                  fontSize: 12,
+                }}
+              />
+              <button
+                type="button"
+                disabled={busyId === i.id}
+                onClick={() => void resolveIssue(i.id)}
+                style={{ ...btnStyle, background: "#F3F1EB", color: "#1E3A2F" }}
+              >
+                {busyId === i.id ? "…" : "Resolve"}
+              </button>
+            </div>
+          ) : (
+            <span style={{ fontSize: 11, color: "#9CA3AF" }}>—</span>
+          ),
+      },
+    ],
+    [busyId, reasonDraft],
+  );
+
   return (
     <PageFrame
       title="تطبیق شبانه (RECON-1)"
@@ -118,91 +194,41 @@ export default function ReconciliationPage() {
         <span style={{ fontSize: 13, color: "#6B7280" }}>{issues.length} مورد</span>
       </div>
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: "#F3F4F6", textAlign: "right" }}>
-              <th style={th}>کد</th>
-              <th style={th}>موجودیت</th>
-              <th style={th}>پیام</th>
-              <th style={th}>run_id</th>
-              <th style={th}>وضعیت</th>
-              <th style={th}>Resolve</th>
-            </tr>
-          </thead>
-          <tbody>
-            {issues.length === 0 ? (
-              <tr>
-                <td colSpan={6} style={{ ...td, color: "#6B7280", textAlign: "center" }}>
-                  موردی یافت نشد — تطبیق شبانه احتمالاً بدون مغایرت بوده است.
-                </td>
-              </tr>
-            ) : (
-              issues.map((i) => (
-                <tr key={i.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                  <td style={td}>
-                    <code style={{ fontSize: 11 }}>{i.code}</code>
-                  </td>
-                  <td style={td}>
-                    {i.entity_type} / {i.entity_id}
-                  </td>
-                  <td style={td}>{i.message}</td>
-                  <td style={td}>
-                    <code style={{ fontSize: 10 }}>{i.run_id}</code>
-                  </td>
-                  <td style={td}>
-                    <span
-                      style={{
-                        padding: "2px 8px",
-                        borderRadius: 6,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        background: i.status === "OPEN" ? "#FEF3C7" : "#D1FAE5",
-                        color: i.status === "OPEN" ? "#92400E" : "#065F46",
-                      }}
-                    >
-                      {i.status}
-                    </span>
-                    {i.resolve_reason && (
-                      <div style={{ fontSize: 11, color: "#6B7280", marginTop: 4 }}>{i.resolve_reason}</div>
-                    )}
-                  </td>
-                  <td style={td}>
-                    {i.status === "OPEN" ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 180 }}>
-                        <input
-                          type="text"
-                          placeholder="دلیل Resolve"
-                          value={reasonDraft[i.id] ?? ""}
-                          onChange={(e) =>
-                            setReasonDraft((d) => ({ ...d, [i.id]: e.target.value }))
-                          }
-                          style={{
-                            padding: "6px 8px",
-                            borderRadius: 8,
-                            border: "1px solid #E5E7EB",
-                            fontSize: 12,
-                          }}
-                        />
-                        <button
-                          type="button"
-                          disabled={busyId === i.id}
-                          onClick={() => void resolveIssue(i.id)}
-                          style={{ ...btnStyle, background: "#F3F1EB", color: "#1E3A2F" }}
-                        >
-                          {busyId === i.id ? "…" : "Resolve"}
-                        </button>
-                      </div>
-                    ) : (
-                      <span style={{ fontSize: 11, color: "#9CA3AF" }}>—</span>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        testId="reconciliation-table"
+        rows={issues}
+        rowKey={(i) => String(i.id)}
+        columns={columns}
+        emptyMessage="موردی یافت نشد — تطبیق شبانه احتمالاً بدون مغایرت بوده است."
+        cardActions={(i) =>
+          i.status === "OPEN" ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <input
+                type="text"
+                placeholder="دلیل Resolve"
+                value={reasonDraft[i.id] ?? ""}
+                onChange={(e) => setReasonDraft((d) => ({ ...d, [i.id]: e.target.value }))}
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid #E5E7EB",
+                  fontSize: 14,
+                  boxSizing: "border-box",
+                }}
+              />
+              <button
+                type="button"
+                disabled={busyId === i.id}
+                onClick={() => void resolveIssue(i.id)}
+                style={{ ...btnStyle, width: "100%", background: "#F3F1EB", color: "#1E3A2F" }}
+              >
+                {busyId === i.id ? "…" : "Resolve"}
+              </button>
+            </div>
+          ) : null
+        }
+      />
     </PageFrame>
   );
 }

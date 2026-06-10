@@ -53,15 +53,20 @@ function mapRow(row: {
 }
 
 function isGlobalWorkspaceRole(role: UserRole): boolean {
-  const n = normalizeRole(role);
-  return n === "ADMIN" || n === "OPERATION_ADMIN";
+  return normalizeRole(role) === "ADMIN";
 }
 
 export function membershipKindForRole(role: UserRole): MembershipKind | null {
   const n = normalizeRole(role);
   if (n === "HOUSEHOLD" || isCoopScopedRole(role)) return "COMMUNITY";
   if (role === "EMPLOYER") return "OPERATIONAL";
-  if (n === "DRIVER" || n === "FLEET_OWNER" || n === "OPERATOR" || n === "CONSULTANT") {
+  if (
+    n === "DRIVER" ||
+    n === "FLEET_OWNER" ||
+    n === "OPERATOR" ||
+    n === "CONSULTANT" ||
+    n === "OPERATION_ADMIN"
+  ) {
     return "OPERATIONAL";
   }
   return null;

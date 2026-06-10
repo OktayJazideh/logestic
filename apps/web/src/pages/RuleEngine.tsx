@@ -8,8 +8,9 @@ import { apiErrorMessageFa } from "../lib/apiErrorsFa";
 import { formatJalaliDate } from "../lib/jalaliDate";
 import { labelFa, RULE_SCOPE_FA, RULE_STATUS_FA, ruleKeyLabelFa } from "../lib/uiLabels";
 import { dateRequired, positiveInt, positiveNumber, required } from "../lib/validation";
+import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { Alert, Button, FilterBar, FilterField, FormRow, Section, Select } from "../components/ui";
-import { brand, selectStyle, tableTdStyle, tableThStyle } from "../theme";
+import { brand, selectStyle } from "../theme";
 
 type FinanceRule = {
   id: number;
@@ -194,6 +195,48 @@ export default function RuleEnginePage() {
     }
     return base;
   }
+
+  const ruleColumns = useMemo<DataTableColumn<FinanceRule>[]>(
+    () => [
+      {
+        key: "key",
+        header: "قانون",
+        render: (r) => (
+          <>
+            <div>{ruleKeyLabelFa(r.key)}</div>
+            <div style={{ fontSize: 11, color: brand.textMuted }}>{r.key}</div>
+          </>
+        ),
+      },
+      { key: "value", header: "مقدار", render: (r) => formatValue(r.value) },
+      { key: "scope", header: "محدوده", render: (r) => scopeLabel(r) },
+      { key: "version", header: "نسخه", render: (r) => r.version.toLocaleString("fa-IR") },
+      { key: "status", header: "وضعیت", render: (r) => labelFa(RULE_STATUS_FA, r.status) },
+      { key: "from", header: "از", render: (r) => formatJalaliDate(r.effective_from) },
+      {
+        key: "to",
+        header: "تا",
+        render: (r) => (r.effective_to ? formatJalaliDate(r.effective_to) : "—"),
+        cardVisible: false,
+      },
+      {
+        key: "actions",
+        header: "",
+        cardVisible: false,
+        render: (r) => (
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={deleteBusyId === r.id}
+            onClick={() => void softDeleteRule(r)}
+          >
+            {deleteBusyId === r.id ? "…" : "حذف نرم"}
+          </Button>
+        ),
+      },
+    ],
+    [mines, deleteBusyId],
+  );
 
   return (
     <PageFrame
@@ -389,48 +432,23 @@ export default function RuleEnginePage() {
           </FilterField>
         </FilterBar>
 
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th style={tableThStyle}>قانون</th>
-                <th style={tableThStyle}>مقدار</th>
-                <th style={tableThStyle}>محدوده</th>
-                <th style={tableThStyle}>نسخه</th>
-                <th style={tableThStyle}>وضعیت</th>
-                <th style={tableThStyle}>از</th>
-                <th style={tableThStyle}>تا</th>
-                <th style={tableThStyle} />
-              </tr>
-            </thead>
-            <tbody>
-              {rules.map((r) => (
-                <tr key={r.id}>
-                  <td style={tableTdStyle}>
-                    <div>{ruleKeyLabelFa(r.key)}</div>
-                    <div style={{ fontSize: 11, color: brand.textMuted }}>{r.key}</div>
-                  </td>
-                  <td style={tableTdStyle}>{formatValue(r.value)}</td>
-                  <td style={tableTdStyle}>{scopeLabel(r)}</td>
-                  <td style={tableTdStyle}>{r.version.toLocaleString("fa-IR")}</td>
-                  <td style={tableTdStyle}>{labelFa(RULE_STATUS_FA, r.status)}</td>
-                  <td style={tableTdStyle}>{formatJalaliDate(r.effective_from)}</td>
-                  <td style={tableTdStyle}>{r.effective_to ? formatJalaliDate(r.effective_to) : "—"}</td>
-                  <td style={tableTdStyle}>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={deleteBusyId === r.id}
-                      onClick={() => void softDeleteRule(r)}
-                    >
-                      {deleteBusyId === r.id ? "…" : "حذف نرم"}
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          testId="rule-engine-table"
+          rows={rules}
+          rowKey={(r) => String(r.id)}
+          columns={ruleColumns}
+          emptyMessage="قانونی یافت نشد."
+          cardActions={(r) => (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={deleteBusyId === r.id}
+              onClick={() => void softDeleteRule(r)}
+            >
+              {deleteBusyId === r.id ? "…" : "حذف نرم"}
+            </Button>
+          )}
+        />
       </Section>
     </PageFrame>
   );

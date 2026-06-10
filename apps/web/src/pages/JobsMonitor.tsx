@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { PageFrame } from "../components/PageFrame";
 import { apiGetData, apiPostData } from "../api";
 
@@ -32,21 +33,6 @@ type JobsPayload = {
   failed: FailedJob[];
 };
 
-const tableStyle: React.CSSProperties = {
-  width: "100%",
-  borderCollapse: "collapse",
-  fontSize: 13,
-};
-const thStyle: React.CSSProperties = {
-  textAlign: "right",
-  padding: "8px 10px",
-  borderBottom: "2px solid #E5E7EB",
-  color: "#374151",
-};
-const tdStyle: React.CSSProperties = {
-  padding: "8px 10px",
-  borderBottom: "1px solid #F3F4F6",
-};
 const btnStyle: React.CSSProperties = {
   padding: "8px 14px",
   borderRadius: 8,
@@ -62,6 +48,22 @@ const btnPrimary: React.CSSProperties = {
   color: "#fff",
   border: "none",
 };
+
+const jobColumns: DataTableColumn<JobRecord>[] = [
+  {
+    key: "id",
+    header: "ID",
+    render: (j) => <span style={{ fontFamily: "monospace", fontSize: 11 }}>{j.id.slice(0, 8)}…</span>,
+  },
+  { key: "queue", header: "صف", render: (j) => j.queue },
+  { key: "job", header: "Job", render: (j) => j.job_name },
+  { key: "status", header: "وضعیت", render: (j) => j.status },
+  {
+    key: "attempts",
+    header: "تلاش",
+    render: (j) => `${j.attempts}/${j.max_attempts}`,
+  },
+];
 
 export default function JobsMonitor() {
   const [data, setData] = useState<JobsPayload | null>(null);
@@ -109,6 +111,40 @@ export default function JobsMonitor() {
     await load();
   }
 
+  const failedColumns = useMemo<DataTableColumn<FailedJob>[]>(
+    () => [
+      { key: "id", header: "#", render: (f) => f.id },
+      { key: "queue", header: "صف", render: (f) => f.queue_name },
+      { key: "job", header: "Job", render: (f) => f.job_name },
+      {
+        key: "attempts",
+        header: "تلاش",
+        render: (f) => `${f.attempts}/${f.max_attempts}`,
+      },
+      {
+        key: "error",
+        header: "خطا",
+        render: (f) => <span style={{ fontSize: 12 }}>{f.error_message}</span>,
+      },
+      {
+        key: "actions",
+        header: "",
+        cardVisible: false,
+        render: (f) => (
+          <button
+            type="button"
+            disabled={busy === f.id}
+            onClick={() => void retryFailed(f.id)}
+            style={btnPrimary}
+          >
+            {busy === f.id ? "…" : "Retry"}
+          </button>
+        ),
+      },
+    ],
+    [busy],
+  );
+
   return (
     <PageFrame
       title="مانیتور Jobها (QUEUE-1)"
@@ -152,53 +188,55 @@ export default function JobsMonitor() {
       </div>
 
       <Section title={`در حال اجرا (${data?.active.length ?? 0})`}>
-        {!data?.active.length ? <p style={emptyStyle}>هیچ job فعالی نیست.</p> : <JobTable jobs={data.active} />}
+        {!data?.active.length ? (
+          <p style={emptyStyle}>هیچ job فعالی نیست.</p>
+        ) : (
+          <DataTable
+            testId="jobs-active-table"
+            rows={data.active}
+            rowKey={(j) => j.id}
+            columns={jobColumns}
+            emptyMessage="هیچ job فعالی نیست."
+          />
+        )}
       </Section>
 
       <Section title={`شکست‌خورده — failed_jobs (${data?.failed.length ?? 0})`}>
         {!data?.failed.length ? (
           <p style={emptyStyle}>لیست خالی است.</p>
         ) : (
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thStyle}>#</th>
-                <th style={thStyle}>صف</th>
-                <th style={thStyle}>Job</th>
-                <th style={thStyle}>تلاش</th>
-                <th style={thStyle}>خطا</th>
-                <th style={thStyle} />
-              </tr>
-            </thead>
-            <tbody>
-              {data.failed.map((f) => (
-                <tr key={f.id}>
-                  <td style={tdStyle}>{f.id}</td>
-                  <td style={tdStyle}>{f.queue_name}</td>
-                  <td style={tdStyle}>{f.job_name}</td>
-                  <td style={tdStyle}>
-                    {f.attempts}/{f.max_attempts}
-                  </td>
-                  <td style={{ ...tdStyle, maxWidth: 280, fontSize: 12 }}>{f.error_message}</td>
-                  <td style={tdStyle}>
-                    <button
-                      type="button"
-                      disabled={busy === f.id}
-                      onClick={() => void retryFailed(f.id)}
-                      style={btnPrimary}
-                    >
-                      {busy === f.id ? "…" : "Retry"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <DataTable
+            testId="jobs-failed-table"
+            rows={data.failed}
+            rowKey={(f) => String(f.id)}
+            columns={failedColumns}
+            emptyMessage="لیست خالی است."
+            cardActions={(f) => (
+              <button
+                type="button"
+                disabled={busy === f.id}
+                onClick={() => void retryFailed(f.id)}
+                style={{ ...btnPrimary, width: "100%" }}
+              >
+                {busy === f.id ? "…" : "Retry"}
+              </button>
+            )}
+          />
         )}
       </Section>
 
       <Section title={`تکمیل‌شده اخیر (${data?.completed.length ?? 0})`}>
-        {!data?.completed.length ? <p style={emptyStyle}>—</p> : <JobTable jobs={data.completed} />}
+        {!data?.completed.length ? (
+          <p style={emptyStyle}>—</p>
+        ) : (
+          <DataTable
+            testId="jobs-completed-table"
+            rows={data.completed}
+            rowKey={(j) => j.id}
+            columns={jobColumns}
+            emptyMessage="—"
+          />
+        )}
       </Section>
     </PageFrame>
   );
@@ -210,35 +248,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 style={{ fontSize: 16, color: "#374151", marginBottom: 10 }}>{title}</h2>
       {children}
     </div>
-  );
-}
-
-function JobTable({ jobs }: { jobs: JobRecord[] }) {
-  return (
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th style={thStyle}>ID</th>
-          <th style={thStyle}>صف</th>
-          <th style={thStyle}>Job</th>
-          <th style={thStyle}>وضعیت</th>
-          <th style={thStyle}>تلاش</th>
-        </tr>
-      </thead>
-      <tbody>
-        {jobs.map((j) => (
-          <tr key={j.id}>
-            <td style={{ ...tdStyle, fontSize: 11, fontFamily: "monospace" }}>{j.id.slice(0, 8)}…</td>
-            <td style={tdStyle}>{j.queue}</td>
-            <td style={tdStyle}>{j.job_name}</td>
-            <td style={tdStyle}>{j.status}</td>
-            <td style={tdStyle}>
-              {j.attempts}/{j.max_attempts}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
   );
 }
 

@@ -1,6 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiGetData, apiPostData, getStoredToken, setStoredToken } from "../api";
+import { apiErrorMessageFa } from "../lib/apiErrorsFa";
+import { isAdminWorkspaceRole } from "../lib/workspaceFlow";
 import { ErrorBanner } from "../components/simple/ErrorBanner";
 import { simpleLabel } from "../lib/uiLabels";
 import { brand, btnSecondary } from "../theme";
@@ -16,14 +18,8 @@ export type WorkspaceRow = {
 };
 
 const pageStyle: React.CSSProperties = {
-  minHeight: "100vh",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: 16,
   background: brand.bg,
   fontFamily: brand.fontFamily,
-  boxSizing: "border-box",
 };
 
 const cardStyle: React.CSSProperties = {
@@ -86,6 +82,8 @@ export default function WorkspaceSelectPage() {
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const autoSelectAttempted = useRef(false);
 
   const community = useMemo(
     () => workspaces.filter((w) => w.membership_kind === "COMMUNITY"),
@@ -102,11 +100,14 @@ export default function WorkspaceSelectPage() {
       return;
     }
     let cancelled = false;
+    void apiGetData<{ role: string }>("/auth/me").then((meRes) => {
+      if (!cancelled && meRes.ok) setUserRole(meRes.data.role);
+    });
     apiGetData<{ workspaces: WorkspaceRow[] }>("/workspaces").then((r) => {
       if (cancelled) return;
       setLoading(false);
       if (!r.ok) {
-        setError(r.message);
+        setError(apiErrorMessageFa(r.code, r.message));
         return;
       }
       setWorkspaces(r.data.workspaces);
@@ -130,23 +131,31 @@ export default function WorkspaceSelectPage() {
         navigate("/panel", { replace: true });
         return;
       }
-      setError(r.message);
+      setError(apiErrorMessageFa(r.code, r.message));
     },
     [navigate],
   );
 
-  if (loading) {
+  useEffect(() => {
+    if (loading || busy || workspaces.length !== 1 || autoSelectAttempted.current) return;
+    autoSelectAttempted.current = true;
+    void selectWorkspace(workspaces[0]!);
+  }, [loading, busy, workspaces, selectWorkspace]);
+
+  if (loading || (workspaces.length === 1 && busy)) {
     return (
-      <div dir="rtl" style={pageStyle}>
+      <div className="auth-page" dir="rtl" style={pageStyle}>
         <div style={cardStyle}>
-          <p style={{ margin: 0, color: "#6B7280" }}>در حال بارگذاری فضاهای کاری…</p>
+          <p style={{ margin: 0, color: "#6B7280" }}>
+            {workspaces.length === 1 ? "در حال ورود به فضای کاری…" : "در حال بارگذاری فضاهای کاری…"}
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div dir="rtl" style={pageStyle}>
+    <div className="auth-page" dir="rtl" style={pageStyle}>
       <div style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 8 }}>
           <h1 style={{ margin: 0, fontSize: 22, color: brand.primaryDark }}>{simpleLabel("workspace")}</h1>
@@ -163,7 +172,9 @@ export default function WorkspaceSelectPage() {
           </button>
         </div>
         <p style={{ margin: "0 0 20px", fontSize: 15, color: brand.textMuted, lineHeight: 1.6 }}>
-          الان کجا کار می‌کنید؟ یک کارت «معدن» یا «تعاونی» را بزنید.
+          {isAdminWorkspaceRole(userRole)
+            ? "معدن فعال را انتخاب کنید."
+            : "فقط محل‌هایی که برای شما تعریف شده‌اند نمایش داده می‌شوند — یک کارت «معدن» یا «تعاونی» را بزنید."}
         </p>
 
         {error && (
@@ -175,7 +186,9 @@ export default function WorkspaceSelectPage() {
         )}
 
         {workspaces.length === 0 ? (
-          <p style={{ color: "#B45309", fontSize: 13 }}>فضای کاری فعالی برای حساب شما ثبت نشده است.</p>
+          <p style={{ color: "#B45309", fontSize: 14, lineHeight: 1.6 }}>
+            فضای کاری فعالی برای حساب شما ثبت نشده است. با مدیر پلتفرم تماس بگیرید یا از حساب خارج شوید.
+          </p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {operational.length > 0 && (

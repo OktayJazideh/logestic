@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { PageFrame } from "../components/PageFrame";
 import { formatJalaliDate } from "../lib/jalaliDate";
 import { labelFa, MATERIAL_TYPE_FA, OPERATION_TYPE_FA, RATE_CARD_STATUS_FA } from "../lib/uiLabels";
@@ -33,6 +34,43 @@ export default function MissionBoard() {
     });
   }, []);
 
+  const columns = useMemo<DataTableColumn<RateCardRow>[]>(
+    () => [
+      {
+        key: "operation",
+        header: "نوع عملیات",
+        render: (row) => labelFa(OPERATION_TYPE_FA, row.operation_type),
+      },
+      {
+        key: "material",
+        header: "ماده",
+        render: (row) => labelFa(MATERIAL_TYPE_FA, row.material_type),
+      },
+      {
+        key: "unit",
+        header: "واحد",
+        render: (row) =>
+          row.unit_type === "TON" ? "تن" : row.unit_type === "HOUR" ? "ساعت" : row.unit_type,
+      },
+      {
+        key: "rate",
+        header: "نرخ",
+        render: (row) => row.rate.toLocaleString("fa-IR"),
+      },
+      {
+        key: "effective",
+        header: "موثر از",
+        render: (row) => formatJalaliDate(row.effectiveFrom),
+      },
+      {
+        key: "status",
+        header: "وضعیت",
+        render: (row) => labelFa(RATE_CARD_STATUS_FA, row.status),
+      },
+    ],
+    [],
+  );
+
   return (
     <PageFrame
       title="بورد ماموریت / نرخ"
@@ -54,30 +92,13 @@ export default function MissionBoard() {
         </div>
       )}
       {rows && rows.length > 0 && (
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: "#F3F4F6", textAlign: "right" as const }}>
-              <th style={th}>نوع عملیات</th>
-              <th style={th}>ماده</th>
-              <th style={th}>واحد</th>
-              <th style={th}>نرخ</th>
-              <th style={th}>موثر از</th>
-              <th style={th}>وضعیت</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={`${row.material_type}-${row.effectiveFrom}`}>
-                <td style={td}>{labelFa(OPERATION_TYPE_FA, row.operation_type)}</td>
-                <td style={td}>{labelFa(MATERIAL_TYPE_FA, row.material_type)}</td>
-                <td style={td}>{row.unit_type === "TON" ? "تن" : row.unit_type === "HOUR" ? "ساعت" : row.unit_type}</td>
-                <td style={td}>{row.rate.toLocaleString("fa-IR")}</td>
-                <td style={td}>{formatJalaliDate(row.effectiveFrom)}</td>
-                <td style={td}>{labelFa(RATE_CARD_STATUS_FA, row.status)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <DataTable
+          testId="mission-board-table"
+          rows={rows}
+          rowKey={(row) => `${row.material_type}-${row.effectiveFrom}`}
+          columns={columns}
+          emptyMessage="نرخی برای نمایش نیست."
+        />
       )}
       {rows && rows.length === 0 && !err && (
         <div style={{ color: "#6B7280" }}>نرخی برای نمایش نیست.</div>
@@ -85,10 +106,3 @@ export default function MissionBoard() {
     </PageFrame>
   );
 }
-
-const th: React.CSSProperties = {
-  border: "1px solid #E5E7EB",
-  padding: "8px 10px",
-  fontWeight: 700,
-};
-const td: React.CSSProperties = { border: "1px solid #E5E7EB", padding: "8px 10px" };

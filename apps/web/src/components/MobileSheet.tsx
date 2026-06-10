@@ -40,6 +40,7 @@ export function MobileSheet({ title, open, onClose, children, footer }: Props) {
       onClick={onClose}
     >
       <div
+        className="mobile-sheet__panel"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",

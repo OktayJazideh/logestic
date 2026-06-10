@@ -1,18 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { apiGetData, apiPostData } from "../api";
 import { apiErrorMessageFa } from "../lib/apiErrorsFa";
+import {
+  dedupeOperationalWorkspaces,
+  isAdminWorkspaceRole,
+  workspaceKey,
+  workspaceLabel,
+} from "../lib/workspaceFlow";
+import type { WorkspaceRow } from "../pages/WorkspaceSelectPage";
 import { brand } from "../theme";
-
-export type WorkspaceRow = {
-  membership_kind: "COMMUNITY" | "OPERATIONAL";
-  mine_id: number;
-  mine_name: string;
-  cooperative_id?: number;
-  subtitle: string;
-  roles: string[];
-};
-
-const GLOBAL_WORKSPACE_ROLES = new Set(["ADMIN", "OPERATION_ADMIN"]);
 
 type Props = {
   userRole?: string;
@@ -21,17 +17,6 @@ type Props = {
   onWorkspaceChanged: () => void;
   compact?: boolean;
 };
-
-function workspaceKey(w: WorkspaceRow) {
-  return `${w.membership_kind}:${w.mine_id}:${w.cooperative_id ?? 0}`;
-}
-
-function workspaceLabel(w: WorkspaceRow) {
-  if (w.membership_kind === "COMMUNITY") {
-    return w.subtitle || w.mine_name;
-  }
-  return w.mine_name || w.subtitle;
-}
 
 export function WorkspaceSwitcher({
   userRole,
@@ -45,19 +30,9 @@ export function WorkspaceSwitcher({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const showSwitcher = Boolean(userRole && GLOBAL_WORKSPACE_ROLES.has(userRole));
-
-  const operationalMines = useMemo(() => {
-    const seen = new Set<number>();
-    const rows: WorkspaceRow[] = [];
-    for (const w of workspaces) {
-      if (w.membership_kind !== "OPERATIONAL") continue;
-      if (seen.has(w.mine_id)) continue;
-      seen.add(w.mine_id);
-      rows.push(w);
-    }
-    return rows;
-  }, [workspaces]);
+  const operationalMines = useMemo(() => dedupeOperationalWorkspaces(workspaces), [workspaces]);
+  const showDropdown = operationalMines.length > 1;
+  const showMineContext = Boolean(userRole) && operationalMines.length >= 1;
 
   const loadWorkspaces = useCallback(async () => {
     const r = await apiGetData<{ workspaces: WorkspaceRow[] }>("/workspaces");
@@ -70,48 +45,77 @@ export function WorkspaceSwitcher({
   }, []);
 
   useEffect(() => {
-    if (!showSwitcher) return;
+    if (!userRole) return;
     void loadWorkspaces();
-  }, [showSwitcher, loadWorkspaces, tokenVersion]);
+  }, [userRole, loadWorkspaces, tokenVersion]);
+
+  const applySelection = useCallback(
+    async (key: string) => {
+      const ws = workspaces.find((w) => workspaceKey(w) === key);
+      if (!ws) return;
+      setBusy(true);
+      setError(null);
+      const r = await apiPostData<{ mine_id: number }>("/workspaces/select", {
+        mine_id: ws.mine_id,
+        membership_kind: ws.membership_kind,
+        ...(ws.cooperative_id != null ? { cooperative_id: ws.cooperative_id } : {}),
+      });
+      setBusy(false);
+      if (!r.ok) {
+        setError(apiErrorMessageFa(r.code, r.message));
+        return;
+      }
+      onWorkspaceChanged();
+    },
+    [workspaces, onWorkspaceChanged],
+  );
 
   useEffect(() => {
-    if (!showSwitcher || operationalMines.length === 0) return;
+    if (!showMineContext || operationalMines.length === 0) return;
     const match = operationalMines.find((w) => w.mine_id === activeMineId);
     if (match) {
       setChoice(workspaceKey(match));
       return;
     }
-    if (operationalMines.length === 1 && activeMineId == null) {
+    if (operationalMines.length === 1 && activeMineId == null && isAdminWorkspaceRole(userRole)) {
       const key = workspaceKey(operationalMines[0]!);
       setChoice(key);
       void applySelection(key);
     } else if (!choice && operationalMines.length === 1) {
       setChoice(workspaceKey(operationalMines[0]!));
     }
-  }, [showSwitcher, operationalMines, activeMineId, choice]);
+  }, [showMineContext, operationalMines, activeMineId, choice, userRole, applySelection]);
 
-  async function applySelection(key: string) {
-    const ws = workspaces.find((w) => workspaceKey(w) === key);
-    if (!ws) return;
-    setBusy(true);
-    setError(null);
-    const r = await apiPostData<{ mine_id: number }>("/workspaces/select", {
-      mine_id: ws.mine_id,
-      membership_kind: ws.membership_kind,
-      ...(ws.cooperative_id != null ? { cooperative_id: ws.cooperative_id } : {}),
-    });
-    setBusy(false);
-    if (!r.ok) {
-      setError(apiErrorMessageFa(r.code, r.message));
-      return;
-    }
-    onWorkspaceChanged();
-  }
-
-  if (!showSwitcher || operationalMines.length === 0) return null;
+  if (!showMineContext) return null;
 
   const active = operationalMines.find((w) => w.mine_id === activeMineId);
-  const activeName = active ? workspaceLabel(active) : "انتخاب معدن";
+  const activeName = active ? workspaceLabel(active) : operationalMines[0] ? workspaceLabel(operationalMines[0]) : "معدن";
+
+  if (!showDropdown) {
+    return (
+      <div
+        className="workspace-switcher workspace-switcher--label"
+        data-testid="workspace-mine-label"
+        style={{
+          fontSize: 13,
+          color: "#fff",
+          fontWeight: 600,
+          padding: compact ? "8px 10px" : "8px 12px",
+          borderRadius: 8,
+          border: "1px solid rgba(255,255,255,0.2)",
+          background: "rgba(255,255,255,0.08)",
+          maxWidth: compact ? "100%" : 220,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+        title={activeName}
+      >
+        {isAdminWorkspaceRole(userRole) ? "معدن: " : ""}
+        {activeName}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -141,7 +145,7 @@ export function WorkspaceSwitcher({
         <select
           data-testid="workspace-switcher-select"
           value={choice}
-          disabled={busy || operationalMines.length < 2}
+          disabled={busy}
           onChange={(e) => {
             const key = e.target.value;
             setChoice(key);
@@ -158,7 +162,7 @@ export function WorkspaceSwitcher({
             maxWidth: compact ? "100%" : 200,
             fontSize: 13,
             fontWeight: 600,
-            cursor: operationalMines.length < 2 ? "default" : "pointer",
+            cursor: "pointer",
           }}
         >
           {operationalMines.map((w) => (

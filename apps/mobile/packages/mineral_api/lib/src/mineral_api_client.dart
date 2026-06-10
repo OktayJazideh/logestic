@@ -278,6 +278,27 @@ class MineralApiClient {
     });
   }
 
+  Future<AuthVerifyResponse> loginWithPassword({
+    required String username,
+    required String password,
+  }) async {
+    return _withBaseFallback((base) async {
+      final res = await _sendOnce(
+        _http.post(
+          Uri.parse('$base/api/auth/login-password'),
+          headers: {'content-type': 'application/json'},
+          body: jsonEncode({'username': username, 'password': password}),
+        ),
+      );
+      final body = await decodeResponse(res);
+      return AuthVerifyResponse(
+        accessToken: body['data']['access_token'] as String,
+        role: body['data']['role'] as String,
+        requestId: body['requestId'] as String?,
+      );
+    });
+  }
+
   Future<AuthMe> getMe({required String token}) async {
     final body = await getJson('/api/auth/me', token: token);
     return AuthMe.fromJson(body['data'] as Map<String, dynamic>);

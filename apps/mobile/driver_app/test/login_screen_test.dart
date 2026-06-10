@@ -1,7 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mineral_api/mineral_api.dart';
+import 'package:mineral_ui/mineral_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:driver_app/core/driver_api_client.dart';
 import 'package:driver_app/core/otp_validation.dart';
+import 'package:driver_app/ui/screens/login_screen.dart';
 
 void main() {
   group('validateMobile', () {
@@ -39,6 +44,24 @@ void main() {
         errorCode: 'otp_verification_failed',
       );
       expect(persianApiError(err), contains('نامعتبر'));
+    });
+  });
+
+  group('LoginScreen', () {
+    testWidgets('shows password login option on mobile step', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: MineralTheme.lightTheme,
+          home: LoginScreen(
+            api: DriverApiClient(baseUrl: 'http://test'),
+            sessionStore: SessionStore(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('ورود با نام کاربری و رمز'), findsOneWidget);
     });
   });
 }

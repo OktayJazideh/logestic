@@ -1,5 +1,19 @@
 /* UX-WEB-SIMPLE-1 — layout و responsive table cards */
 
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(var(--space-md, 16px), var(--safe-top)) max(var(--space-md, 16px), var(--safe-right))
+    max(var(--space-md, 16px), var(--safe-bottom)) max(var(--space-md, 16px), var(--safe-left));
+  box-sizing: border-box;
+}
+
+.mobile-sheet__panel {
+  padding-bottom: max(16px, var(--safe-bottom, 0px));
+}
+
 .simple-page__subtitle {
   max-width: 52rem;
 }
@@ -134,6 +148,28 @@
 }
 
 @media (max-width: 900px) {
+  body {
+    font-size: 15px;
+  }
+
+  .simple-page h1,
+  .panel-page h1 {
+    font-size: 21px;
+  }
+
+  .simple-footer-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .simple-footer-cta > button,
+  .simple-footer-cta > a,
+  .simple-footer-cta .simple-footer-btn,
+  .simple-footer-cta .simple-footer-link {
+    width: 100%;
+    justify-content: center;
+  }
+
   .filter-bar--stack .filter-field,
   .filter-bar--stack > * {
     flex: 1 1 100% !important;
