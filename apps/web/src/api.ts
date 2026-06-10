@@ -1,9 +1,10 @@
 import { newIdempotencyKey } from "./lib/idempotencyKey";
 import { apiErrorMessageFa } from "./lib/apiErrorsFa";
+import { resolveApiBase } from "./lib/apiBase";
 
 export { newIdempotencyKey };
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:4000/api";
+const API_BASE = resolveApiBase();
 const TOKEN_KEY = "auth_token";
 const REMEMBER_KEY = "auth_remember";
 

@@ -119,27 +119,14 @@ export function personasForApp(app: DemoApp): DemoPersona[] {
   return DEMO_PERSONAS.filter((p) => p.apps.includes(app));
 }
 
-const PRODUCTION_HOSTS = new Set([
-  "hamsahman.ir",
-  "www.hamsahman.ir",
-  "sahman.ir",
-  "www.sahman.ir",
-  "panel.sahman.ir",
-  "api.sahman.ir",
-]);
-
-function hostIsProduction(hostname: string): boolean {
-  const h = hostname.toLowerCase();
-  if (PRODUCTION_HOSTS.has(h)) return true;
-  return h.endsWith(".sahman.ir") || h.endsWith(".hamsahman.ir");
-}
+import { hostIsProduction, resolveApiBase } from "../lib/apiBase";
 
 /** Dev/UAT only — explicit VITE_ENABLE_DEMO_LOGIN=true, local dev, or staging IP API. */
 export function isDemoLoginEnabled(): boolean {
   if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "false") return false;
   if (import.meta.env.VITE_ENABLE_DEMO_LOGIN === "true") return true;
   if (typeof window !== "undefined" && hostIsProduction(window.location.hostname)) return false;
-  const api = import.meta.env.VITE_API_BASE ?? "";
+  const api = resolveApiBase();
   if (api.startsWith("/")) {
     if (typeof window !== "undefined" && hostIsProduction(window.location.hostname)) return false;
   } else {

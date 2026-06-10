@@ -5,7 +5,8 @@
 $ErrorActionPreference = "Stop"
 $VpsHost = "185.36.145.164"
 $RemoteRoot = "/opt/logestic/logestic"
-$ApiBase = "http://${VpsHost}:4000/api"
+# Web must use same-origin /api (nginx proxy). Direct :4000 is blocked on HTTPS hamsahman.ir.
+$ApiBase = "/api"
 $ApkApiBase = "http://${VpsHost}:4000"
 
 Set-Location (Join-Path $PSScriptRoot "..")
@@ -41,14 +42,18 @@ scp -r apps/backend/prisma "root@${VpsHost}:${RemoteRoot}/apps/backend/"
 Write-Host "==> upload web dist"
 scp -r apps/web/dist "root@${VpsHost}:${RemoteRoot}/apps/web/"
 
-Write-Host "==> prisma generate + migrate + restart on VPS (skip npm run build on server)"
-# Single-quoted: bash uses && on remote; avoids PowerShell parsing ${RemoteRoot} with backslash escapes.
-$remoteCmd = 'cd ' + $RemoteRoot + '/apps/backend && npx prisma generate && npx prisma migrate deploy && systemctl restart logestic-api && systemctl reload nginx && curl -sf http://127.0.0.1:4000/api/health && echo OK'
+Write-Host "==> upload fix scripts + nginx"
+ssh "root@${VpsHost}" "mkdir -p ${RemoteRoot}/scripts ${RemoteRoot}/deploy/config ${RemoteRoot}/apps/backend/scripts"
+scp scripts/fix-vps-api-path.sh scripts/set-user-credentials.sh scripts/verify-production-admin.sh "root@${VpsHost}:${RemoteRoot}/scripts/"
+scp apps/backend/scripts/set-user-credentials.ts "root@${VpsHost}:${RemoteRoot}/apps/backend/scripts/"
+scp deploy/config/nginx-ip-api.conf "root@${VpsHost}:${RemoteRoot}/deploy/config/"
+
+Write-Host "==> migrate + restart API + nginx on VPS"
+$remoteCmd = 'set -e; chmod +x ' + $RemoteRoot + '/scripts/*.sh; cp ' + $RemoteRoot + '/deploy/config/nginx-ip-api.conf /etc/nginx/sites-available/logestic-ip 2>/dev/null || true; ln -sf /etc/nginx/sites-available/logestic-ip /etc/nginx/sites-enabled/logestic-ip 2>/dev/null || true; bash ' + $RemoteRoot + '/scripts/fix-vps-api-path.sh; if nginx -t 2>/dev/null; then systemctl reload nginx; else echo WARN nginx -t failed — fix SSL config for hamsahman.ir; fi'
 ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""
-Write-Host "Done. Open http://${VpsHost}"
-Write-Host "  - remember-me checkbox on login"
-Write-Host "  - demo login buttons"
+Write-Host "Done. Open https://hamsahman.ir or http://${VpsHost}"
+Write-Host "  - web API base: /api (same-origin)"
 Write-Host "  - panel version line: $sha"
-Write-Host "  - test API: POST /api/auth/__dev/login mobile 09000000000"
+Write-Host "  - password login: oktay / oktay1380 (after set-user-credentials in fix-vps-api-path.sh)"

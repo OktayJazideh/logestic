@@ -112,4 +112,16 @@ if [ -f "${REPO}/scripts/verify-production-admin.sh" ]; then
   bash "${REPO}/scripts/verify-production-admin.sh"
 fi
 
+if [ -f "${REPO}/deploy/config/nginx-ip-api.conf" ]; then
+  echo "==> nginx IP fallback (/api proxy on port 80)"
+  cp "${REPO}/deploy/config/nginx-ip-api.conf" /etc/nginx/sites-available/logestic-ip 2>/dev/null || true
+  ln -sf /etc/nginx/sites-available/logestic-ip /etc/nginx/sites-enabled/logestic-ip 2>/dev/null || true
+  if nginx -t 2>/dev/null; then
+    systemctl reload nginx && echo "    nginx reload OK"
+  else
+    echo "    WARN nginx -t failed — run: nginx -t"
+    echo "    (hamsahman.ir SSL config may need certbot; IP fallback may still work)"
+  fi
+fi
+
 echo "DONE — admin routes should return 401 (not 404) without token"
