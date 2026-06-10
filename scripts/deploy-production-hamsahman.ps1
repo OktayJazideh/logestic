@@ -43,22 +43,15 @@ scp -r apps/backend/prisma "root@${VpsHost}:${RemoteRoot}/apps/backend/"
 Write-Host "==> upload web dist"
 scp -r apps/web/dist "root@${VpsHost}:${RemoteRoot}/apps/web/"
 
-Write-Host "==> upload verify script + nginx + env example"
-ssh "root@${VpsHost}" "mkdir -p ${RemoteRoot}/scripts"
-scp scripts/verify-production-admin.sh "root@${VpsHost}:${RemoteRoot}/scripts/"
-
-Write-Host "==> upload nginx + systemd + fix scripts"
-ssh "root@${VpsHost}" "mkdir -p ${RemoteRoot}/deploy/config ${RemoteRoot}/scripts"
-scp deploy/config/nginx-hamsahman.ir.conf "root@${VpsHost}:${RemoteRoot}/deploy/config/"
-scp deploy/config/backend.env.production.example "root@${VpsHost}:${RemoteRoot}/deploy/config/"
-scp deploy/config/logestic-api.service "root@${VpsHost}:${RemoteRoot}/deploy/config/"
-scp scripts/fix-vps-api-path.sh "root@${VpsHost}:${RemoteRoot}/scripts/"
-scp scripts/diagnose-vps-api.sh "root@${VpsHost}:${RemoteRoot}/scripts/"
-scp scripts/verify-production-admin.sh "root@${VpsHost}:${RemoteRoot}/scripts/"
+Write-Host "==> upload scripts + nginx + env example"
+ssh "root@${VpsHost}" "mkdir -p ${RemoteRoot}/scripts ${RemoteRoot}/apps/backend/scripts ${RemoteRoot}/deploy/config"
+scp scripts/verify-production-admin.sh scripts/set-user-credentials.sh scripts/fix-vps-api-path.sh scripts/diagnose-vps-api.sh "root@${VpsHost}:${RemoteRoot}/scripts/"
+scp apps/backend/scripts/set-user-credentials.ts "root@${VpsHost}:${RemoteRoot}/apps/backend/scripts/"
+scp deploy/config/nginx-hamsahman.ir.conf deploy/config/backend.env.production.example deploy/config/logestic-api.service "root@${VpsHost}:${RemoteRoot}/deploy/config/"
 
 Write-Host "==> sync dist to systemd path + migrate + restart on VPS"
 # fix-vps-api-path.sh: aligns WorkingDirectory with upload path, restarts API, runs verify.
-$remoteCmd = 'set -e; if [ ! -f /etc/logestic/backend.env ]; then echo WARNING: /etc/logestic/backend.env missing; fi; if grep -q "^ENABLE_DEMO_LOGIN=true" /etc/logestic/backend.env 2>/dev/null; then echo WARNING: set ENABLE_DEMO_LOGIN=false in /etc/logestic/backend.env for OTP-only login; fi; if [ -f ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf ]; then cp ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true; ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true; fi; chmod +x ' + $RemoteRoot + '/scripts/fix-vps-api-path.sh ' + $RemoteRoot + '/scripts/diagnose-vps-api.sh ' + $RemoteRoot + '/scripts/verify-production-admin.sh; bash ' + $RemoteRoot + '/scripts/fix-vps-api-path.sh; nginx -t && systemctl reload nginx'
+$remoteCmd = 'set -e; if [ ! -f /etc/logestic/backend.env ]; then echo WARNING: /etc/logestic/backend.env missing; fi; if grep -q "^ENABLE_DEMO_LOGIN=true" /etc/logestic/backend.env 2>/dev/null; then echo WARNING: set ENABLE_DEMO_LOGIN=false in /etc/logestic/backend.env; fi; if [ -f ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf ]; then cp ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true; ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true; fi; chmod +x ' + $RemoteRoot + '/scripts/fix-vps-api-path.sh ' + $RemoteRoot + '/scripts/diagnose-vps-api.sh ' + $RemoteRoot + '/scripts/verify-production-admin.sh ' + $RemoteRoot + '/scripts/set-user-credentials.sh; bash ' + $RemoteRoot + '/scripts/fix-vps-api-path.sh; nginx -t && systemctl reload nginx'
 ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""

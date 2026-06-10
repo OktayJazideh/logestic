@@ -93,6 +93,21 @@ systemctl is-active --quiet logestic-api || {
 
 curl -sf http://127.0.0.1:4000/api/health && echo " health OK"
 
+echo "==> auth login-password route (expect 400, not 404)"
+lp_code=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:4000/api/auth/login-password \
+  -H "Content-Type: application/json" -d '{"username":"x","password":"y"}')
+if [ "$lp_code" = "404" ]; then
+  echo "FAIL /api/auth/login-password → 404 (deploy latest backend dist)"
+  exit 1
+fi
+echo "OK /api/auth/login-password → HTTP ${lp_code}"
+
+if [ -f "${REPO}/scripts/set-user-credentials.sh" ]; then
+  echo "==> ensure admin password login (oktay)"
+  bash "${REPO}/scripts/set-user-credentials.sh" \
+    --mobile 09013019626 --username oktay --password oktay1380 || echo "WARN set-user-credentials failed (user may not exist yet)"
+fi
+
 if [ -f "${REPO}/scripts/verify-production-admin.sh" ]; then
   bash "${REPO}/scripts/verify-production-admin.sh"
 fi

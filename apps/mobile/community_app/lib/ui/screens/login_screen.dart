@@ -7,7 +7,6 @@ import 'package:mineral_ui/mineral_ui.dart';
 
 import '../../core/community_api_client.dart';
 import '../../core/community_roles.dart';
-import '../../core/operator_gate.dart';
 
 enum _LoginMode { mobile, otp, password }
 
@@ -177,46 +176,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  Future<void> _demoLogin(DemoPersona persona) async {
-    setState(() {
-      _loading = true;
-      _errorText = null;
-    });
-    try {
-      final result = await performDemoLogin(
-        api: widget.api,
-        persona: persona,
-        sessionStore: widget.sessionStore,
-      );
-      if (!isCommunityRole(result.role)) {
-        setState(() => _errorText = 'این اپ مخصوص نقش‌های تعاونی است (${result.role}).');
-        return;
-      }
-      if (!mounted) return;
-      if (result.workspaceSelected) {
-        await navigateAfterWorkspace(
-          context: context,
-          api: widget.api,
-          token: result.accessToken,
-          role: normalizeCommunityRole(result.role),
-        );
-        return;
-      }
-      Navigator.pushReplacementNamed(
-        context,
-        '/workspace-select',
-        arguments: {
-          'token': result.accessToken,
-          'role': normalizeCommunityRole(result.role),
-        },
-      );
-    } catch (e) {
-      setState(() => _errorText = authErrorMessage(e));
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return ExitAppOnBackScope(
@@ -363,12 +322,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             : Text(_mode == _LoginMode.mobile ? 'دریافت کد' : 'ورود'),
                       ),
                     ),
-                    if (_mode == _LoginMode.mobile)
-                      DemoLoginPanel(
-                      app: 'community',
-                      busy: _loading,
-                        onDemoLogin: _demoLogin,
-                      ),
                   ],
                 ),
               ),

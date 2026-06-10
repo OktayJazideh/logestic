@@ -22,6 +22,15 @@ echo "==> health"
 curl -sf "${API}/health" | head -c 200
 echo ""
 
+echo "==> auth login-password (expect 400/401, not 404)"
+lp_code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${API}/auth/login-password" \
+  -H "Content-Type: application/json" -d '{"username":"x","password":"y"}')
+if [ "$lp_code" = "404" ]; then
+  echo "FAIL /auth/login-password → 404 (backend dist stale — redeploy + restart)"
+  exit 1
+fi
+echo "OK /auth/login-password → HTTP ${lp_code}"
+
 echo "==> admin routes (no auth — expect 401, not 404)"
 ADMIN_PATHS=(
   /admin/mines

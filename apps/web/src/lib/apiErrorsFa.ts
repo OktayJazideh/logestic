@@ -17,6 +17,8 @@ const CODE_FA: Record<string, string> = {
   internal_error:
     "خطای داخلی سرور. روی VPS حتماً بعد از migrate این را اجرا کنید: npx prisma generate && npm run build && systemctl restart logestic-api",
   workspace_access_denied: "دسترسی به فضای کاری این معدن برای شما مجاز نیست.",
+  network_error:
+    "اتصال به سرور برقرار نشد. اینترنت را بررسی کنید؛ اگر از سایت اصلی (hamsahman.ir) استفاده می‌کنید و خطا ادامه دارد، API هنوز deploy نشده است.",
   invalid_credentials: "نام کاربری یا رمز عبور نادرست است.",
   password_login_disabled: "ورود با رمز برای این حساب فعال نیست. از پیامک یا با ادمین تماس بگیرید.",
   username_taken: "این نام کاربری قبلاً استفاده شده است.",

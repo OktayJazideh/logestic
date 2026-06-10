@@ -67,6 +67,27 @@ export type ApiResult<T> =
   | { ok: true; data: T; status: number }
   | { ok: false; message: string; code?: string; status: number; details?: unknown };
 
+function fetchFailureResult<T>(e: unknown): ApiResult<T> {
+  const raw = e instanceof Error ? e.message : String(e);
+  if (raw.includes("Unexpected token") && raw.includes("<")) {
+    return {
+      ok: false,
+      message: apiErrorMessageFa("invalid_response"),
+      code: "invalid_response",
+      status: 0,
+    };
+  }
+  if (raw === "Failed to fetch" || raw.includes("NetworkError") || raw.includes("fetch")) {
+    return {
+      ok: false,
+      message: apiErrorMessageFa("network_error"),
+      code: "network_error",
+      status: 0,
+    };
+  }
+  return { ok: false, message: apiErrorMessageFa(undefined, raw), status: 0 };
+}
+
 function parseApiJson<T>(j: unknown, status: number): ApiResult<T> {
   if (j && typeof j === "object" && "success" in j && (j as { success: boolean }).success === false) {
     const e = (j as { error?: { message?: string; code?: string; details?: unknown } }).error;
@@ -121,7 +142,7 @@ export async function apiGetData<T>(path: string): Promise<ApiResult<T>> {
     }
     return parsed;
   } catch (e) {
-    return { ok: false, message: String(e), status: 0 };
+    return fetchFailureResult<T>(e);
   }
 }
 
@@ -133,19 +154,23 @@ export async function apiPostPublic<T>(path: string, body: unknown): Promise<Api
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    const j = (await r.json()) as unknown;
+    let j: unknown;
+    try {
+      j = (await r.json()) as unknown;
+    } catch (parseErr) {
+      if (!r.ok) {
+        return {
+          ok: false,
+          message: apiErrorMessageFa(r.status === 404 ? "endpoint_not_found" : "invalid_response"),
+          code: r.status === 404 ? "endpoint_not_found" : "invalid_response",
+          status: r.status,
+        };
+      }
+      return fetchFailureResult<T>(parseErr);
+    }
     return parseApiJson<T>(j, r.status);
   } catch (e) {
-    const msg = String(e);
-    if (msg.includes("Unexpected token") && msg.includes("<")) {
-      return {
-        ok: false,
-        message:
-          "سرور پاسخ HTML داد — ورود دمو فعال نیست یا مسیر API اشتباه است. روی VPS: ENABLE_DEMO_LOGIN=true در /etc/logestic/backend.env و restart API.",
-        status: 0,
-      };
-    }
-    return { ok: false, message: msg, status: 0 };
+    return fetchFailureResult<T>(e);
   }
 }
 

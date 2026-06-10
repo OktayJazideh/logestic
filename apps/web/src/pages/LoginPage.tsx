@@ -5,7 +5,6 @@ import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostPublic, getRememberMePreference, getStoredToken, setRememberMePreference, setStoredToken } from "../api";
 import { mobileNumber, otpCode, required, runValidators } from "../lib/validation";
 import { BrandLogo } from "../components/BrandLogo";
-import { DemoLoginPanel } from "../components/DemoLoginPanel";
 import { apiErrorMessageFa } from "../lib/apiErrorsFa";
 import { loginErrorMessage } from "../lib/authMessages";
 import { brandNames } from "../brand";
@@ -195,6 +194,13 @@ export default function LoginPage() {
   const mobileError = getError("mobile");
   const otpError = getError("otp");
 
+  const errorActionHint =
+    step === 2
+      ? "«ارسال دوباره» یا «تغییر شماره»."
+      : step === "password"
+        ? "نام کاربری و رمز را بررسی کنید. اگر خطا ادامه داشت، deploy سرور را بررسی کنید."
+        : "شماره ثبت‌شده را وارد کنید.";
+
   return (
     <LoginShell>
       <LoginCard>
@@ -232,7 +238,7 @@ export default function LoginPage() {
         {error && (
           <ErrorBanner
             message={error}
-            actionHint={step === 2 ? "«ارسال دوباره» یا «تغییر شماره»." : "شماره ثبت‌شده را وارد کنید."}
+            actionHint={errorActionHint}
             onRetry={
               step === 2
                 ? () => void requestOtp()
@@ -324,7 +330,6 @@ export default function LoginPage() {
             >
               ورود با نام کاربری و رمز
             </Button>
-            <DemoLoginPanel app="web" />
             <MobileDownloadLinks />
           </form>
         ) : step === 2 ? (
