@@ -5,6 +5,7 @@ import { useFieldValidation } from "../hooks/useFieldValidation";
 import { apiGetData, apiPostPublic, getRememberMePreference, getStoredToken, setRememberMePreference, setStoredToken } from "../api";
 import { mobileNumber, otpCode, required, runValidators } from "../lib/validation";
 import { BrandLogo } from "../components/BrandLogo";
+import { DemoLoginPanel } from "../components/DemoLoginPanel";
 import { apiErrorMessageFa } from "../lib/apiErrorsFa";
 import { loginErrorMessage } from "../lib/authMessages";
 import { brandNames } from "../brand";
@@ -330,6 +331,7 @@ export default function LoginPage() {
             >
               ورود با نام کاربری و رمز
             </Button>
+            <DemoLoginPanel app="web" />
             <MobileDownloadLinks />
           </form>
         ) : step === 2 ? (

@@ -20,17 +20,17 @@ npm run build
 Pop-Location
 
 $ApkApiBase = "https://$Domain"
-Write-Host "==> build mobile APKs (API=$ApkApiBase, no demo login)"
+Write-Host "==> build mobile APKs (API=$ApkApiBase, demo login enabled)"
 if (Get-Command flutter -ErrorAction SilentlyContinue) {
-    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApkApiBase -App both -NoDemoLogin
+    & "$PSScriptRoot\build-apk.ps1" -ApiBaseUrl $ApkApiBase -App both
 } else {
-    Write-Warning "Flutter not on PATH - skip APK. Run: .\scripts\build-apk.ps1 -ApiBaseUrl $ApkApiBase -NoDemoLogin"
+    Write-Warning "Flutter not on PATH - skip APK. Run: .\scripts\build-apk.ps1 -ApiBaseUrl $ApkApiBase"
 }
 
-Write-Host "==> build web (OTP-only, API same-origin /api)"
+Write-Host "==> build web (API same-origin /api, demo login enabled)"
 Push-Location apps/web
 $env:VITE_API_BASE = "/api"
-$env:VITE_ENABLE_DEMO_LOGIN = "false"
+$env:VITE_ENABLE_DEMO_LOGIN = "true"
 npm run build
 $sha = git rev-parse --short HEAD
 Write-Host "    web build SHA: $sha"
@@ -51,13 +51,13 @@ scp deploy/config/nginx-hamsahman.ir.conf deploy/config/backend.env.production.e
 
 Write-Host "==> sync dist to systemd path + migrate + restart on VPS"
 # fix-vps-api-path.sh: aligns WorkingDirectory with upload path, restarts API, runs verify.
-$remoteCmd = 'set -e; if [ ! -f /etc/logestic/backend.env ]; then echo WARNING: /etc/logestic/backend.env missing; fi; if grep -q "^ENABLE_DEMO_LOGIN=true" /etc/logestic/backend.env 2>/dev/null; then echo WARNING: set ENABLE_DEMO_LOGIN=false in /etc/logestic/backend.env; fi; if [ -f ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf ]; then cp ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true; ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true; fi; chmod +x ' + $RemoteRoot + '/scripts/fix-vps-api-path.sh ' + $RemoteRoot + '/scripts/diagnose-vps-api.sh ' + $RemoteRoot + '/scripts/verify-production-admin.sh ' + $RemoteRoot + '/scripts/set-user-credentials.sh; bash ' + $RemoteRoot + '/scripts/fix-vps-api-path.sh; nginx -t && systemctl reload nginx'
+$remoteCmd = 'set -e; if [ ! -f /etc/logestic/backend.env ]; then echo WARNING: /etc/logestic/backend.env missing; fi; if ! grep -q "^ENABLE_DEMO_LOGIN=true" /etc/logestic/backend.env 2>/dev/null; then echo WARNING: set ENABLE_DEMO_LOGIN=true in /etc/logestic/backend.env for demo login; fi; if [ -f ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf ]; then cp ' + $RemoteRoot + '/deploy/config/nginx-hamsahman.ir.conf /etc/nginx/sites-available/hamsahman.ir 2>/dev/null || true; ln -sf /etc/nginx/sites-available/hamsahman.ir /etc/nginx/sites-enabled/hamsahman.ir 2>/dev/null || true; fi; chmod +x ' + $RemoteRoot + '/scripts/fix-vps-api-path.sh ' + $RemoteRoot + '/scripts/diagnose-vps-api.sh ' + $RemoteRoot + '/scripts/verify-production-admin.sh ' + $RemoteRoot + '/scripts/set-user-credentials.sh; bash ' + $RemoteRoot + '/scripts/fix-vps-api-path.sh; nginx -t && systemctl reload nginx'
 ssh "root@${VpsHost}" $remoteCmd
 
 Write-Host ""
 Write-Host "Done. Open https://$Domain"
 Write-Host "  APK downloads: https://$Domain/downloads/logestic-driver.apk"
 Write-Host "                 https://$Domain/downloads/logestic-community.apk"
-Write-Host "  - On VPS: ENABLE_DEMO_LOGIN=false + SMS_* in /etc/logestic/backend.env"
+Write-Host "  - On VPS: ENABLE_DEMO_LOGIN=true in /etc/logestic/backend.env (demo login)"
 Write-Host "  - Verify SMS: cd $RemoteRoot && npm -w backend run test:sms-prod1 -- --live"
 Write-Host "  - SSL: certbot --nginx -d $Domain -d www.$Domain"

@@ -184,6 +184,35 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  Future<void> _demoLogin(DemoPersona persona) async {
+    setState(() {
+      _loading = true;
+      _errorText = null;
+    });
+    try {
+      final result = await performDemoLogin(
+        api: widget.api,
+        persona: persona,
+        sessionStore: widget.sessionStore,
+      );
+      if (result.role != 'DRIVER') {
+        setState(() => _errorText = 'این اپ مخصوص راننده است (${result.role}).');
+        return;
+      }
+      if (!mounted) return;
+      await navigateAfterDriverAuth(
+        context: context,
+        api: widget.api,
+        token: result.accessToken,
+        sessionStore: widget.sessionStore,
+      );
+    } catch (e) {
+      setState(() => _errorText = persianApiError(e));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   String get _subtitle {
     switch (_mode) {
       case _LoginMode.mobile:
@@ -333,6 +362,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                       const SizedBox(height: 80),
+                      if (_mode == _LoginMode.mobile)
+                        DemoLoginPanel(
+                          app: 'driver',
+                          busy: _loading,
+                          onDemoLogin: _demoLogin,
+                        ),
                     ],
                   ),
                 ),
