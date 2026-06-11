@@ -263,6 +263,8 @@ async function seedUatPilotUsers(mineTaftanId: number, mineBId: number) {
   await seedMembership("09000000006", mineTaftanId, "CONSULTANT");
   await seedMembership("09000000008", mineTaftanId, "OPERATOR");
   await seedMembership("09000000007", mineTaftanId, "EMPLOYER");
+  await seedMembership("09000000002", mineTaftanId, "OPERATION_ADMIN");
+  await seedMembership("09000000103", mineTaftanId, "OPERATION_ADMIN");
   await seedMembership("09000000001", mineTaftanId, "COOP_ADMIN", 1);
   await seedMembership("09000000101", mineTaftanId, "COOP_ADMIN", 1);
   await seedMembership("09000000111", mineTaftanId, "COOP_OPERATOR", 1);

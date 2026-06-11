@@ -66,6 +66,8 @@ class _GeofenceEntryBodyState extends State<GeofenceEntryBody> {
   bool _insideFence = false;
   bool _submitting = false;
 
+  bool get _demoGeofenceBypass => isDemoLoginEnabled(apiBaseUrl: widget.api.baseUrl);
+
   StreamSubscription<Position>? _positionSub;
 
   @override
@@ -181,14 +183,14 @@ class _GeofenceEntryBodyState extends State<GeofenceEntryBody> {
     final d = haversineDistanceMeters(pos.latitude, pos.longitude, cfg.lat, cfg.lng);
     setState(() {
       _distanceM = d;
-      _insideFence = d <= cfg.radiusM;
+      _insideFence = _demoGeofenceBypass || d <= cfg.radiusM;
     });
   }
 
   Future<void> _confirm() async {
     final cfg = _config;
     final pos = _position;
-    if (cfg == null || pos == null || !_insideFence) return;
+    if (cfg == null || pos == null || (!_insideFence && !_demoGeofenceBypass)) return;
 
     final step = widget.advanceStep;
     if (step == null) {
@@ -262,13 +264,15 @@ class _GeofenceEntryBodyState extends State<GeofenceEntryBody> {
   @override
   Widget build(BuildContext context) {
     final cfg = _config;
-    final canConfirm = cfg != null && _position != null && _insideFence && !_submitting && !_loadingConfig;
+    final effectiveInside = _insideFence || _demoGeofenceBypass;
+    final canConfirm =
+        cfg != null && _position != null && effectiveInside && !_submitting && !_loadingConfig;
 
     final distanceHero = _distanceM != null
         ? 'فاصله شما: ${_distanceM!.round()} متر'
         : (_locating ? 'در حال محاسبه فاصله…' : 'موقعیت شما هنوز مشخص نیست');
 
-    final statusTone = _insideFence
+    final statusTone = effectiveInside
         ? SimpleStatusTone.success
         : (_distanceM != null ? SimpleStatusTone.warn : SimpleStatusTone.info);
 
@@ -279,10 +283,12 @@ class _GeofenceEntryBodyState extends State<GeofenceEntryBody> {
         onLogout: widget.onLogout,
         status: cfg != null
             ? SimpleStatusCard(
-                message: _insideFence
-                    ? 'داخل ${simpleLabel('geofence')} هستید — می‌توانید تأیید کنید.'
-                    : 'به ${simpleLabel('geofence')} نزدیک شوید.',
-                icon: _insideFence ? Icons.check_circle_outline : Icons.near_me_outlined,
+                message: _demoGeofenceBypass
+                    ? 'حالت دمو — تأیید بدون محدودیت مکانی.'
+                    : effectiveInside
+                        ? 'داخل ${simpleLabel('geofence')} هستید — می‌توانید تأیید کنید.'
+                        : 'به ${simpleLabel('geofence')} نزدیک شوید.',
+                icon: effectiveInside ? Icons.check_circle_outline : Icons.near_me_outlined,
                 tone: statusTone,
               )
             : null,
@@ -328,13 +334,13 @@ class _GeofenceEntryBodyState extends State<GeofenceEntryBody> {
                       driverLng: _position?.longitude,
                       distanceM: _distanceM,
                       radiusM: cfg.radiusM,
-                      insideFence: _position != null && _distanceM != null ? _insideFence : null,
+                      insideFence: _position != null && _distanceM != null ? effectiveInside : null,
                       gpsState: _locating
                           ? GeofenceGpsState.locating
                           : (_locationError != null ? GeofenceGpsState.error : GeofenceGpsState.ok),
                       gpsError: _locationError,
                     ),
-                    if (_position != null && _distanceM != null && !_insideFence) ...[
+                    if (_position != null && _distanceM != null && !effectiveInside) ...[
                       const SizedBox(height: 10),
                       const PlainLanguageError(
                         message: 'هنوز داخل محدوده نیستید.',

@@ -20,6 +20,7 @@ import {
   validateTransition,
 } from "../lib/missionFsm";
 import { haversineDistanceMeters, isWithinGeofence } from "../lib/geofence";
+import { isDevAuthEnabled } from "../config/env";
 import { resolveGeofenceForMissionStep } from "../services/geofenceService";
 import type { MissionStatus } from "@prisma/client";
 import { normalizeRole, type UserRole } from "../types/userRole";
@@ -307,7 +308,7 @@ export class MissionStore {
       return { ok: false as const, reason: "location_required" };
     }
 
-    if (params.step === "ARRIVED" || params.step === "DELIVERED") {
+    if ((params.step === "ARRIVED" || params.step === "DELIVERED") && !isDevAuthEnabled()) {
       const fence = await resolveGeofenceForMissionStep({
         mineId: mission.mine_id,
         step: params.step,

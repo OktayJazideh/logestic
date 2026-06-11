@@ -7,6 +7,7 @@ import { prisma } from "../src/db/prisma";
 import {
   membershipKindForRole,
   upsertMembership,
+  type MembershipKind,
 } from "../src/repositories/workspaceMembershipsRepository";
 import { isGlobalWorkspaceRole } from "../src/services/userProvisioningService";
 import { toNum } from "../src/repositories/id";
@@ -47,16 +48,27 @@ async function main() {
     }
 
     if (mineId == null) {
+      const kind = membershipKindForRole(role);
+      if (kind === "OPERATIONAL") {
+        const firstMine = await prisma.mines.findFirst({ orderBy: { id: "asc" } });
+        if (firstMine) mineId = toNum(firstMine.id);
+      }
+    }
+
+    if (mineId == null) {
       // eslint-disable-next-line no-console
       console.warn(`SKIP user ${u.id} (${u.mobile_number}, ${role}): no cooperative/mine to infer`);
       skipped++;
       continue;
     }
 
+    const membershipKind: MembershipKind =
+      membershipKindForRole(role) === "COMMUNITY" ? "COMMUNITY" : "OPERATIONAL";
+
     await upsertMembership({
       user_id: toNum(u.id),
       mine_id: mineId,
-      cooperative_id: cooperativeId,
+      cooperative_id: membershipKind === "COMMUNITY" ? cooperativeId : undefined,
       role_in_workspace: role,
       status: "ACTIVE",
     });
