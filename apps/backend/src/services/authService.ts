@@ -1,4 +1,5 @@
 import { userHasPassword, verifyPassword } from "../lib/passwordHash";
+import * as workspaceRepo from "../repositories/workspaceMembershipsRepository";
 import { OtpStore, type OtpRequestResult } from "../stores/otpStore";
 import { SessionStore, type Session } from "../stores/sessionStore";
 import { UserStore, type User } from "../stores/userStore";
@@ -54,6 +55,11 @@ export class AuthService {
       return { ok: false as const, reason: gate.reason as AuthVerifyFailureReason };
     }
     const user = gate.user;
+    await workspaceRepo.ensureDemoWorkspaceMembership({
+      userId: user.id,
+      userRole: user.role,
+      cooperativeId: user.cooperative_id,
+    });
     const session = await this.sessionStore.createSession({
       userId: user.id,
       mobile_number: user.mobile_number,

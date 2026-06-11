@@ -1,4 +1,5 @@
 import { prisma } from "../db/prisma";
+import { isDevAuthEnabled } from "../config/env";
 import type { UserRole } from "../types/userRole";
 import { normalizeRole, isCoopScopedRole } from "../types/userRole";
 import { toBig, toNum } from "./id";
@@ -186,6 +187,64 @@ export async function findActiveMembership(params: {
   }
 
   return mapRow(rows[0]!);
+}
+
+/** Demo/UAT: create missing workspace row so seeded users work without re-running db:seed. */
+export async function ensureDemoWorkspaceMembership(params: {
+  userId: number;
+  userRole: UserRole;
+  mineId?: number;
+  cooperativeId?: number;
+  membershipKind?: MembershipKind;
+}): Promise<void> {
+  if (!isDevAuthEnabled()) return;
+  if (isGlobalWorkspaceRole(params.userRole)) return;
+
+  const kind = params.membershipKind ?? membershipKindForRole(params.userRole);
+  if (!kind) return;
+
+  let mineId = params.mineId;
+  if (mineId == null) {
+    if (params.cooperativeId != null) {
+      const coop = await cooperativesRepo.findCooperativeById(params.cooperativeId);
+      if (coop) mineId = coop.mine_id;
+    }
+    if (mineId == null) {
+      const firstMine = await prisma.mines.findFirst({ orderBy: { id: "asc" } });
+      if (!firstMine) return;
+      mineId = toNum(firstMine.id);
+    }
+  }
+
+  const coopIdForLookup = kind === "COMMUNITY" ? params.cooperativeId : undefined;
+  const existing = await findActiveMembership({
+    userId: params.userId,
+    mineId,
+    cooperativeId: coopIdForLookup,
+  });
+  if (existing) return;
+
+  let cooperativeId = kind === "COMMUNITY" ? params.cooperativeId : undefined;
+  if (kind === "COMMUNITY" && cooperativeId == null) {
+    const user = await prisma.users.findUnique({ where: { id: toBig(params.userId) } });
+    cooperativeId =
+      user?.cooperative_id != null ? toNum(user.cooperative_id) : undefined;
+    if (cooperativeId == null) {
+      const coop = await prisma.cooperatives.findFirst({
+        where: { mine_id: toBig(mineId) },
+        orderBy: { id: "asc" },
+      });
+      if (coop) cooperativeId = toNum(coop.id);
+    }
+  }
+
+  await upsertMembership({
+    user_id: params.userId,
+    mine_id: mineId,
+    cooperative_id: cooperativeId,
+    role_in_workspace: params.userRole,
+    status: "ACTIVE",
+  });
 }
 
 export async function assertUserCanAccessMine(params: {

@@ -75,6 +75,11 @@ cd "${BACKEND}"
 npx prisma generate
 npx prisma migrate deploy
 
+if [ -f "${REPO}/scripts/backfill-workspace-memberships.sh" ]; then
+  echo "==> backfill workspace memberships (demo/scoped roles)"
+  bash "${REPO}/scripts/backfill-workspace-memberships.sh" || echo "WARN backfill-workspace-memberships failed"
+fi
+
 echo "==> hard restart (stop + free port 4000)"
 systemctl stop logestic-api || true
 sleep 1

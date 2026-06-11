@@ -80,6 +80,13 @@ router.post("/workspaces/select", requireAuth, async (req, res, next) => {
     }
 
     try {
+      await workspaceRepo.ensureDemoWorkspaceMembership({
+        userId: auth.user.id,
+        userRole: auth.user.role,
+        mineId: mine.id,
+        cooperativeId: body.data.cooperative_id,
+        membershipKind,
+      });
       await workspaceRepo.assertUserCanAccessMine({
         userId: auth.user.id,
         userRole: auth.user.role,
