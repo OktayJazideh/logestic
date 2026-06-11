@@ -21,6 +21,7 @@ String authErrorMessage(Object error) {
         return 'درخواست‌های زیاد. لطفاً چند دقیقه بعد دوباره تلاش کنید.';
       case 'sms_send_failed':
         return 'ارسال پیامک با خطا مواجه شد. چند دقیقه بعد دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.';
+      case 'demo_login_disabled':
       case 'not_found':
         return 'ورود دمو روی سرور فعال نیست. ENABLE_DEMO_LOGIN=true در backend.env و restart سرویس.';
     }

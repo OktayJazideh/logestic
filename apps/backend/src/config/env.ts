@@ -162,6 +162,7 @@ export const env: Env = EnvSchema.parse({
   PLATFORM_NAME: process.env.PLATFORM_NAME,
   CORS_ORIGINS: process.env.CORS_ORIGINS,
   TRUST_PROXY: process.env.TRUST_PROXY,
+  ENABLE_DEMO_LOGIN: process.env.ENABLE_DEMO_LOGIN,
 });
 
 export function getWeighbridgeBridgeConfig(weighbridgeId: number): WeighbridgeBridgeConfig | null {

@@ -19,6 +19,8 @@ const CODE_FA: Record<string, string> = {
   workspace_access_denied: "دسترسی به فضای کاری این معدن برای شما مجاز نیست.",
   network_error:
     "اتصال به سرور برقرار نشد. اینترنت را بررسی کنید؛ اگر از سایت اصلی (hamsahman.ir) استفاده می‌کنید و خطا ادامه دارد، API هنوز deploy نشده است.",
+  demo_login_disabled:
+    "ورود دمو روی سرور فعال نیست. در /etc/logestic/backend.env مقدار ENABLE_DEMO_LOGIN=true بگذارید و سرویس API را restart کنید.",
   invalid_credentials: "نام کاربری یا رمز عبور نادرست است.",
   password_login_disabled: "ورود با رمز برای این حساب فعال نیست. از پیامک یا با ادمین تماس بگیرید.",
   username_taken: "این نام کاربری قبلاً استفاده شده است.",

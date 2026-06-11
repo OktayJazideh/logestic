@@ -303,7 +303,7 @@ router.get("/myPermissions", requireAuth, (req, res) => {
 router.get("/__dev/audit", async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
   if (!isDevAuthEnabled()) {
-    return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
+    return res.status(403).json(failure("demo_login_disabled", "Demo login is disabled on this server", undefined, requestId));
   }
   try {
     const items = await appContext.auditStore.getAll();
@@ -317,7 +317,7 @@ router.get("/__dev/audit", async (req, res, next) => {
 router.post("/__dev/login", async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
   if (!isDevAuthEnabled()) {
-    return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
+    return res.status(403).json(failure("demo_login_disabled", "Demo login is disabled on this server", undefined, requestId));
   }
   const body = z.object({ mobile_number: MobileSchema }).safeParse(req.body);
   if (!body.success) {
@@ -369,7 +369,7 @@ router.post("/__dev/login", async (req, res, next) => {
 router.get("/__dev/otp", async (req, res, next) => {
   const requestId = (req as any).requestId as string | undefined;
   if (!isDevAuthEnabled()) {
-    return res.status(404).json(failure("not_found", "Not found", undefined, requestId));
+    return res.status(403).json(failure("demo_login_disabled", "Demo login is disabled on this server", undefined, requestId));
   }
   const mobile = z.string().trim().regex(/^\d{9,15}$/).safeParse(req.query.mobile_number).success
     ? String(req.query.mobile_number)
